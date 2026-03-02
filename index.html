@@ -26,10 +26,84 @@
     <div class="main">
 
       <div id="home" class="section">
-        <h1>Dashboard</h1>
-        <div class="card">Total Sales Today: ₹12,540</div>
-        <div class="card">Appointments Today: 18</div>
-        <div class="card">Low Stock: Hair Serum</div>
+    <div class="dashboard">
+
+      <h1>Dashboard</h1>
+
+      <!-- Top Stats -->
+      <div class="stats-container">
+
+        <div class="card">
+          <h3>Total Sales Today</h3>
+          <p class="big">₹12,450</p>
+          <span class="positive">+18% from yesterday</span>
+        </div>
+
+        <div class="card">
+          <h3>Appointments Scheduled</h3>
+          <p class="big">24</p>
+          <span>5 ongoing right now</span>
+        </div>
+
+        <div class="card">
+          <h3>Walk-in Customers</h3>
+          <p class="big">7</p>
+          <span>Since morning</span>
+        </div>
+
+        <div class="card alert-card">
+          <h3>Low Inventory Alerts</h3>
+          <ul>
+            <li>Hair Serum – 2 left</li>
+            <li>Face Cream – 1 left</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Quick Add Appointment -->
+      <div class="quick-add">
+        <h2>Quick Add Appointment</h2>
+        <form id="appointmentForm">
+          <input type="text" placeholder="Client Name" required>
+          <input type="text" placeholder="Service" required>
+          <input type="time" required>
+          <button type="submit">Add Appointment</button>
+        </form>
+      </div>
+
+      <!-- Today's Appointments List -->
+      <div class="appointments-list">
+        <h2>Today's Appointments</h2>
+        <table>
+          <tr>
+            <th>Time</th>
+            <th>Client</th>
+            <th>Service</th>
+            <th>Status</th>
+          </tr>
+          <tr>
+            <td>10:00 AM</td>
+            <td>Priya</td>
+            <td>Hair Spa</td>
+            <td>Completed</td>
+          </tr>
+          <tr>
+            <td>12:30 PM</td>
+            <td>Anjali</td>
+            <td>Facial</td>
+            <td>Ongoing</td>
+          </tr>
+          <tr>
+            <td>3:00 PM</td>
+            <td>Meera</td>
+            <td>Haircut</td>
+            <td>Upcoming</td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
       </div>
 
       <div id="calendar" class="section" style="display:none;">
