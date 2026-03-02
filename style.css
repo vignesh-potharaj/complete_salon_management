@@ -123,3 +123,74 @@ body {
   border-bottom: 1px solid #eee;
   text-align: left;
 }
+.calendar-header {
+  margin-bottom: 15px;
+}
+
+.staff-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin-left: 80px;
+  margin-bottom: 5px;
+}
+
+.staff-name {
+  text-align: center;
+  font-weight: bold;
+  padding: 10px;
+  background: white;
+  border: 1px solid #ddd;
+}
+
+.calendar-container {
+  display: flex;
+  height: 660px;
+  background: white;
+  border: 1px solid #ccc;
+}
+
+.time-column {
+  width: 80px;
+  border-right: 1px solid #ccc;
+}
+
+.time-column div {
+  height: 60px;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+  padding-left: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.calendar-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(11, 60px);
+  position: relative;
+}
+
+.calendar-grid div {
+  border-right: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+.appointment {
+  background: #ff4d4d;
+  color: white;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin: 3px;
+  z-index: 5;
+}
+
+.appointment strong {
+  font-size: 13px;
+}
+
+.purple { background: #8e44ad; }
+.blue { background: #2980b9; }
+.orange { background: #e67e22; }
+.green { background: #27ae60; }
