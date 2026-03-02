@@ -1,8 +1,9 @@
+function showSection(sectionId) {
+  const sections = document.querySelectorAll(".section");
 
-const burger = document.getElementById("burger");
-const sidebar = document.getElementById("sidebar");
+  sections.forEach(section => {
+    section.style.display = "none";
+  });
 
-burger.addEventListener("click", () => {
-sidebar.classList.toggle("active");
-burger.classList.toggle("active");
-});
+  document.getElementById(sectionId).style.display = "block";
+}
