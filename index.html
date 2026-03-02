@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Salon Management Demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <h2>SalonPro</h2>
+      <ul>
+        <li onclick="showSection('home')">Home</li>
+        <li onclick="showSection('calendar')">Calendar</li>
+        <li onclick="showSection('clients')">Clients</li>
+        <li onclick="showSection('staff')">Staff</li>
+        <li onclick="showSection('inventory')">Inventory</li>
+        <li onclick="showSection('checkout')">Check-Out</li>
+        <li onclick="showSection('reports')">Reports</li>
+      </ul>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+      <div id="home" class="section">
+        <h1>Dashboard</h1>
+        <div class="card">Total Sales Today: ₹12,540</div>
+        <div class="card">Appointments Today: 18</div>
+        <div class="card">Low Stock: Hair Serum</div>
+      </div>
+
+      <div id="calendar" class="section" style="display:none;">
+        <h1>Calendar</h1>
+        <p>Appointment calendar demo here</p>
+      </div>
+
+      <div id="clients" class="section" style="display:none;">
+        <h1>Clients</h1>
+        <p>Client list demo here</p>
+      </div>
+
+      <div id="staff" class="section" style="display:none;">
+        <h1>Staff</h1>
+        <p>Staff management demo here</p>
+      </div>
+
+      <div id="inventory" class="section" style="display:none;">
+        <h1>Inventory</h1>
+        <p>Inventory demo here</p>
+      </div>
+
+      <div id="checkout" class="section" style="display:none;">
+        <h1>Check-Out</h1>
+        <p>Billing demo here</p>
+      </div>
+
+      <div id="reports" class="section" style="display:none;">
+        <h1>Reports</h1>
+        <p>Reports demo here</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
