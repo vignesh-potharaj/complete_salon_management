@@ -537,6 +537,267 @@ function finalizeSale() {
   renderBill();
 }
 
+let monthlyRevenue = [45000, 52000, 61000, 70000, 82000, 91000];
+let totalBills = 48;
+
+function loadReports() {
+
+  let totalRevenue = monthlyRevenue.reduce((a,b) => a+b, 0);
+  let serviceRevenue = Math.round(totalRevenue * 0.7);
+  let productRevenue = Math.round(totalRevenue * 0.3);
+  let avgBill = Math.round(totalRevenue / totalBills);
+
+  repTotalRevenue.innerText = totalRevenue;
+  repServiceRevenue.innerText = serviceRevenue;
+  repProductRevenue.innerText = productRevenue;
+  repAvgBill.innerText = avgBill;
+
+  renderRevenueChart();
+  renderSalesChart(serviceRevenue, productRevenue);
+  renderStaffReport();
+}
+
+function renderRevenueChart() {
+
+  new Chart(document.getElementById("revenueChart"), {
+    type: "line",
+    data: {
+      labels: ["Jan","Feb","Mar","Apr","May","Jun"],
+      datasets: [{
+        label: "Revenue",
+        data: monthlyRevenue,
+        borderWidth: 2,
+        tension: 0.3
+      }]
+    }
+  });
+}
+
+function renderSalesChart(serviceRevenue, productRevenue) {
+
+  new Chart(document.getElementById("salesChart"), {
+    type: "pie",
+    data: {
+      labels: ["Services","Products"],
+      datasets: [{
+        data: [serviceRevenue, productRevenue]
+      }]
+    }
+  });
+}
+
+function renderStaffReport() {
+
+  let table = document.querySelector("#staffReportTable tbody");
+  table.innerHTML = "";
+
+  document.querySelectorAll("#staffTable tbody tr").forEach(row => {
+
+    let name = row.cells[0].innerText;
+    let revenue = parseInt(row.cells[4].innerText.replace("₹",""));
+    let commission = parseInt(row.cells[3].innerText.replace("%",""));
+    let earned = Math.round(revenue * commission / 100);
+
+    table.innerHTML += `
+      <tr>
+        <td>${name}</td>
+        <td>₹${revenue}</td>
+        <td>${commission}%</td>
+        <td>₹${earned}</td>
+      </tr>
+    `;
+  });
+}
+
+/* Auto load when reports section opens */
+document.querySelector("li[onclick=\"showSection('reports')\"]")
+.addEventListener("click", loadReports);
 /* Refresh product list whenever checkout opens */
 document.querySelector("li[onclick=\"showSection('checkout')\"]")
 .addEventListener("click", populateProductDropdown);
+/* ================= REPORT TAB SWITCH ================= */
+
+function switchReportTab(tab) {
+
+  document.querySelectorAll(".report-content").forEach(el => {
+    el.style.display = "none";
+  });
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  document.getElementById("report-" + tab).style.display = "block";
+  event.target.classList.add("active");
+}
+
+/* ================= DEMO CHARTS ================= */
+
+function loadReportCharts() {
+
+  new Chart(document.getElementById("execRevenueChart"), {
+    type: "line",
+    data: {
+      labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      datasets: [{
+        label: "Revenue",
+        data: [35000,42000,48000,52000,61000,58000,65000,70000,72000,76000,82000,90000],
+        borderWidth: 2,
+        tension: 0.3
+      }]
+    }
+  });
+  new Chart(document.getElementById("topServiceChart"), {
+    type: "bar",
+    data: {
+      labels: ["Keratin","Hair Color","Facial","Haircut"],
+      datasets: [{
+        label: "Revenue",
+        data: [120000, 98000, 76000, 54000]
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("salesPieChart"), {
+    type: "pie",
+    data: {
+      labels: ["Services","Products"],
+      datasets: [{
+        data: [70,30]
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("staffBarChart"), {
+    type: "bar",
+    data: {
+      labels: ["Aarav","Ishita","Rohan","Meher","Vivaan"],
+      datasets: [{
+        label: "Revenue",
+        data: [82000, 96000, 54000, 61000, 73000]
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("clientGrowthChart"), {
+    type: "line",
+    data: {
+      labels: ["Jan","Feb","Mar","Apr","May","Jun"],
+      datasets: [{
+        label: "New Clients",
+        data: [24,32,28,40,36,52],
+        tension: 0.3
+      }]
+    }
+  });
+}
+
+/* Load charts when reports opened */
+document.querySelector("li[onclick=\"showSection('reports')\"]")
+.addEventListener("click", loadReportCharts);
+function switchReportTab(tab, btn) {
+
+  document.querySelectorAll(".report-content").forEach(el => {
+    el.style.display = "none";
+  });
+
+  document.querySelectorAll(".tab-btn").forEach(el => {
+    el.classList.remove("active");
+  });
+
+  document.getElementById("report-" + tab).style.display = "block";
+  btn.classList.add("active");
+}
+
+function loadReportCharts() {
+
+  new Chart(document.getElementById("execRevenueChart"), {
+    type: "line",
+    data: {
+      labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      datasets: [{
+        label: "Revenue",
+        data: [35000,42000,48000,52000,61000,58000,65000,70000,72000,76000,82000,90000],
+        borderWidth: 2,
+        tension: 0.3
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("salesPieChart"), {
+    type: "pie",
+    data: {
+      labels: ["Services","Products"],
+      datasets: [{ data: [70,30] }]
+    }
+  });
+
+  new Chart(document.getElementById("topServiceChart"), {
+    type: "bar",
+    data: {
+      labels: ["Keratin","Hair Color","Facial","Haircut"],
+      datasets: [{
+        label: "Revenue",
+        data: [120000,98000,76000,54000]
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("staffRevenueChart"), {
+    type: "bar",
+    data: {
+      labels: ["Aarav","Ishita","Rohan","Meher","Vivaan"],
+      datasets: [{
+        label: "Revenue",
+        data: [82000,96000,54000,61000,73000]
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("attendanceChart"), {
+    type: "bar",
+    data: {
+      labels: ["Aarav","Ishita","Rohan","Meher","Vivaan"],
+      datasets: [{
+        label: "Attendance %",
+        data: [96,98,82,88,91]
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("clientGrowthChart"), {
+    type: "line",
+    data: {
+      labels: ["Jan","Feb","Mar","Apr","May","Jun"],
+      datasets: [{
+        label: "New Clients",
+        data: [24,32,28,40,36,52],
+        tension: 0.3
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("recurringClientChart"), {
+    type: "pie",
+    data: {
+      labels: ["Recurring","New"],
+      datasets: [{
+        data: [78,22]
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("inventoryMarginChart"), {
+    type: "bar",
+    data: {
+      labels: ["Keratin Serum","Facial Cream","Shampoo","Beard Oil"],
+      datasets: [{
+        label: "Profit Margin %",
+        data: [28,35,22,30]
+      }]
+    }
+  });
+}
+
+document.querySelector("li[onclick=\"showSection('reports')\"]")
+.addEventListener("click", loadReportCharts);

@@ -571,14 +571,76 @@
       </div>
 
     </div>
-      <div id="reports" class="section" style="display:none;">
-        <h1>Reports</h1>
-        <p>Reports demo here</p>
+    <!-- ================= REPORTS DASHBOARD ================= -->
+  <div id="reports" class="section" style="display:none;">
+
+    <h2>Reports & Analytics</h2>
+
+    <div class="report-tabs">
+      <button class="tab-btn active" onclick="switchReportTab('executive', this)">Executive</button>
+      <button class="tab-btn" onclick="switchReportTab('sales', this)">Sales</button>
+      <button class="tab-btn" onclick="switchReportTab('staff', this)">Staff</button>
+      <button class="tab-btn" onclick="switchReportTab('clients', this)">Clients</button>
+      <button class="tab-btn" onclick="switchReportTab('inventory', this)">Inventory</button>
+    </div>
+
+    <!-- EXECUTIVE -->
+    <div id="report-executive" class="report-content">
+
+      <div class="report-cards">
+        <div class="report-card"><h3>₹4,82,000</h3><p>Total Revenue</p></div>
+        <div class="report-card"><h3>₹1,36,000</h3><p>Net Profit</p></div>
+        <div class="report-card"><h3>+18%</h3><p>Growth Rate</p></div>
+        <div class="report-card"><h3>₹2,850</h3><p>Avg Bill</p></div>
+        <div class="report-card"><h3>186</h3><p>Total Appointments</p></div>
+        <div class="report-card"><h3>142</h3><p>Recurring Clients</p></div>
+        <div class="report-card"><h3>78%</h3><p>Retention Rate</p></div>
+        <div class="report-card"><h3>₹72,000</h3><p>Inventory Value</p></div>
+      </div>
+
+      <div class="chart-box">
+        <canvas id="execRevenueChart"></canvas>
       </div>
 
     </div>
-  </div>
 
-  <script src="script.js"></script>
+    <!-- SALES -->
+    <div id="report-sales" class="report-content" style="display:none;">
+      <div class="chart-row">
+        <div class="chart-box"><canvas id="salesPieChart"></canvas></div>
+        <div class="chart-box"><canvas id="topServiceChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- STAFF -->
+    <div id="report-staff" class="report-content" style="display:none;">
+      <div class="chart-row">
+        <div class="chart-box"><canvas id="staffRevenueChart"></canvas></div>
+        <div class="chart-box"><canvas id="attendanceChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div id="report-clients" class="report-content" style="display:none;">
+      <div class="chart-row">
+        <div class="chart-box"><canvas id="clientGrowthChart"></canvas></div>
+        <div class="chart-box"><canvas id="recurringClientChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div id="report-inventory" class="report-content" style="display:none;">
+      <div class="report-cards">
+        <div class="report-card"><h3>₹72,000</h3><p>Total Stock Value</p></div>
+        <div class="report-card"><h3>₹18,400</h3><p>Reorder Required</p></div>
+        <div class="report-card"><h3>5</h3><p>Low Stock Items</p></div>
+        <div class="report-card"><h3>₹28,000</h3><p>Dead Stock Value</p></div>
+      </div>
+      <div class="chart-box">
+        <canvas id="inventoryMarginChart"></canvas>
+      </div>
+    </div>
+
+</div>  <script src="script.js"></script>
 </body>
 </html>
