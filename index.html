@@ -107,20 +107,38 @@
       </div>
 
     <div id="calendar" class="section" style="display:none;">
-
+      <button class="add-btn" onclick="alert('Open Add Appointment Form')">+</button>
       <div class="calendar-header">
         <h2>Thursday, 10 April 2025</h2>
       </div>
 
       <!-- Staff Row -->
-      <div class="staff-row">
-        <div class="staff-name">Aarav</div>
-        <div class="staff-name">Ishita</div>
-        <div class="staff-name">Rohan</div>
-        <div class="staff-name">Meher</div>
-        <div class="staff-name">Vivaan</div>
+    <div class="staff-row">
+      <div class="staff-card">
+        <img src="https://randomuser.me/api/portraits/men/75.jpg">
+        <span>Aarav</span>
       </div>
 
+      <div class="staff-card">
+        <img src="https://randomuser.me/api/portraits/women/65.jpg">
+        <span>Ishita</span>
+      </div>
+
+      <div class="staff-card">
+        <img src="https://randomuser.me/api/portraits/men/32.jpg">
+        <span>Rohan</span>
+      </div>
+
+      <div class="staff-card">
+        <img src="https://randomuser.me/api/portraits/women/44.jpg">
+        <span>Meher</span>
+      </div>
+
+      <div class="staff-card">
+        <img src="https://randomuser.me/api/portraits/men/12.jpg">
+        <span>Vivaan</span>
+      </div>
+    </div>
       <!-- Calendar Body -->
       <div class="calendar-container">
 
@@ -171,16 +189,29 @@
           </div>
 
           <!-- Appointment 5 -->
-          <div class="appointment green" style="grid-column: 5; grid-row: 6;">
-            <strong>Rahul Nair</strong><br>
-            Keratin Treatment<br>
-            1:00 PM - ₹4,500
-          </div>
+        <div class="appointment green"
+            style="grid-column: 5; grid-row: 6 / span 2;"
+            onclick="openModal('Rahul Nair','Keratin Treatment','1:00 PM - 3:00 PM','₹4,500','Vivaan')">
+          <strong>Rahul Nair</strong><br>
+          Keratin Treatment<br>
+          1:00 PM - 3:00 PM
+        </div>
 
         </div>
 
       </div>
 
+    </div>
+    <div id="appointmentModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3>Appointment Details</h3>
+        <p><strong>Client:</strong> <span id="modalClient"></span></p>
+        <p><strong>Service:</strong> <span id="modalService"></span></p>
+        <p><strong>Time:</strong> <span id="modalTime"></span></p>
+        <p><strong>Amount:</strong> <span id="modalAmount"></span></p>
+        <p><strong>Staff:</strong> <span id="modalStaff"></span></p>
+      </div>
     </div>
       <div id="clients" class="section" style="display:none;">
         <h1>Clients</h1>
