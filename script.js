@@ -395,3 +395,148 @@ function loadInventoryDemoData() {
 }
 
 window.addEventListener("DOMContentLoaded", loadInventoryDemoData);
+/* ================= CHECKOUT LOGIC ================= */
+
+let billItems = [];
+
+function populateProductDropdown() {
+
+  const productSelect = document.getElementById("productSelect");
+  productSelect.innerHTML = "<option value=''>Select Product</option>";
+
+  document.querySelectorAll("#inventoryTable tbody tr").forEach(row => {
+
+    let name = row.cells[0].innerText;
+    let price = row.cells[8].innerText.replace("₹","");
+    let stock = row.cells[2].innerText;
+
+    if (parseInt(stock) > 0) {
+      productSelect.innerHTML += 
+        `<option value="${name}|${price}">${name} - ₹${price}</option>`;
+    }
+  });
+}
+
+function addServiceToBill() {
+
+  let val = serviceSelect.value;
+  if (!val) return;
+
+  let [name, price] = val.split("|");
+  addToBill(name, "Service", parseInt(price));
+}
+
+function addProductToBill() {
+
+  let val = productSelect.value;
+  if (!val) return;
+
+  let [name, price] = val.split("|");
+  addToBill(name, "Product", parseInt(price));
+}
+
+function addToBill(name, type, price) {
+
+  let existing = billItems.find(item => item.name === name);
+
+  if (existing) {
+    existing.qty++;
+  } else {
+    billItems.push({ name, type, price, qty: 1 });
+  }
+
+  renderBill();
+}
+
+function renderBill() {
+
+  let tbody = document.querySelector("#billTable tbody");
+  tbody.innerHTML = "";
+
+  billItems.forEach((item, index) => {
+
+    let total = item.qty * item.price;
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${item.name}</td>
+        <td>${item.type}</td>
+        <td>
+          <button class="qty-btn" onclick="changeQty(${index},-1)">-</button>
+          ${item.qty}
+          <button class="qty-btn" onclick="changeQty(${index},1)">+</button>
+        </td>
+        <td>₹${item.price}</td>
+        <td>₹${total}</td>
+        <td><button onclick="removeItem(${index})">X</button></td>
+      </tr>
+    `;
+  });
+
+  calculateTotals();
+}
+
+function changeQty(index, delta) {
+
+  billItems[index].qty += delta;
+  if (billItems[index].qty <= 0) {
+    billItems.splice(index,1);
+  }
+
+  renderBill();
+}
+
+function removeItem(index) {
+  billItems.splice(index,1);
+  renderBill();
+}
+
+function calculateTotals() {
+
+  let subtotal = 0;
+
+  billItems.forEach(item => {
+    subtotal += item.qty * item.price;
+  });
+
+  let gst = Math.round(subtotal * 0.18);
+  let total = subtotal + gst;
+
+  billSubtotal.innerText = subtotal;
+  billGST.innerText = gst;
+  billTotal.innerText = total;
+}
+
+function printBill() {
+  window.print();
+}
+
+/* Reduce inventory when product sold */
+function finalizeSale() {
+
+  billItems.forEach(item => {
+
+    if (item.type === "Product") {
+
+      document.querySelectorAll("#inventoryTable tbody tr").forEach(row => {
+
+        if (row.cells[0].innerText === item.name) {
+
+          let stock = parseInt(row.cells[2].innerText);
+          stock -= item.qty;
+          if (stock < 0) stock = 0;
+
+          row.cells[2].innerText = stock;
+          recalcRow(row);
+        }
+      });
+    }
+  });
+
+  billItems = [];
+  renderBill();
+}
+
+/* Refresh product list whenever checkout opens */
+document.querySelector("li[onclick=\"showSection('checkout')\"]")
+.addEventListener("click", populateProductDropdown);
