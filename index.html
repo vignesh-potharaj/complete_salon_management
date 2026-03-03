@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Salon Management Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -312,11 +313,120 @@
       </div>
 
     </div>
-      <div id="staff" class="section" style="display:none;">
-        <h1>Staff</h1>
-        <p>Staff management demo here</p>
+    <div id="staff" class="section" style="display:none;">
+
+      <h2>Staff Management</h2>
+
+      <!-- Summary Cards -->
+      <div class="staff-stats">
+        <div class="stat-card">
+          <h3>8</h3>
+          <p>Total Staff</p>
+        </div>
+        <div class="stat-card">
+          <h3>6</h3>
+          <p>On Duty Today</p>
+        </div>
+        <div class="stat-card">
+          <h3>₹42,500</h3>
+          <p>Revenue Today</p>
+        </div>
+        <div class="stat-card">
+          <h3>Ishita</h3>
+          <p>Top Performer</p>
+        </div>
       </div>
 
+      <!-- Add Staff Button -->
+      <div style="margin-bottom:15px;">
+        <button class="add-staff-btn" onclick="openStaffModal()">+ Add Staff</button>
+      </div>
+
+      <!-- Staff Table -->
+      <div class="table-container">
+        <table id="staffTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Phone</th>
+              <th>Commission %</th>
+              <th>Revenue</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <tr onclick="openStaffProfile('Aarav','Senior Stylist','9876501234','20','18500','Present')">
+              <td>Aarav</td>
+              <td>Senior Stylist</td>
+              <td>9876501234</td>
+              <td>20%</td>
+              <td>₹18,500</td>
+              <td><span class="status present">Present</span></td>
+              <td>
+              <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
+              </td> 
+            </tr>
+
+            <tr onclick="openStaffProfile('Ishita','Color Specialist','9988774455','25','25200','Present')">
+              <td>Ishita</td>
+              <td>Color Specialist</td>
+              <td>9988774455</td>
+              <td>25%</td>
+              <td>₹25,200</td>
+              <td><span class="status present">Present</span></td>
+              <td>
+              <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
+              </td>               
+            </tr>
+
+            <tr onclick="openStaffProfile('Rohan','Beard Expert','9123456712','18','9800','Absent')">
+              <td>Rohan</td>
+              <td>Beard Expert</td>
+              <td>9123456712</td>
+              <td>18%</td>
+              <td>₹9,800</td>
+              <td><span class="status absent">Absent</span></td>
+              <td>
+              <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
+              </td> 
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+        <div id="staffPanel" class="side-panel">
+          <div class="side-panel-content">
+            <span class="close" onclick="closeStaffPanel()">&times;</span>
+
+            <h3 id="staffName"></h3>
+            <p><strong>Role:</strong> <span id="staffRole"></span></p>
+            <p><strong>Phone:</strong> <span id="staffPhone"></span></p>
+            <p><strong>Commission:</strong> <span id="staffCommission"></span>%</p>
+            <p><strong>Total Revenue:</strong> ₹<span id="staffRevenue"></span></p>
+
+            <h4>Commission Earned</h4>
+            <p id="commissionEarned"></p>
+
+            <h4>Monthly Performance</h4>
+            <canvas id="staffChart"></canvas>
+
+          </div>
+        </div>
+        <div id="addStaffModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeStaffModal()">&times;</span>
+        <h3>Add Staff</h3>
+        <input type="text" id="newStaffName" placeholder="Name"><br><br>
+        <input type="text" id="newStaffRole" placeholder="Role"><br><br>
+        <input type="text" id="newStaffPhone" placeholder="Phone"><br><br>
+        <input type="number" id="newStaffCommission" placeholder="Commission %"><br><br>
+        <button onclick="addStaff()">Save</button>
+      </div>
+    </div>
       <div id="inventory" class="section" style="display:none;">
         <h1>Inventory</h1>
         <p>Inventory demo here</p>

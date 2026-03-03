@@ -349,6 +349,50 @@ tr:hover {
   gap: 10px;
   justify-content: center;
 }
+.staff-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.add-staff-btn {
+  padding: 8px 14px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.present {
+  background: #27ae60;
+  color: white;
+}
+
+.absent {
+  background: #e74c3c;
+  color: white;
+}
+.delete-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.delete-btn:hover {
+  opacity: 0.8;
+}
 .purple { background: #8e44ad; }
 .blue { background: #2980b9; }
 .orange { background: #e67e22; }
