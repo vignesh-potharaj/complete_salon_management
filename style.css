@@ -393,6 +393,74 @@ tr:hover {
 .delete-btn:hover {
   opacity: 0.8;
 }
+/* INVENTORY */
+
+.inventory-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.add-product-btn {
+  padding: 8px 14px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+/* INVENTORY MODULE */
+
+.inventory-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.inv-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.inventory-actions {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.inventory-actions button {
+  padding: 8px 14px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.inv-low {
+  background: #e74c3c;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.inv-good {
+  background: #27ae60;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.inv-action-btn {
+  padding: 3px 6px;
+  margin-right: 3px;
+  cursor: pointer;
+}
 .purple { background: #8e44ad; }
 .blue { background: #2980b9; }
 .orange { background: #e67e22; }

@@ -428,11 +428,84 @@
         <button onclick="addStaff()">Save</button>
       </div>
     </div>
-      <div id="inventory" class="section" style="display:none;">
-        <h1>Inventory</h1>
-        <p>Inventory demo here</p>
+    <!-- ================= INVENTORY MODULE ================= -->
+    <div id="inventory" class="section" style="display:none;">
+
+      <h2>Inventory Management</h2>
+
+      <!-- SUMMARY CARDS -->
+      <div class="inventory-stats">
+        <div class="inv-card">
+          <h3 id="invTotalProducts">0</h3>
+          <p>Total Products</p>
+        </div>
+        <div class="inv-card">
+          <h3 id="invLowStock">0</h3>
+          <p>Low Stock Items</p>
+        </div>
+        <div class="inv-card">
+          <h3 id="invTotalValue">₹0</h3>
+          <p>Total Inventory Value</p>
+        </div>
       </div>
 
+      <div class="inventory-actions">
+        <button onclick="openInvModal()">+ Add Product</button>
+        <button onclick="exportInventory()">Export CSV</button>
+      </div>
+
+      <!-- INVENTORY TABLE -->
+      <div class="table-container">
+        <table id="inventoryTable">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Stock</th>
+              <th>Min</th>
+              <th>Reorder</th>
+              <th>Supplier</th>
+              <th>Phone</th>
+              <th>Purchase ₹</th>
+              <th>Selling ₹</th>
+              <th>Profit/Unit</th>
+              <th>Total Value</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- ADD PRODUCT MODAL -->
+    <div id="inventoryModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeInvModal()">&times;</span>
+        <h3>Add Product</h3>
+        <input type="text" id="invName" placeholder="Product Name"><br><br>
+        <input type="text" id="invCategory" placeholder="Category"><br><br>
+        <input type="number" id="invStock" placeholder="Stock"><br><br>
+        <input type="number" id="invMin" placeholder="Minimum Stock"><br><br>
+        <input type="text" id="invSupplier" placeholder="Supplier"><br><br>
+        <input type="number" id="invPrice" placeholder="Unit Price"><br><br>
+        <input type="text" id="invPhone" placeholder="Supplier Phone"><br><br>
+        <input type="number" id="invPurchase" placeholder="Purchase Cost"><br><br>
+        <input type="number" id="invSelling" placeholder="Selling Price"><br><br>
+        <button onclick="addInventory()">Save</button>
+      </div>
+    </div>
+
+    <!-- HISTORY MODAL -->
+    <div id="inventoryHistoryModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeHistory()">&times;</span>
+        <h3>Inventory History</h3>
+        <div id="inventoryHistoryContent"></div>
+      </div>
+    </div>      
       <div id="checkout" class="section" style="display:none;">
         <h1>Check-Out</h1>
         <p>Billing demo here</p>
