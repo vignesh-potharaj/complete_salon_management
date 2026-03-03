@@ -213,11 +213,105 @@
         <p><strong>Staff:</strong> <span id="modalStaff"></span></p>
       </div>
     </div>
-      <div id="clients" class="section" style="display:none;">
-        <h1>Clients</h1>
-        <p>Client list demo here</p>
+    <div id="clients" class="section" style="display:none;">
+
+      <h2>Client List</h2>
+
+      <!-- Summary Cards -->
+      <div class="client-stats">
+        <div class="stat-card">
+          <h3>245</h3>
+          <p>Total Clients</p>
+        </div>
+        <div class="stat-card">
+          <h3>38</h3>
+          <p>New This Month</p>
+        </div>
+        <div class="stat-card">
+          <h3>112</h3>
+          <p>Female Clients</p>
+        </div>
+        <div class="stat-card">
+          <h3>133</h3>
+          <p>Male Clients</p>
+        </div>
       </div>
 
+      <!-- Filter Section -->
+      <div class="client-filters">
+        <select>
+          <option>All Clients</option>
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+
+        <input type="date">
+        <input type="date">
+
+        <button class="search-btn">Search</button>
+        <button class="export-btn">Export</button>
+        <button class="add-client-btn">+ Add Client</button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Contact</th>
+              <th>First Visit</th>
+              <th>Total Visits</th>
+              <th>Last Visit</th>
+              <th>Total Spent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Priya Sharma</td>
+              <td>9876543210</td>
+              <td>12-02-2024</td>
+              <td>8</td>
+              <td>15-03-2025</td>
+              <td>₹18,500</td>
+            </tr>
+            <tr>
+              <td>Arjun Mehta</td>
+              <td>9123456780</td>
+              <td>05-05-2023</td>
+              <td>12</td>
+              <td>18-03-2025</td>
+              <td>₹25,200</td>
+            </tr>
+            <tr>
+              <td>Kavya Reddy</td>
+              <td>9988776655</td>
+              <td>20-07-2024</td>
+              <td>5</td>
+              <td>10-03-2025</td>
+              <td>₹9,800</td>
+            </tr>
+            <tr>
+              <td>Rahul Nair</td>
+              <td>9012345678</td>
+              <td>14-01-2025</td>
+              <td>3</td>
+              <td>28-02-2025</td>
+              <td>₹6,400</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button>Previous</button>
+        <span>1</span>
+        <span>2</span>
+        <button>Next</button>
+      </div>
+
+    </div>
       <div id="staff" class="section" style="display:none;">
         <h1>Staff</h1>
         <p>Staff management demo here</p>
