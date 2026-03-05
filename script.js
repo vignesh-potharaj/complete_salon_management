@@ -507,10 +507,17 @@ function calculateTotals() {
   billTotal.innerText = total;
 }
 
-function printBill() {
-  window.print();
-}
+function printBill(){
 
+const client = document.getElementById("billClient").value
+document.getElementById("printClientName").innerText = client
+
+const now = new Date()
+document.getElementById("billDate").innerText = now.toLocaleString()
+
+window.print()
+
+}
 /* Reduce inventory when product sold */
 function finalizeSale() {
 

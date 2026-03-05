@@ -620,6 +620,28 @@ tr:hover {
 .small-chart {
   height: 320px;
 }
+@media print {
+
+body * {
+visibility: hidden;
+}
+
+#bill-area, #bill-area * {
+visibility: visible;
+}
+
+#bill-area {
+position: absolute;
+left: 0;
+top: 0;
+width: 100%;
+}
+
+.no-print {
+display: none !important;
+}
+
+}
 .purple { background: #8e44ad; }
 .blue { background: #2980b9; }
 .orange { background: #e67e22; }

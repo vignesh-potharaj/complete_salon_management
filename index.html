@@ -509,66 +509,75 @@
     <!-- ================= CHECKOUT / BILLING ================= -->
     <div id="checkout" class="section" style="display:none;">
 
-      <h2>Billing & Checkout</h2>
+    <h2 class="no-print">Billing & Checkout</h2>
 
-      <div class="billing-container">
+    <div class="billing-container">
 
-        <!-- LEFT SIDE -->
-        <div class="billing-left">
+    <!-- LEFT SIDE -->
+    <div class="billing-left no-print">
 
-          <div class="bill-card">
-            <label>Client Name</label>
-            <input type="text" id="billClient" placeholder="Enter Client Name">
-          </div>
+    <div class="bill-card">
+    <label>Client Name</label>
+    <input type="text" id="billClient" placeholder="Enter Client Name">
+    </div>
 
-          <div class="bill-card">
-            <label>Add Service</label>
-            <select id="serviceSelect">
-              <option value="">Select Service</option>
-              <option value="Haircut|800">Haircut - ₹800</option>
-              <option value="Facial|1800">Facial - ₹1800</option>
-              <option value="Hair Color|2500">Hair Color - ₹2500</option>
-              <option value="Keratin|4500">Keratin - ₹4500</option>
-            </select>
-            <button onclick="addServiceToBill()">Add</button>
-          </div>
+    <div class="bill-card">
+    <label>Add Service</label>
+    <select id="serviceSelect">
+    <option value="">Select Service</option>
+    <option value="Haircut|800">Haircut - ₹800</option>
+    <option value="Facial|1800">Facial - ₹1800</option>
+    <option value="Hair Color|2500">Hair Color - ₹2500</option>
+    <option value="Keratin|4500">Keratin - ₹4500</option>
+    </select>
+    <button onclick="addServiceToBill()">Add</button>
+    </div>
 
-          <div class="bill-card">
-            <label>Add Product</label>
-            <select id="productSelect"></select>
-            <button onclick="addProductToBill()">Add</button>
-          </div>
+    <div class="bill-card">
+    <label>Add Product</label>
+    <select id="productSelect"></select>
+    <button onclick="addProductToBill()">Add</button>
+    </div>
 
-        </div>
+    </div>
 
-        <!-- RIGHT SIDE -->
-        <div class="billing-right">
 
-          <table id="billTable">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Type</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Total</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+    <!-- RIGHT SIDE (THIS IS THE PRINT AREA) -->
+    <div class="billing-right" id="bill-area">
 
-          <div class="bill-summary">
-            <p>Subtotal: ₹<span id="billSubtotal">0</span></p>
-            <p>GST (18%): ₹<span id="billGST">0</span></p>
-            <h3>Grand Total: ₹<span id="billTotal">0</span></h3>
-          </div>
+    <h3>Salon Bill</h3>
 
-          <button class="print-btn" onclick="printBill()">Print Bill</button>
+    <p>Client: <span id="printClientName"></span></p>
+    <p>Date: <span id="billDate"></span></p>
 
-        </div>
+    <table id="billTable">
 
-      </div>
+    <thead>
+    <tr>
+    <th>Item</th>
+    <th>Type</th>
+    <th>Qty</th>
+    <th>Price</th>
+    <th>Total</th>
+    <th class="no-print">Action</th>
+    </tr>
+    </thead>
+
+    <tbody></tbody>
+
+    </table>
+
+    <div class="bill-summary">
+    <p>Subtotal: ₹<span id="billSubtotal">0</span></p>
+    <p>GST (18%): ₹<span id="billGST">0</span></p>
+    <h3>Grand Total: ₹<span id="billTotal">0</span></h3>
+    </div>
+
+    </div>
+
+    <button class="print-btn no-print" onclick="printBill()">Print Bill</button>
+
+    </div>
 
     </div>
     <!-- ================= REPORTS DASHBOARD ================= -->
@@ -641,6 +650,7 @@
       </div>
     </div>
 
-</div>  <script src="script.js"></script>
+</div>  
+<script src="script.js"></script>
 </body>
 </html>
