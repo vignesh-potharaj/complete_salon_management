@@ -9,10 +9,15 @@ body {
 }
 
 .sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
   width: 120px;
+  height: 100vh;
   background-color: #111;
   color: white;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .sidebar h2 {
@@ -36,6 +41,7 @@ body {
 .main {
   flex: 1;
   padding: 30px;
+  margin-left: 160px;
   background-color: #f4f4f4;
 }
 
@@ -44,8 +50,9 @@ body {
   padding: 20px;
   margin-bottom: 15px;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+
 .dashboard {
   padding: 30px;
 }
@@ -61,7 +68,7 @@ body {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .card h3 {
@@ -87,7 +94,7 @@ body {
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 30px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .quick-add input {
@@ -109,7 +116,7 @@ body {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .appointments-list table {
@@ -117,12 +124,13 @@ body {
   border-collapse: collapse;
 }
 
-.appointments-list th, 
+.appointments-list th,
 .appointments-list td {
   padding: 12px;
   border-bottom: 1px solid #eee;
   text-align: left;
 }
+
 .calendar-header {
   margin-bottom: 15px;
 }
@@ -189,6 +197,7 @@ body {
 .appointment strong {
   font-size: 13px;
 }
+
 .staff-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -216,6 +225,7 @@ body {
   font-weight: bold;
   font-size: 13px;
 }
+
 .modal {
   display: none;
   position: fixed;
@@ -224,7 +234,7 @@ body {
   top: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content {
@@ -240,6 +250,7 @@ body {
   cursor: pointer;
   font-size: 20px;
 }
+
 .add-btn {
   position: absolute;
   bottom: 30px;
@@ -253,6 +264,7 @@ body {
   border: none;
   cursor: pointer;
 }
+
 .client-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -264,7 +276,7 @@ body {
   background: white;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
   text-align: center;
 }
 
@@ -320,7 +332,7 @@ body {
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
 }
 
 table {
@@ -332,7 +344,8 @@ thead {
   background: #f5f5f5;
 }
 
-th, td {
+th,
+td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #eee;
@@ -349,6 +362,7 @@ tr:hover {
   gap: 10px;
   justify-content: center;
 }
+
 .staff-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -380,6 +394,7 @@ tr:hover {
   background: #e74c3c;
   color: white;
 }
+
 .delete-btn {
   background: #e74c3c;
   color: white;
@@ -393,6 +408,7 @@ tr:hover {
 .delete-btn:hover {
   opacity: 0.8;
 }
+
 /* INVENTORY */
 
 .inventory-stats {
@@ -410,6 +426,7 @@ tr:hover {
   border-radius: 6px;
   cursor: pointer;
 }
+
 /* INVENTORY MODULE */
 
 .inventory-stats {
@@ -424,7 +441,7 @@ tr:hover {
   padding: 20px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .inventory-actions {
@@ -468,7 +485,8 @@ tr:hover {
   margin-top: 20px;
 }
 
-.billing-left, .billing-right {
+.billing-left,
+.billing-right {
   flex: 1;
 }
 
@@ -477,10 +495,10 @@ tr:hover {
   padding: 15px;
   margin-bottom: 15px;
   border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
-.bill-card input, 
+.bill-card input,
 .bill-card select {
   width: 100%;
   padding: 8px;
@@ -502,7 +520,7 @@ tr:hover {
   border-collapse: collapse;
 }
 
-#billTable th, 
+#billTable th,
 #billTable td {
   padding: 10px;
   border-bottom: 1px solid #eee;
@@ -539,7 +557,7 @@ tr:hover {
   padding: 20px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .report-card h3 {
@@ -558,8 +576,9 @@ tr:hover {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
 /* REPORT TABS */
 
 .report-tabs {
@@ -597,15 +616,16 @@ tr:hover {
   padding: 20px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .chart-box {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
 .small-cards {
   grid-template-columns: repeat(4, 1fr);
   margin-bottom: 20px;
@@ -620,29 +640,223 @@ tr:hover {
 .small-chart {
   height: 320px;
 }
+
 @media print {
 
-body * {
-visibility: hidden;
+  body * {
+    visibility: hidden;
+  }
+
+  #bill-area,
+  #bill-area * {
+    visibility: visible;
+  }
+
+  #bill-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
 }
 
-#bill-area, #bill-area * {
-visibility: visible;
+.purple {
+  background: #8e44ad;
 }
 
-#bill-area {
-position: absolute;
-left: 0;
-top: 0;
-width: 100%;
+.blue {
+  background: #2980b9;
 }
 
-.no-print {
-display: none !important;
+.orange {
+  background: #e67e22;
 }
 
+.green {
+  background: #27ae60;
 }
-.purple { background: #8e44ad; }
-.blue { background: #2980b9; }
-.orange { background: #e67e22; }
-.green { background: #27ae60; }
+
+.hamburger {
+  display: none;
+  font-size: 28px;
+  background: white;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1000;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Responsive Design Overrides */
+@media screen and (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 250px;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1001;
+    transition: left 0.3s ease;
+    background-color: #111;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar ul {
+    display: block;
+    margin-top: 30px;
+  }
+
+  .sidebar li {
+    padding: 15px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    background: transparent;
+  }
+
+  .sidebar li:hover {
+    background-color: #333;
+  }
+
+  .main {
+    padding: 15px;
+    margin-left: 0;
+    margin-top: 60px;
+    box-sizing: border-box;
+  }
+
+  .dashboard,
+  .section {
+    padding: 15px 0;
+  }
+
+  .stats-container,
+  .staff-stats,
+  .inventory-stats,
+  .report-cards,
+  .client-stats {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  /* Scrollable calendar components */
+  .staff-row {
+    grid-template-columns: repeat(5, 120px) !important;
+    margin-left: 80px !important;
+    gap: 5px;
+    width: max-content;
+  }
+
+  .calendar-container {
+    min-width: 680px;
+  }
+
+  #calendar {
+    overflow-x: auto;
+  }
+
+  .billing-container {
+    flex-direction: column;
+  }
+
+  .report-charts,
+  .sales-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    width: 90%;
+    margin: 15% auto;
+    box-sizing: border-box;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .table-container table {
+    min-width: 600px;
+  }
+
+  .quick-add form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .quick-add input {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+  }
+
+  .quick-add button {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .client-filters {
+    flex-direction: column;
+  }
+
+  .client-filters>* {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .inventory-actions {
+    flex-direction: column;
+  }
+
+  .add-btn {
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .report-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    flex: 1 1 calc(50% - 10px);
+    text-align: center;
+  }
+}

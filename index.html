@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Salon Management Demo</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <div class="container">
+
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <!-- SIDEBAR -->
     <div class="sidebar">
@@ -27,376 +33,375 @@
     <div class="main">
 
       <div id="home" class="section">
-    <div class="dashboard">
+        <div class="dashboard">
 
-      <h1>Dashboard</h1>
+          <h1>Dashboard</h1>
 
-      <!-- Top Stats -->
-      <div class="stats-container">
+          <!-- Top Stats -->
+          <div class="stats-container">
 
-        <div class="card">
-          <h3>Total Sales Today</h3>
-          <p class="big">₹12,450</p>
-          <span class="positive">+18% from yesterday</span>
-        </div>
+            <div class="card">
+              <h3>Total Sales Today</h3>
+              <p class="big">₹12,450</p>
+              <span class="positive">+18% from yesterday</span>
+            </div>
 
-        <div class="card">
-          <h3>Appointments Scheduled</h3>
-          <p class="big">24</p>
-          <span>5 ongoing right now</span>
-        </div>
+            <div class="card">
+              <h3>Appointments Scheduled</h3>
+              <p class="big">24</p>
+              <span>5 ongoing right now</span>
+            </div>
 
-        <div class="card">
-          <h3>Walk-in Customers</h3>
-          <p class="big">7</p>
-          <span>Since morning</span>
-        </div>
+            <div class="card">
+              <h3>Walk-in Customers</h3>
+              <p class="big">7</p>
+              <span>Since morning</span>
+            </div>
 
-        <div class="card alert-card">
-          <h3>Low Inventory Alerts</h3>
-          <ul>
-            <li>Hair Serum – 2 left</li>
-            <li>Face Cream – 1 left</li>
-          </ul>
-        </div>
+            <div class="card alert-card">
+              <h3>Low Inventory Alerts</h3>
+              <ul>
+                <li>Hair Serum – 2 left</li>
+                <li>Face Cream – 1 left</li>
+              </ul>
+            </div>
 
-      </div>
-
-      <!-- Quick Add Appointment -->
-      <div class="quick-add">
-        <h2>Quick Add Appointment</h2>
-        <form id="appointmentForm">
-          <input type="text" placeholder="Client Name" required>
-          <input type="text" placeholder="Service" required>
-          <input type="time" required>
-          <button type="submit">Add Appointment</button>
-        </form>
-      </div>
-
-      <!-- Today's Appointments List -->
-      <div class="appointments-list">
-        <h2>Today's Appointments</h2>
-        <table>
-          <tr>
-            <th>Time</th>
-            <th>Client</th>
-            <th>Service</th>
-            <th>Status</th>
-          </tr>
-          <tr>
-            <td>10:00 AM</td>
-            <td>Priya</td>
-            <td>Hair Spa</td>
-            <td>Completed</td>
-          </tr>
-          <tr>
-            <td>12:30 PM</td>
-            <td>Anjali</td>
-            <td>Facial</td>
-            <td>Ongoing</td>
-          </tr>
-          <tr>
-            <td>3:00 PM</td>
-            <td>Meera</td>
-            <td>Haircut</td>
-            <td>Upcoming</td>
-          </tr>
-        </table>
-      </div>
-
-    </div>
-      </div>
-
-    <div id="calendar" class="section" style="display:none;">
-      <button class="add-btn" onclick="alert('Open Add Appointment Form')">+</button>
-      <div class="calendar-header">
-        <h2>Thursday, 10 April 2025</h2>
-      </div>
-
-      <!-- Staff Row -->
-    <div class="staff-row">
-      <div class="staff-card">
-        <img src="https://randomuser.me/api/portraits/men/75.jpg">
-        <span>Aarav</span>
-      </div>
-
-      <div class="staff-card">
-        <img src="https://randomuser.me/api/portraits/women/65.jpg">
-        <span>Ishita</span>
-      </div>
-
-      <div class="staff-card">
-        <img src="https://randomuser.me/api/portraits/men/32.jpg">
-        <span>Rohan</span>
-      </div>
-
-      <div class="staff-card">
-        <img src="https://randomuser.me/api/portraits/women/44.jpg">
-        <span>Meher</span>
-      </div>
-
-      <div class="staff-card">
-        <img src="https://randomuser.me/api/portraits/men/12.jpg">
-        <span>Vivaan</span>
-      </div>
-    </div>
-      <!-- Calendar Body -->
-      <div class="calendar-container">
-
-        <!-- Time Column -->
-        <div class="time-column">
-          <div>8:00 AM</div>
-          <div>9:00 AM</div>
-          <div>10:00 AM</div>
-          <div>11:00 AM</div>
-          <div>12:00 PM</div>
-          <div>1:00 PM</div>
-          <div>2:00 PM</div>
-          <div>3:00 PM</div>
-          <div>4:00 PM</div>
-          <div>5:00 PM</div>
-          <div>6:00 PM</div>
-        </div>
-
-        <!-- Grid -->
-        <div class="calendar-grid">
-
-          <!-- Appointment 1 -->
-          <div class="appointment" style="grid-column: 1; grid-row: 2;">
-            <strong>Priya Sharma</strong><br>
-            Haircut<br>
-            9:00 AM - ₹800
           </div>
 
-          <!-- Appointment 2 -->
-          <div class="appointment purple" style="grid-column: 2; grid-row: 3;">
-            <strong>Kavya Reddy</strong><br>
-            Hair Color<br>
-            10:00 AM - ₹2,500
+          <!-- Quick Add Appointment -->
+          <div class="quick-add">
+            <h2>Quick Add Appointment</h2>
+            <form id="appointmentForm">
+              <input type="text" placeholder="Client Name" required>
+              <input type="text" placeholder="Service" required>
+              <input type="time" required>
+              <button type="submit">Add Appointment</button>
+            </form>
           </div>
 
-          <!-- Appointment 3 -->
-          <div class="appointment blue" style="grid-column: 3; grid-row: 5;">
-            <strong>Arjun Mehta</strong><br>
-            Beard Styling<br>
-            12:00 PM - ₹600
+          <!-- Today's Appointments List -->
+          <div class="appointments-list">
+            <h2>Today's Appointments</h2>
+            <table>
+              <tr>
+                <th>Time</th>
+                <th>Client</th>
+                <th>Service</th>
+                <th>Status</th>
+              </tr>
+              <tr>
+                <td>10:00 AM</td>
+                <td>Priya</td>
+                <td>Hair Spa</td>
+                <td>Completed</td>
+              </tr>
+              <tr>
+                <td>12:30 PM</td>
+                <td>Anjali</td>
+                <td>Facial</td>
+                <td>Ongoing</td>
+              </tr>
+              <tr>
+                <td>3:00 PM</td>
+                <td>Meera</td>
+                <td>Haircut</td>
+                <td>Upcoming</td>
+              </tr>
+            </table>
           </div>
 
-          <!-- Appointment 4 -->
-          <div class="appointment orange" style="grid-column: 4; grid-row: 4;">
-            <strong>Neha Verma</strong><br>
-            Facial Treatment<br>
-            11:00 AM - ₹1,800
+        </div>
+      </div>
+
+      <div id="calendar" class="section" style="display:none;">
+        <button class="add-btn" onclick="alert('Open Add Appointment Form')">+</button>
+        <div class="calendar-header">
+          <h2>Thursday, 10 April 2025</h2>
+        </div>
+
+        <!-- Staff Row -->
+        <div class="staff-row">
+          <div class="staff-card">
+            <img src="https://randomuser.me/api/portraits/men/75.jpg">
+            <span>Aarav</span>
           </div>
 
-          <!-- Appointment 5 -->
-        <div class="appointment green"
-            style="grid-column: 5; grid-row: 6 / span 2;"
-            onclick="openModal('Rahul Nair','Keratin Treatment','1:00 PM - 3:00 PM','₹4,500','Vivaan')">
-          <strong>Rahul Nair</strong><br>
-          Keratin Treatment<br>
-          1:00 PM - 3:00 PM
+          <div class="staff-card">
+            <img src="https://randomuser.me/api/portraits/women/65.jpg">
+            <span>Ishita</span>
+          </div>
+
+          <div class="staff-card">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg">
+            <span>Rohan</span>
+          </div>
+
+          <div class="staff-card">
+            <img src="https://randomuser.me/api/portraits/women/44.jpg">
+            <span>Meher</span>
+          </div>
+
+          <div class="staff-card">
+            <img src="https://randomuser.me/api/portraits/men/12.jpg">
+            <span>Vivaan</span>
+          </div>
         </div>
+        <!-- Calendar Body -->
+        <div class="calendar-container">
+
+          <!-- Time Column -->
+          <div class="time-column">
+            <div>8:00 AM</div>
+            <div>9:00 AM</div>
+            <div>10:00 AM</div>
+            <div>11:00 AM</div>
+            <div>12:00 PM</div>
+            <div>1:00 PM</div>
+            <div>2:00 PM</div>
+            <div>3:00 PM</div>
+            <div>4:00 PM</div>
+            <div>5:00 PM</div>
+            <div>6:00 PM</div>
+          </div>
+
+          <!-- Grid -->
+          <div class="calendar-grid">
+
+            <!-- Appointment 1 -->
+            <div class="appointment" style="grid-column: 1; grid-row: 2;">
+              <strong>Priya Sharma</strong><br>
+              Haircut<br>
+              9:00 AM - ₹800
+            </div>
+
+            <!-- Appointment 2 -->
+            <div class="appointment purple" style="grid-column: 2; grid-row: 3;">
+              <strong>Kavya Reddy</strong><br>
+              Hair Color<br>
+              10:00 AM - ₹2,500
+            </div>
+
+            <!-- Appointment 3 -->
+            <div class="appointment blue" style="grid-column: 3; grid-row: 5;">
+              <strong>Arjun Mehta</strong><br>
+              Beard Styling<br>
+              12:00 PM - ₹600
+            </div>
+
+            <!-- Appointment 4 -->
+            <div class="appointment orange" style="grid-column: 4; grid-row: 4;">
+              <strong>Neha Verma</strong><br>
+              Facial Treatment<br>
+              11:00 AM - ₹1,800
+            </div>
+
+            <!-- Appointment 5 -->
+            <div class="appointment green" style="grid-column: 5; grid-row: 6 / span 2;"
+              onclick="openModal('Rahul Nair','Keratin Treatment','1:00 PM - 3:00 PM','₹4,500','Vivaan')">
+              <strong>Rahul Nair</strong><br>
+              Keratin Treatment<br>
+              1:00 PM - 3:00 PM
+            </div>
+
+          </div>
 
         </div>
 
       </div>
-
-    </div>
-    <div id="appointmentModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h3>Appointment Details</h3>
-        <p><strong>Client:</strong> <span id="modalClient"></span></p>
-        <p><strong>Service:</strong> <span id="modalService"></span></p>
-        <p><strong>Time:</strong> <span id="modalTime"></span></p>
-        <p><strong>Amount:</strong> <span id="modalAmount"></span></p>
-        <p><strong>Staff:</strong> <span id="modalStaff"></span></p>
-      </div>
-    </div>
-    <div id="clients" class="section" style="display:none;">
-
-      <h2>Client List</h2>
-
-      <!-- Summary Cards -->
-      <div class="client-stats">
-        <div class="stat-card">
-          <h3>245</h3>
-          <p>Total Clients</p>
-        </div>
-        <div class="stat-card">
-          <h3>38</h3>
-          <p>New This Month</p>
-        </div>
-        <div class="stat-card">
-          <h3>112</h3>
-          <p>Female Clients</p>
-        </div>
-        <div class="stat-card">
-          <h3>133</h3>
-          <p>Male Clients</p>
+      <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal()">&times;</span>
+          <h3>Appointment Details</h3>
+          <p><strong>Client:</strong> <span id="modalClient"></span></p>
+          <p><strong>Service:</strong> <span id="modalService"></span></p>
+          <p><strong>Time:</strong> <span id="modalTime"></span></p>
+          <p><strong>Amount:</strong> <span id="modalAmount"></span></p>
+          <p><strong>Staff:</strong> <span id="modalStaff"></span></p>
         </div>
       </div>
+      <div id="clients" class="section" style="display:none;">
 
-      <!-- Filter Section -->
-      <div class="client-filters">
-        <select>
-          <option>All Clients</option>
-          <option>Male</option>
-          <option>Female</option>
-        </select>
+        <h2>Client List</h2>
 
-        <input type="date">
-        <input type="date">
-
-        <button class="search-btn">Search</button>
-        <button class="export-btn">Export</button>
-        <button class="add-client-btn">+ Add Client</button>
-      </div>
-
-      <!-- Table -->
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Contact</th>
-              <th>First Visit</th>
-              <th>Total Visits</th>
-              <th>Last Visit</th>
-              <th>Total Spent</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Priya Sharma</td>
-              <td>9876543210</td>
-              <td>12-02-2024</td>
-              <td>8</td>
-              <td>15-03-2025</td>
-              <td>₹18,500</td>
-            </tr>
-            <tr>
-              <td>Arjun Mehta</td>
-              <td>9123456780</td>
-              <td>05-05-2023</td>
-              <td>12</td>
-              <td>18-03-2025</td>
-              <td>₹25,200</td>
-            </tr>
-            <tr>
-              <td>Kavya Reddy</td>
-              <td>9988776655</td>
-              <td>20-07-2024</td>
-              <td>5</td>
-              <td>10-03-2025</td>
-              <td>₹9,800</td>
-            </tr>
-            <tr>
-              <td>Rahul Nair</td>
-              <td>9012345678</td>
-              <td>14-01-2025</td>
-              <td>3</td>
-              <td>28-02-2025</td>
-              <td>₹6,400</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <div class="pagination">
-        <button>Previous</button>
-        <span>1</span>
-        <span>2</span>
-        <button>Next</button>
-      </div>
-
-    </div>
-    <div id="staff" class="section" style="display:none;">
-
-      <h2>Staff Management</h2>
-
-      <!-- Summary Cards -->
-      <div class="staff-stats">
-        <div class="stat-card">
-          <h3>8</h3>
-          <p>Total Staff</p>
+        <!-- Summary Cards -->
+        <div class="client-stats">
+          <div class="stat-card">
+            <h3>245</h3>
+            <p>Total Clients</p>
+          </div>
+          <div class="stat-card">
+            <h3>38</h3>
+            <p>New This Month</p>
+          </div>
+          <div class="stat-card">
+            <h3>112</h3>
+            <p>Female Clients</p>
+          </div>
+          <div class="stat-card">
+            <h3>133</h3>
+            <p>Male Clients</p>
+          </div>
         </div>
-        <div class="stat-card">
-          <h3>6</h3>
-          <p>On Duty Today</p>
+
+        <!-- Filter Section -->
+        <div class="client-filters">
+          <select>
+            <option>All Clients</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+
+          <input type="date">
+          <input type="date">
+
+          <button class="search-btn">Search</button>
+          <button class="export-btn">Export</button>
+          <button class="add-client-btn">+ Add Client</button>
         </div>
-        <div class="stat-card">
-          <h3>₹42,500</h3>
-          <p>Revenue Today</p>
+
+        <!-- Table -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>First Visit</th>
+                <th>Total Visits</th>
+                <th>Last Visit</th>
+                <th>Total Spent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Priya Sharma</td>
+                <td>9876543210</td>
+                <td>12-02-2024</td>
+                <td>8</td>
+                <td>15-03-2025</td>
+                <td>₹18,500</td>
+              </tr>
+              <tr>
+                <td>Arjun Mehta</td>
+                <td>9123456780</td>
+                <td>05-05-2023</td>
+                <td>12</td>
+                <td>18-03-2025</td>
+                <td>₹25,200</td>
+              </tr>
+              <tr>
+                <td>Kavya Reddy</td>
+                <td>9988776655</td>
+                <td>20-07-2024</td>
+                <td>5</td>
+                <td>10-03-2025</td>
+                <td>₹9,800</td>
+              </tr>
+              <tr>
+                <td>Rahul Nair</td>
+                <td>9012345678</td>
+                <td>14-01-2025</td>
+                <td>3</td>
+                <td>28-02-2025</td>
+                <td>₹6,400</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="stat-card">
-          <h3>Ishita</h3>
-          <p>Top Performer</p>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <button>Previous</button>
+          <span>1</span>
+          <span>2</span>
+          <button>Next</button>
         </div>
+
       </div>
+      <div id="staff" class="section" style="display:none;">
 
-      <!-- Add Staff Button -->
-      <div style="margin-bottom:15px;">
-        <button class="add-staff-btn" onclick="openStaffModal()">+ Add Staff</button>
-      </div>
+        <h2>Staff Management</h2>
 
-      <!-- Staff Table -->
-      <div class="table-container">
-        <table id="staffTable">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Role</th>
-              <th>Phone</th>
-              <th>Commission %</th>
-              <th>Revenue</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <!-- Summary Cards -->
+        <div class="staff-stats">
+          <div class="stat-card">
+            <h3>8</h3>
+            <p>Total Staff</p>
+          </div>
+          <div class="stat-card">
+            <h3>6</h3>
+            <p>On Duty Today</p>
+          </div>
+          <div class="stat-card">
+            <h3>₹42,500</h3>
+            <p>Revenue Today</p>
+          </div>
+          <div class="stat-card">
+            <h3>Ishita</h3>
+            <p>Top Performer</p>
+          </div>
+        </div>
 
-            <tr onclick="openStaffProfile('Aarav','Senior Stylist','9876501234','20','18500','Present')">
-              <td>Aarav</td>
-              <td>Senior Stylist</td>
-              <td>9876501234</td>
-              <td>20%</td>
-              <td>₹18,500</td>
-              <td><span class="status present">Present</span></td>
-              <td>
-              <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
-              </td> 
-            </tr>
+        <!-- Add Staff Button -->
+        <div style="margin-bottom:15px;">
+          <button class="add-staff-btn" onclick="openStaffModal()">+ Add Staff</button>
+        </div>
 
-            <tr onclick="openStaffProfile('Ishita','Color Specialist','9988774455','25','25200','Present')">
-              <td>Ishita</td>
-              <td>Color Specialist</td>
-              <td>9988774455</td>
-              <td>25%</td>
-              <td>₹25,200</td>
-              <td><span class="status present">Present</span></td>
-              <td>
-              <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
-              </td>               
-            </tr>
+        <!-- Staff Table -->
+        <div class="table-container">
+          <table id="staffTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Phone</th>
+                <th>Commission %</th>
+                <th>Revenue</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
 
-            <tr onclick="openStaffProfile('Rohan','Beard Expert','9123456712','18','9800','Absent')">
-              <td>Rohan</td>
-              <td>Beard Expert</td>
-              <td>9123456712</td>
-              <td>18%</td>
-              <td>₹9,800</td>
-              <td><span class="status absent">Absent</span></td>
-              <td>
-              <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
-              </td> 
-            </tr>
-          </tbody>
-        </table>
-      </div>
-              <div id="staffPanel" class="side-panel">
+              <tr onclick="openStaffProfile('Aarav','Senior Stylist','9876501234','20','18500','Present')">
+                <td>Aarav</td>
+                <td>Senior Stylist</td>
+                <td>9876501234</td>
+                <td>20%</td>
+                <td>₹18,500</td>
+                <td><span class="status present">Present</span></td>
+                <td>
+                  <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
+                </td>
+              </tr>
+
+              <tr onclick="openStaffProfile('Ishita','Color Specialist','9988774455','25','25200','Present')">
+                <td>Ishita</td>
+                <td>Color Specialist</td>
+                <td>9988774455</td>
+                <td>25%</td>
+                <td>₹25,200</td>
+                <td><span class="status present">Present</span></td>
+                <td>
+                  <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
+                </td>
+              </tr>
+
+              <tr onclick="openStaffProfile('Rohan','Beard Expert','9123456712','18','9800','Absent')">
+                <td>Rohan</td>
+                <td>Beard Expert</td>
+                <td>9123456712</td>
+                <td>18%</td>
+                <td>₹9,800</td>
+                <td><span class="status absent">Absent</span></td>
+                <td>
+                  <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="staffPanel" class="side-panel">
           <div class="side-panel-content">
             <span class="close" onclick="closeStaffPanel()">&times;</span>
 
@@ -416,241 +421,278 @@
         </div>
 
 
-    </div>
-        <div id="addStaffModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeStaffModal()">&times;</span>
-        <h3>Add Staff</h3>
-        <input type="text" id="newStaffName" placeholder="Name"><br><br>
-        <input type="text" id="newStaffRole" placeholder="Role"><br><br>
-        <input type="text" id="newStaffPhone" placeholder="Phone"><br><br>
-        <input type="number" id="newStaffCommission" placeholder="Commission %"><br><br>
-        <button onclick="addStaff()">Save</button>
       </div>
-    </div>
-    <!-- ================= INVENTORY MODULE ================= -->
-    <div id="inventory" class="section" style="display:none;">
-
-      <h2>Inventory Management</h2>
-
-      <!-- SUMMARY CARDS -->
-      <div class="inventory-stats">
-        <div class="inv-card">
-          <h3 id="invTotalProducts">0</h3>
-          <p>Total Products</p>
-        </div>
-        <div class="inv-card">
-          <h3 id="invLowStock">0</h3>
-          <p>Low Stock Items</p>
-        </div>
-        <div class="inv-card">
-          <h3 id="invTotalValue">₹0</h3>
-          <p>Total Inventory Value</p>
+      <div id="addStaffModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeStaffModal()">&times;</span>
+          <h3>Add Staff</h3>
+          <input type="text" id="newStaffName" placeholder="Name"><br><br>
+          <input type="text" id="newStaffRole" placeholder="Role"><br><br>
+          <input type="text" id="newStaffPhone" placeholder="Phone"><br><br>
+          <input type="number" id="newStaffCommission" placeholder="Commission %"><br><br>
+          <button onclick="addStaff()">Save</button>
         </div>
       </div>
+      <!-- ================= INVENTORY MODULE ================= -->
+      <div id="inventory" class="section" style="display:none;">
 
-      <div class="inventory-actions">
-        <button onclick="openInvModal()">+ Add Product</button>
-        <button onclick="exportInventory()">Export CSV</button>
+        <h2>Inventory Management</h2>
+
+        <!-- SUMMARY CARDS -->
+        <div class="inventory-stats">
+          <div class="inv-card">
+            <h3 id="invTotalProducts">0</h3>
+            <p>Total Products</p>
+          </div>
+          <div class="inv-card">
+            <h3 id="invLowStock">0</h3>
+            <p>Low Stock Items</p>
+          </div>
+          <div class="inv-card">
+            <h3 id="invTotalValue">₹0</h3>
+            <p>Total Inventory Value</p>
+          </div>
+        </div>
+
+        <div class="inventory-actions">
+          <button onclick="openInvModal()">+ Add Product</button>
+          <button onclick="exportInventory()">Export CSV</button>
+        </div>
+
+        <!-- INVENTORY TABLE -->
+        <div class="table-container">
+          <table id="inventoryTable">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Min</th>
+                <th>Reorder</th>
+                <th>Supplier</th>
+                <th>Phone</th>
+                <th>Purchase ₹</th>
+                <th>Selling ₹</th>
+                <th>Profit/Unit</th>
+                <th>Total Value</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
       </div>
 
-      <!-- INVENTORY TABLE -->
-      <div class="table-container">
-        <table id="inventoryTable">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Category</th>
-              <th>Stock</th>
-              <th>Min</th>
-              <th>Reorder</th>
-              <th>Supplier</th>
-              <th>Phone</th>
-              <th>Purchase ₹</th>
-              <th>Selling ₹</th>
-              <th>Profit/Unit</th>
-              <th>Total Value</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <!-- ADD PRODUCT MODAL -->
+      <div id="inventoryModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeInvModal()">&times;</span>
+          <h3>Add Product</h3>
+          <input type="text" id="invName" placeholder="Product Name"><br><br>
+          <input type="text" id="invCategory" placeholder="Category"><br><br>
+          <input type="number" id="invStock" placeholder="Stock"><br><br>
+          <input type="number" id="invMin" placeholder="Minimum Stock"><br><br>
+          <input type="text" id="invSupplier" placeholder="Supplier"><br><br>
+          <input type="number" id="invPrice" placeholder="Unit Price"><br><br>
+          <input type="text" id="invPhone" placeholder="Supplier Phone"><br><br>
+          <input type="number" id="invPurchase" placeholder="Purchase Cost"><br><br>
+          <input type="number" id="invSelling" placeholder="Selling Price"><br><br>
+          <button onclick="addInventory()">Save</button>
+        </div>
       </div>
 
-    </div>
-
-    <!-- ADD PRODUCT MODAL -->
-    <div id="inventoryModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeInvModal()">&times;</span>
-        <h3>Add Product</h3>
-        <input type="text" id="invName" placeholder="Product Name"><br><br>
-        <input type="text" id="invCategory" placeholder="Category"><br><br>
-        <input type="number" id="invStock" placeholder="Stock"><br><br>
-        <input type="number" id="invMin" placeholder="Minimum Stock"><br><br>
-        <input type="text" id="invSupplier" placeholder="Supplier"><br><br>
-        <input type="number" id="invPrice" placeholder="Unit Price"><br><br>
-        <input type="text" id="invPhone" placeholder="Supplier Phone"><br><br>
-        <input type="number" id="invPurchase" placeholder="Purchase Cost"><br><br>
-        <input type="number" id="invSelling" placeholder="Selling Price"><br><br>
-        <button onclick="addInventory()">Save</button>
+      <!-- HISTORY MODAL -->
+      <div id="inventoryHistoryModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeHistory()">&times;</span>
+          <h3>Inventory History</h3>
+          <div id="inventoryHistoryContent"></div>
+        </div>
       </div>
-    </div>
+      <!-- ================= CHECKOUT / BILLING ================= -->
+      <div id="checkout" class="section" style="display:none;">
 
-    <!-- HISTORY MODAL -->
-    <div id="inventoryHistoryModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeHistory()">&times;</span>
-        <h3>Inventory History</h3>
-        <div id="inventoryHistoryContent"></div>
+        <h2 class="no-print">Billing & Checkout</h2>
+
+        <div class="billing-container">
+
+          <!-- LEFT SIDE -->
+          <div class="billing-left no-print">
+
+            <div class="bill-card">
+              <label>Client Name</label>
+              <input type="text" id="billClient" placeholder="Enter Client Name">
+            </div>
+
+            <div class="bill-card">
+              <label>Add Service</label>
+              <select id="serviceSelect">
+                <option value="">Select Service</option>
+                <option value="Haircut|800">Haircut - ₹800</option>
+                <option value="Facial|1800">Facial - ₹1800</option>
+                <option value="Hair Color|2500">Hair Color - ₹2500</option>
+                <option value="Keratin|4500">Keratin - ₹4500</option>
+              </select>
+              <button onclick="addServiceToBill()">Add</button>
+            </div>
+
+            <div class="bill-card">
+              <label>Add Product</label>
+              <select id="productSelect"></select>
+              <button onclick="addProductToBill()">Add</button>
+            </div>
+
+          </div>
+
+
+          <!-- RIGHT SIDE (THIS IS THE PRINT AREA) -->
+          <div class="billing-right" id="bill-area">
+
+            <h3>Salon Bill</h3>
+
+            <p>Client: <span id="printClientName"></span></p>
+            <p>Date: <span id="billDate"></span></p>
+
+            <table id="billTable">
+
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Type</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                  <th class="no-print">Action</th>
+                </tr>
+              </thead>
+
+              <tbody></tbody>
+
+            </table>
+
+            <div class="bill-summary">
+              <p>Subtotal: ₹<span id="billSubtotal">0</span></p>
+              <p>GST (18%): ₹<span id="billGST">0</span></p>
+              <h3>Grand Total: ₹<span id="billTotal">0</span></h3>
+            </div>
+
+          </div>
+
+          <button class="print-btn no-print" onclick="printBill()">Print Bill</button>
+
+        </div>
+
       </div>
-    </div>      
-    <!-- ================= CHECKOUT / BILLING ================= -->
-    <div id="checkout" class="section" style="display:none;">
+      <!-- ================= REPORTS DASHBOARD ================= -->
+      <div id="reports" class="section" style="display:none;">
 
-    <h2 class="no-print">Billing & Checkout</h2>
+        <h2>Reports & Analytics</h2>
 
-    <div class="billing-container">
+        <div class="report-tabs">
+          <button class="tab-btn active" onclick="switchReportTab('executive', this)">Executive</button>
+          <button class="tab-btn" onclick="switchReportTab('sales', this)">Sales</button>
+          <button class="tab-btn" onclick="switchReportTab('staff', this)">Staff</button>
+          <button class="tab-btn" onclick="switchReportTab('clients', this)">Clients</button>
+          <button class="tab-btn" onclick="switchReportTab('inventory', this)">Inventory</button>
+        </div>
 
-    <!-- LEFT SIDE -->
-    <div class="billing-left no-print">
+        <!-- EXECUTIVE -->
+        <div id="report-executive" class="report-content">
 
-    <div class="bill-card">
-    <label>Client Name</label>
-    <input type="text" id="billClient" placeholder="Enter Client Name">
-    </div>
+          <div class="report-cards">
+            <div class="report-card">
+              <h3>₹4,82,000</h3>
+              <p>Total Revenue</p>
+            </div>
+            <div class="report-card">
+              <h3>₹1,36,000</h3>
+              <p>Net Profit</p>
+            </div>
+            <div class="report-card">
+              <h3>+18%</h3>
+              <p>Growth Rate</p>
+            </div>
+            <div class="report-card">
+              <h3>₹2,850</h3>
+              <p>Avg Bill</p>
+            </div>
+            <div class="report-card">
+              <h3>186</h3>
+              <p>Total Appointments</p>
+            </div>
+            <div class="report-card">
+              <h3>142</h3>
+              <p>Recurring Clients</p>
+            </div>
+            <div class="report-card">
+              <h3>78%</h3>
+              <p>Retention Rate</p>
+            </div>
+            <div class="report-card">
+              <h3>₹72,000</h3>
+              <p>Inventory Value</p>
+            </div>
+          </div>
 
-    <div class="bill-card">
-    <label>Add Service</label>
-    <select id="serviceSelect">
-    <option value="">Select Service</option>
-    <option value="Haircut|800">Haircut - ₹800</option>
-    <option value="Facial|1800">Facial - ₹1800</option>
-    <option value="Hair Color|2500">Hair Color - ₹2500</option>
-    <option value="Keratin|4500">Keratin - ₹4500</option>
-    </select>
-    <button onclick="addServiceToBill()">Add</button>
-    </div>
+          <div class="chart-box">
+            <canvas id="execRevenueChart"></canvas>
+          </div>
 
-    <div class="bill-card">
-    <label>Add Product</label>
-    <select id="productSelect"></select>
-    <button onclick="addProductToBill()">Add</button>
-    </div>
+        </div>
 
-    </div>
+        <!-- SALES -->
+        <div id="report-sales" class="report-content" style="display:none;">
+          <div class="chart-row">
+            <div class="chart-box"><canvas id="salesPieChart"></canvas></div>
+            <div class="chart-box"><canvas id="topServiceChart"></canvas></div>
+          </div>
+        </div>
 
+        <!-- STAFF -->
+        <div id="report-staff" class="report-content" style="display:none;">
+          <div class="chart-row">
+            <div class="chart-box"><canvas id="staffRevenueChart"></canvas></div>
+            <div class="chart-box"><canvas id="attendanceChart"></canvas></div>
+          </div>
+        </div>
 
-    <!-- RIGHT SIDE (THIS IS THE PRINT AREA) -->
-    <div class="billing-right" id="bill-area">
+        <!-- CLIENTS -->
+        <div id="report-clients" class="report-content" style="display:none;">
+          <div class="chart-row">
+            <div class="chart-box"><canvas id="clientGrowthChart"></canvas></div>
+            <div class="chart-box"><canvas id="recurringClientChart"></canvas></div>
+          </div>
+        </div>
 
-    <h3>Salon Bill</h3>
+        <!-- INVENTORY -->
+        <div id="report-inventory" class="report-content" style="display:none;">
+          <div class="report-cards">
+            <div class="report-card">
+              <h3>₹72,000</h3>
+              <p>Total Stock Value</p>
+            </div>
+            <div class="report-card">
+              <h3>₹18,400</h3>
+              <p>Reorder Required</p>
+            </div>
+            <div class="report-card">
+              <h3>5</h3>
+              <p>Low Stock Items</p>
+            </div>
+            <div class="report-card">
+              <h3>₹28,000</h3>
+              <p>Dead Stock Value</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="inventoryMarginChart"></canvas>
+          </div>
+        </div>
 
-    <p>Client: <span id="printClientName"></span></p>
-    <p>Date: <span id="billDate"></span></p>
-
-    <table id="billTable">
-
-    <thead>
-    <tr>
-    <th>Item</th>
-    <th>Type</th>
-    <th>Qty</th>
-    <th>Price</th>
-    <th>Total</th>
-    <th class="no-print">Action</th>
-    </tr>
-    </thead>
-
-    <tbody></tbody>
-
-    </table>
-
-    <div class="bill-summary">
-    <p>Subtotal: ₹<span id="billSubtotal">0</span></p>
-    <p>GST (18%): ₹<span id="billGST">0</span></p>
-    <h3>Grand Total: ₹<span id="billTotal">0</span></h3>
-    </div>
-
-    </div>
-
-    <button class="print-btn no-print" onclick="printBill()">Print Bill</button>
-
-    </div>
-
-    </div>
-    <!-- ================= REPORTS DASHBOARD ================= -->
-  <div id="reports" class="section" style="display:none;">
-
-    <h2>Reports & Analytics</h2>
-
-    <div class="report-tabs">
-      <button class="tab-btn active" onclick="switchReportTab('executive', this)">Executive</button>
-      <button class="tab-btn" onclick="switchReportTab('sales', this)">Sales</button>
-      <button class="tab-btn" onclick="switchReportTab('staff', this)">Staff</button>
-      <button class="tab-btn" onclick="switchReportTab('clients', this)">Clients</button>
-      <button class="tab-btn" onclick="switchReportTab('inventory', this)">Inventory</button>
-    </div>
-
-    <!-- EXECUTIVE -->
-    <div id="report-executive" class="report-content">
-
-      <div class="report-cards">
-        <div class="report-card"><h3>₹4,82,000</h3><p>Total Revenue</p></div>
-        <div class="report-card"><h3>₹1,36,000</h3><p>Net Profit</p></div>
-        <div class="report-card"><h3>+18%</h3><p>Growth Rate</p></div>
-        <div class="report-card"><h3>₹2,850</h3><p>Avg Bill</p></div>
-        <div class="report-card"><h3>186</h3><p>Total Appointments</p></div>
-        <div class="report-card"><h3>142</h3><p>Recurring Clients</p></div>
-        <div class="report-card"><h3>78%</h3><p>Retention Rate</p></div>
-        <div class="report-card"><h3>₹72,000</h3><p>Inventory Value</p></div>
       </div>
-
-      <div class="chart-box">
-        <canvas id="execRevenueChart"></canvas>
-      </div>
-
-    </div>
-
-    <!-- SALES -->
-    <div id="report-sales" class="report-content" style="display:none;">
-      <div class="chart-row">
-        <div class="chart-box"><canvas id="salesPieChart"></canvas></div>
-        <div class="chart-box"><canvas id="topServiceChart"></canvas></div>
-      </div>
-    </div>
-
-    <!-- STAFF -->
-    <div id="report-staff" class="report-content" style="display:none;">
-      <div class="chart-row">
-        <div class="chart-box"><canvas id="staffRevenueChart"></canvas></div>
-        <div class="chart-box"><canvas id="attendanceChart"></canvas></div>
-      </div>
-    </div>
-
-    <!-- CLIENTS -->
-    <div id="report-clients" class="report-content" style="display:none;">
-      <div class="chart-row">
-        <div class="chart-box"><canvas id="clientGrowthChart"></canvas></div>
-        <div class="chart-box"><canvas id="recurringClientChart"></canvas></div>
-      </div>
-    </div>
-
-    <!-- INVENTORY -->
-    <div id="report-inventory" class="report-content" style="display:none;">
-      <div class="report-cards">
-        <div class="report-card"><h3>₹72,000</h3><p>Total Stock Value</p></div>
-        <div class="report-card"><h3>₹18,400</h3><p>Reorder Required</p></div>
-        <div class="report-card"><h3>5</h3><p>Low Stock Items</p></div>
-        <div class="report-card"><h3>₹28,000</h3><p>Dead Stock Value</p></div>
-      </div>
-      <div class="chart-box">
-        <canvas id="inventoryMarginChart"></canvas>
-      </div>
-    </div>
-
-</div>  
-<script src="script.js"></script>
+      <script src="script.js"></script>
 </body>
+
 </html>

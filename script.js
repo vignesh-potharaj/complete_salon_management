@@ -6,11 +6,23 @@ function showSection(sectionId) {
   });
 
   document.getElementById(sectionId).style.display = "block";
+
+  if (window.innerWidth <= 768) {
+    document.querySelector('.sidebar').classList.remove('open');
+    document.querySelector('.sidebar-overlay').classList.remove('active');
+  }
+}
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.sidebar-overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('active');
 }
 const form = document.getElementById("appointmentForm");
 const table = document.querySelector(".appointments-list table");
 
-form.addEventListener("submit", function(e) {
+form.addEventListener("submit", function (e) {
   e.preventDefault();
 
   const name = form.children[0].value;
@@ -86,7 +98,7 @@ function addStaff() {
   let phone = document.getElementById("newStaffPhone").value;
   let commission = document.getElementById("newStaffCommission").value;
 
-  if(!name || !role || !phone || !commission) {
+  if (!name || !role || !phone || !commission) {
     alert("Fill all fields");
     return;
   }
@@ -95,7 +107,7 @@ function addStaff() {
 
   let row = table.insertRow();
 
-row.innerHTML = `
+  row.innerHTML = `
   <td>${name}</td>
   <td>${role}</td>
   <td>${phone}</td>
@@ -106,7 +118,7 @@ row.innerHTML = `
     <button class="delete-btn" onclick="deleteStaff(event, this)">Delete</button>
   </td>
 `;
-  row.onclick = function() {
+  row.onclick = function () {
     openStaffProfile(name, role, phone, commission, 0, "Present");
   };
 
@@ -116,7 +128,7 @@ function deleteStaff(event, button) {
 
   event.stopPropagation(); // Prevent row click
 
-  if(confirm("Are you sure you want to remove this staff member?")) {
+  if (confirm("Are you sure you want to remove this staff member?")) {
 
     const row = button.closest("tr");
 
@@ -212,8 +224,8 @@ function recalcRow(row) {
 
   let stock = parseInt(row.cells[2].innerText);
   let min = parseInt(row.cells[3].innerText);
-  let purchase = parseInt(row.cells[7].innerText.replace("₹",""));
-  let selling = parseInt(row.cells[8].innerText.replace("₹",""));
+  let purchase = parseInt(row.cells[7].innerText.replace("₹", ""));
+  let selling = parseInt(row.cells[8].innerText.replace("₹", ""));
 
   let reorder = stock < min ? (min - stock) : 0;
   let totalValue = stock * purchase;
@@ -258,7 +270,7 @@ function updateInventoryStats() {
     let min = parseInt(row.cells[3].innerText);
 
     // TOTAL VALUE COLUMN IS NOW INDEX 10
-    let value = parseInt(row.cells[10].innerText.replace("₹",""));
+    let value = parseInt(row.cells[10].innerText.replace("₹", ""));
 
     totalValue += value;
 
@@ -294,8 +306,8 @@ function openHistory(button) {
   let html = history.length === 0
     ? "No history available."
     : history.map(h =>
-        `<p><strong>${h.date}</strong><br>${h.action} (Qty: ${h.qty})</p><hr>`
-      ).join("");
+      `<p><strong>${h.date}</strong><br>${h.action} (Qty: ${h.qty})</p><hr>`
+    ).join("");
 
   inventoryHistoryContent.innerHTML = html;
   inventoryHistoryModal.style.display = "block";
@@ -407,11 +419,11 @@ function populateProductDropdown() {
   document.querySelectorAll("#inventoryTable tbody tr").forEach(row => {
 
     let name = row.cells[0].innerText;
-    let price = row.cells[8].innerText.replace("₹","");
+    let price = row.cells[8].innerText.replace("₹", "");
     let stock = row.cells[2].innerText;
 
     if (parseInt(stock) > 0) {
-      productSelect.innerHTML += 
+      productSelect.innerHTML +=
         `<option value="${name}|${price}">${name} - ₹${price}</option>`;
     }
   });
@@ -480,14 +492,14 @@ function changeQty(index, delta) {
 
   billItems[index].qty += delta;
   if (billItems[index].qty <= 0) {
-    billItems.splice(index,1);
+    billItems.splice(index, 1);
   }
 
   renderBill();
 }
 
 function removeItem(index) {
-  billItems.splice(index,1);
+  billItems.splice(index, 1);
   renderBill();
 }
 
@@ -507,15 +519,15 @@ function calculateTotals() {
   billTotal.innerText = total;
 }
 
-function printBill(){
+function printBill() {
 
-const client = document.getElementById("billClient").value
-document.getElementById("printClientName").innerText = client
+  const client = document.getElementById("billClient").value
+  document.getElementById("printClientName").innerText = client
 
-const now = new Date()
-document.getElementById("billDate").innerText = now.toLocaleString()
+  const now = new Date()
+  document.getElementById("billDate").innerText = now.toLocaleString()
 
-window.print()
+  window.print()
 
 }
 /* Reduce inventory when product sold */
@@ -549,7 +561,7 @@ let totalBills = 48;
 
 function loadReports() {
 
-  let totalRevenue = monthlyRevenue.reduce((a,b) => a+b, 0);
+  let totalRevenue = monthlyRevenue.reduce((a, b) => a + b, 0);
   let serviceRevenue = Math.round(totalRevenue * 0.7);
   let productRevenue = Math.round(totalRevenue * 0.3);
   let avgBill = Math.round(totalRevenue / totalBills);
@@ -569,7 +581,7 @@ function renderRevenueChart() {
   new Chart(document.getElementById("revenueChart"), {
     type: "line",
     data: {
-      labels: ["Jan","Feb","Mar","Apr","May","Jun"],
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
       datasets: [{
         label: "Revenue",
         data: monthlyRevenue,
@@ -585,7 +597,7 @@ function renderSalesChart(serviceRevenue, productRevenue) {
   new Chart(document.getElementById("salesChart"), {
     type: "pie",
     data: {
-      labels: ["Services","Products"],
+      labels: ["Services", "Products"],
       datasets: [{
         data: [serviceRevenue, productRevenue]
       }]
@@ -601,8 +613,8 @@ function renderStaffReport() {
   document.querySelectorAll("#staffTable tbody tr").forEach(row => {
 
     let name = row.cells[0].innerText;
-    let revenue = parseInt(row.cells[4].innerText.replace("₹",""));
-    let commission = parseInt(row.cells[3].innerText.replace("%",""));
+    let revenue = parseInt(row.cells[4].innerText.replace("₹", ""));
+    let commission = parseInt(row.cells[3].innerText.replace("%", ""));
     let earned = Math.round(revenue * commission / 100);
 
     table.innerHTML += `
@@ -618,10 +630,10 @@ function renderStaffReport() {
 
 /* Auto load when reports section opens */
 document.querySelector("li[onclick=\"showSection('reports')\"]")
-.addEventListener("click", loadReports);
+  .addEventListener("click", loadReports);
 /* Refresh product list whenever checkout opens */
 document.querySelector("li[onclick=\"showSection('checkout')\"]")
-.addEventListener("click", populateProductDropdown);
+  .addEventListener("click", populateProductDropdown);
 /* ================= REPORT TAB SWITCH ================= */
 
 function switchReportTab(tab) {
@@ -645,10 +657,10 @@ function loadReportCharts() {
   new Chart(document.getElementById("execRevenueChart"), {
     type: "line",
     data: {
-      labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       datasets: [{
         label: "Revenue",
-        data: [35000,42000,48000,52000,61000,58000,65000,70000,72000,76000,82000,90000],
+        data: [35000, 42000, 48000, 52000, 61000, 58000, 65000, 70000, 72000, 76000, 82000, 90000],
         borderWidth: 2,
         tension: 0.3
       }]
@@ -657,7 +669,7 @@ function loadReportCharts() {
   new Chart(document.getElementById("topServiceChart"), {
     type: "bar",
     data: {
-      labels: ["Keratin","Hair Color","Facial","Haircut"],
+      labels: ["Keratin", "Hair Color", "Facial", "Haircut"],
       datasets: [{
         label: "Revenue",
         data: [120000, 98000, 76000, 54000]
@@ -668,9 +680,9 @@ function loadReportCharts() {
   new Chart(document.getElementById("salesPieChart"), {
     type: "pie",
     data: {
-      labels: ["Services","Products"],
+      labels: ["Services", "Products"],
       datasets: [{
-        data: [70,30]
+        data: [70, 30]
       }]
     }
   });
@@ -678,7 +690,7 @@ function loadReportCharts() {
   new Chart(document.getElementById("staffBarChart"), {
     type: "bar",
     data: {
-      labels: ["Aarav","Ishita","Rohan","Meher","Vivaan"],
+      labels: ["Aarav", "Ishita", "Rohan", "Meher", "Vivaan"],
       datasets: [{
         label: "Revenue",
         data: [82000, 96000, 54000, 61000, 73000]
@@ -689,10 +701,10 @@ function loadReportCharts() {
   new Chart(document.getElementById("clientGrowthChart"), {
     type: "line",
     data: {
-      labels: ["Jan","Feb","Mar","Apr","May","Jun"],
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
       datasets: [{
         label: "New Clients",
-        data: [24,32,28,40,36,52],
+        data: [24, 32, 28, 40, 36, 52],
         tension: 0.3
       }]
     }
@@ -701,7 +713,7 @@ function loadReportCharts() {
 
 /* Load charts when reports opened */
 document.querySelector("li[onclick=\"showSection('reports')\"]")
-.addEventListener("click", loadReportCharts);
+  .addEventListener("click", loadReportCharts);
 function switchReportTab(tab, btn) {
 
   document.querySelectorAll(".report-content").forEach(el => {
@@ -721,10 +733,10 @@ function loadReportCharts() {
   new Chart(document.getElementById("execRevenueChart"), {
     type: "line",
     data: {
-      labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       datasets: [{
         label: "Revenue",
-        data: [35000,42000,48000,52000,61000,58000,65000,70000,72000,76000,82000,90000],
+        data: [35000, 42000, 48000, 52000, 61000, 58000, 65000, 70000, 72000, 76000, 82000, 90000],
         borderWidth: 2,
         tension: 0.3
       }]
@@ -734,18 +746,18 @@ function loadReportCharts() {
   new Chart(document.getElementById("salesPieChart"), {
     type: "pie",
     data: {
-      labels: ["Services","Products"],
-      datasets: [{ data: [70,30] }]
+      labels: ["Services", "Products"],
+      datasets: [{ data: [70, 30] }]
     }
   });
 
   new Chart(document.getElementById("topServiceChart"), {
     type: "bar",
     data: {
-      labels: ["Keratin","Hair Color","Facial","Haircut"],
+      labels: ["Keratin", "Hair Color", "Facial", "Haircut"],
       datasets: [{
         label: "Revenue",
-        data: [120000,98000,76000,54000]
+        data: [120000, 98000, 76000, 54000]
       }]
     }
   });
@@ -753,10 +765,10 @@ function loadReportCharts() {
   new Chart(document.getElementById("staffRevenueChart"), {
     type: "bar",
     data: {
-      labels: ["Aarav","Ishita","Rohan","Meher","Vivaan"],
+      labels: ["Aarav", "Ishita", "Rohan", "Meher", "Vivaan"],
       datasets: [{
         label: "Revenue",
-        data: [82000,96000,54000,61000,73000]
+        data: [82000, 96000, 54000, 61000, 73000]
       }]
     }
   });
@@ -764,10 +776,10 @@ function loadReportCharts() {
   new Chart(document.getElementById("attendanceChart"), {
     type: "bar",
     data: {
-      labels: ["Aarav","Ishita","Rohan","Meher","Vivaan"],
+      labels: ["Aarav", "Ishita", "Rohan", "Meher", "Vivaan"],
       datasets: [{
         label: "Attendance %",
-        data: [96,98,82,88,91]
+        data: [96, 98, 82, 88, 91]
       }]
     }
   });
@@ -775,10 +787,10 @@ function loadReportCharts() {
   new Chart(document.getElementById("clientGrowthChart"), {
     type: "line",
     data: {
-      labels: ["Jan","Feb","Mar","Apr","May","Jun"],
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
       datasets: [{
         label: "New Clients",
-        data: [24,32,28,40,36,52],
+        data: [24, 32, 28, 40, 36, 52],
         tension: 0.3
       }]
     }
@@ -787,9 +799,9 @@ function loadReportCharts() {
   new Chart(document.getElementById("recurringClientChart"), {
     type: "pie",
     data: {
-      labels: ["Recurring","New"],
+      labels: ["Recurring", "New"],
       datasets: [{
-        data: [78,22]
+        data: [78, 22]
       }]
     }
   });
@@ -797,14 +809,14 @@ function loadReportCharts() {
   new Chart(document.getElementById("inventoryMarginChart"), {
     type: "bar",
     data: {
-      labels: ["Keratin Serum","Facial Cream","Shampoo","Beard Oil"],
+      labels: ["Keratin Serum", "Facial Cream", "Shampoo", "Beard Oil"],
       datasets: [{
         label: "Profit Margin %",
-        data: [28,35,22,30]
+        data: [28, 35, 22, 30]
       }]
     }
   });
 }
 
 document.querySelector("li[onclick=\"showSection('reports')\"]")
-.addEventListener("click", loadReportCharts);
+  .addEventListener("click", loadReportCharts);
