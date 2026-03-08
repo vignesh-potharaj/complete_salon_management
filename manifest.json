@@ -1,0 +1,22 @@
+{
+  "short_name": "SalonPro",
+  "name": "Salon Management Demo",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/index.html",
+  "background_color": "#111111",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#111111",
+  "description": "Complete Salon Management System app for Android"
+}

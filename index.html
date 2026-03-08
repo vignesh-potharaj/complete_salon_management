@@ -3,6 +3,8 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <link rel="manifest" href="manifest.json">
   <title>Salon Management Demo</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css">
@@ -693,6 +695,15 @@
 
       </div>
       <script src="script.js"></script>
+      <script>
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./serviceWorker.js')
+              .then(reg => console.log('Service Worker Registered!', reg))
+              .catch(err => console.error('Service Worker Registration Failed:', err));
+          });
+        }
+      </script>
 </body>
 
 </html>
