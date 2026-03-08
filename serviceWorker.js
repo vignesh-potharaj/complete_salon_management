@@ -4,8 +4,8 @@ const urlsToCache = [
   "./index.html",
   "./style.css",
   "./script.js",
-  "./icon-192.svg",
-  "./icon-512.svg",
+  "./icon-192.png",
+  "./icon-512.png",
   "https://cdn.jsdelivr.net/npm/chart.js"
 ];
 
