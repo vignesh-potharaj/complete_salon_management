@@ -406,7 +406,20 @@ function loadInventoryDemoData() {
   updateInventoryStats();
 }
 
-window.addEventListener("DOMContentLoaded", loadInventoryDemoData);
+function updateCalendarDate() {
+  const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const today = new Date().toLocaleDateString('en-GB', dateOptions);
+
+  const header = document.querySelector('.calendar-header h2');
+  if (header) {
+    header.innerText = today;
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  loadInventoryDemoData();
+  updateCalendarDate();
+});
 /* ================= CHECKOUT LOGIC ================= */
 
 let billItems = [];
@@ -436,6 +449,9 @@ function addServiceToBill() {
 
   let [name, price] = val.split("|");
   addToBill(name, "Service", parseInt(price));
+
+  // Reset the select dropdown
+  serviceSelect.value = "";
 }
 
 function addProductToBill() {
@@ -445,6 +461,9 @@ function addProductToBill() {
 
   let [name, price] = val.split("|");
   addToBill(name, "Product", parseInt(price));
+
+  // Reset the select dropdown
+  productSelect.value = "";
 }
 
 function addToBill(name, type, price) {
@@ -480,7 +499,7 @@ function renderBill() {
         </td>
         <td>₹${item.price}</td>
         <td>₹${total}</td>
-        <td><button onclick="removeItem(${index})">X</button></td>
+        <td><button class="no-print" onclick="removeItem(${index})">X</button></td>
       </tr>
     `;
   });

@@ -252,17 +252,14 @@ body {
 }
 
 .add-btn {
-  position: absolute;
-  bottom: 30px;
-  right: 40px;
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
+  padding: 10px 20px;
+  border-radius: 8px;
   background: black;
   color: white;
-  font-size: 28px;
+  font-size: 16px;
   border: none;
   cursor: pointer;
+  margin-bottom: 20px;
 }
 
 .client-stats {
@@ -659,7 +656,8 @@ tr:hover {
     width: 100%;
   }
 
-  .no-print {
+  .no-print,
+  .qty-btn {
     display: none !important;
   }
 
@@ -841,10 +839,8 @@ tr:hover {
   }
 
   .add-btn {
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
+    width: 100%;
+    margin-bottom: 20px;
   }
 
   .report-tabs {
