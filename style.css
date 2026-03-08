@@ -708,7 +708,7 @@ tr:hover {
 }
 
 /* Responsive Design Overrides */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1024px) {
   .hamburger {
     display: block;
   }
@@ -771,24 +771,8 @@ tr:hover {
   .inventory-stats,
   .report-cards,
   .client-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
-  }
-
-  /* Scrollable calendar components */
-  .staff-row {
-    grid-template-columns: repeat(5, 120px) !important;
-    margin-left: 80px !important;
-    gap: 5px;
-    width: max-content;
-  }
-
-  .calendar-container {
-    min-width: 680px;
-  }
-
-  #calendar {
-    overflow-x: auto;
   }
 
   .billing-container {
@@ -802,6 +786,7 @@ tr:hover {
 
   .modal-content {
     width: 90%;
+    max-width: 500px;
     margin: 15% auto;
     box-sizing: border-box;
   }
@@ -812,6 +797,17 @@ tr:hover {
 
   .table-container table {
     min-width: 600px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+
+  .stats-container,
+  .staff-stats,
+  .inventory-stats,
+  .report-cards,
+  .client-stats {
+    grid-template-columns: 1fr;
   }
 
   .quick-add form {
@@ -858,5 +854,52 @@ tr:hover {
   .tab-btn {
     flex: 1 1 calc(50% - 10px);
     text-align: center;
+  }
+
+  /* Mobile Calendar Mode */
+  #calendar {
+    overflow-x: hidden;
+  }
+
+  .calendar-container {
+    min-width: 100%;
+    height: auto;
+    flex-direction: column;
+    border: none;
+  }
+
+  .time-column {
+    display: none;
+  }
+
+  .calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .appointment {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 15px;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .staff-row {
+    display: flex !important;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-left: 0 !important;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .staff-card {
+    min-width: 80px;
+    flex-shrink: 0;
   }
 }
