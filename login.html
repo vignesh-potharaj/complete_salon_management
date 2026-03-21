@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SalonPro – Login</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      background: #f4f4f4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .brand {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .auth-card h1 { font-size: 22px; margin-bottom: 4px; }
+    .auth-card .subtitle { color: #888; margin-bottom: 28px; font-size: 14px; }
+
+    .form-group { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    .userid-wrap {
+      display: flex;
+      align-items: center;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border 0.2s;
+    }
+
+    .userid-wrap:focus-within { border-color: #111; }
+
+    .userid-prefix {
+      background: #f5f5f5;
+      padding: 12px 12px;
+      font-size: 15px;
+      color: #888;
+      border-right: 1px solid #ddd;
+    }
+
+    .userid-wrap input {
+      border: none;
+      border-radius: 0;
+      flex: 1;
+      padding: 12px 14px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus { border-color: #111; }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background: #111;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.2s;
+    }
+
+    .btn:hover    { background: #333; }
+    .btn:disabled { background: #999; cursor: not-allowed; }
+
+    .error-msg {
+      background: #fdecea;
+      color: #c0392b;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .switch-link {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .switch-link a {
+      color: #111;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .welcome-box {
+      background: #f8f8f8;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .welcome-box strong { color: #111; display: block; margin-bottom: 2px; font-size: 14px; }
+    .welcome-link { color: #111; font-weight: bold; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="auth-card">
+
+  <div class="brand">✂ SalonPro</div>
+  <h1>Welcome back</h1>
+  <p class="subtitle">Log in to manage your salon</p>
+
+  <div class="welcome-box">
+    <strong>New to SalonPro?</strong>
+    <a href="register.html" class="welcome-link">Create a free account</a> — takes less than a minute.
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- User ID -->
+  <div class="form-group">
+    <label>User ID</label>
+    <div class="userid-wrap">
+      <span class="userid-prefix">@</span>
+      <input type="text" id="userId" placeholder="your.userid" autocomplete="username">
+    </div>
+  </div>
+
+  <!-- Password -->
+  <div class="form-group">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+  </div>
+
+  <button class="btn" id="loginBtn" onclick="login()">Log In</button>
+
+  <div class="switch-link">
+    Don't have an account? <a href="register.html">Register here</a>
+  </div>
+
+</div>
+
+<script>
+  const API = 'http://localhost:5000/api';
+
+  if (localStorage.getItem('token')) {
+    window.location.href = 'index.html';
+  }
+
+  async function login() {
+    const userId   = document.getElementById('userId').value.trim();
+    const password = document.getElementById('password').value;
+    const btn      = document.getElementById('loginBtn');
+    const errEl    = document.getElementById('errorMsg');
+
+    errEl.style.display = 'none';
+
+    if (!userId)   return showError('Please enter your User ID.');
+    if (!password) return showError('Please enter your password.');
+
+    btn.disabled    = true;
+    btn.textContent = 'Logging in...';
+
+    try {
+      const res  = await fetch(`${API}/auth/login`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ userId, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) return showError(data.message || 'Login failed');
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify({
+        userId:    data.userId,
+        name:      data.name,
+        salonName: data.salonName
+      }));
+
+      window.location.href = 'index.html';
+
+    } catch (err) {
+      showError('Cannot connect to server. Make sure the backend is running.');
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Log In';
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent   = msg;
+    el.style.display = 'block';
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+</script>
+
+</body>
+</html>
