@@ -1,72 +1,102 @@
-const API_BASE = 'http://localhost:5000/api';
+// api.js - Global API Helper and Auth
 
-// ── Auth guard ──────────────────────────────────────────────
-(function checkAuth() {
-  if (!localStorage.getItem('token')) {
-    window.location.href = 'login.html';
+const BASE_URL = 'http://localhost:5000/api';
+
+// Global API helper
+async function api(path, options = {}) {
+  const token = localStorage.getItem('token');
+  
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+
+  if (token) {
+    headers['Authorization'] = 'Bearer ' + token;
   }
-})();
 
-// ── Show user info in sidebar ───────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const res = await fetch(BASE_URL + path, {
+    method: options.method || 'GET',
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
 
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar && user.name) {
-    const infoDiv = document.createElement('div');
-    infoDiv.style.cssText = `
-      position: absolute; bottom: 20px; left: 0; right: 0;
-      padding: 0 16px; font-size: 12px; color: #aaa;
-    `;
-    infoDiv.innerHTML = `
-      <div style="border-top:1px solid #333;padding-top:12px;margin-bottom:8px;"></div>
-      <div style="font-weight:bold;color:#fff;font-size:13px;margin-bottom:2px;">
-        ${user.salonName || 'My Salon'}
-      </div>
-      <div style="color:#aaa;margin-bottom:2px;">@${user.userId || user.name}</div>
-      <div style="color:#666;font-size:11px;margin-bottom:10px;">${user.name}</div>
-      <button onclick="logout()" style="
-        width:100%;padding:7px;background:#e74c3c;
-        color:white;border:none;border-radius:6px;
-        cursor:pointer;font-size:12px;
-      ">Log Out</button>
-    `;
-    sidebar.appendChild(infoDiv);
+  if (res.status === 401) { 
+    logout(); 
+    return; 
   }
-});
+  
+  if (!res.ok) {
+    const errText = await res.text();
+    let errMsg = errText;
+    try {
+        const errObj = JSON.parse(errText);
+        errMsg = errObj.msg || errObj.message || errText;
+    } catch(e) {}
+    throw new Error(errMsg);
+  }
+  
+  return res.json();
+}
 
-// ── Logout ──────────────────────────────────────────────────
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   window.location.href = 'login.html';
 }
 
-// ── Authenticated fetch helper ───────────────────────────────
-async function api(path, { method = 'GET', body } = {}) {
-  const token = localStorage.getItem('token');
+// Ensure user is logged in before rendering the SPA
+if (!localStorage.getItem('token') && !window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
+  window.location.href = 'login.html';
+}
 
-  const options = {
-    method,
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${token}`
-    }
-  };
+// Global Toast Notification
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
 
-  if (body) options.body = JSON.stringify(body);
+  const toast = document.createElement('div');
+  toast.style.padding = '12px 20px';
+  toast.style.borderRadius = '8px';
+  toast.style.color = 'white';
+  toast.style.fontWeight = 'bold';
+  toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+  toast.style.background = type === 'success' ? '#27ae60' : '#e74c3c';
+  toast.style.transition = 'opacity 0.3s ease-in-out';
+  toast.innerText = message;
 
-  const res  = await fetch(API_BASE + path, options);
-  const data = await res.json();
+  container.appendChild(toast);
 
-  if (res.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = 'login.html';
-    return;
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// Centralized refresher for cross-module updates
+function refreshRelated(modules) {
+  // If the currently visible section is in the modules array, reload it.
+  const activeSection = document.querySelector('.section:not(.section-hidden)');
+  if (activeSection) {
+      const activeId = activeSection.id; // e.g., 'home', 'inventory'
+      
+      // Map div IDs to load functions
+      const reloadMap = {
+          'home': loadDashboard,
+          'calendar': loadCalendar,
+          'clients': loadClients,
+          'staff': loadStaff,
+          'services': loadServices,
+          'inventory': loadInventory,
+          'checkout': () => { populateProductDropdown(); populateServiceDropdown(); loadBillHistory(); },
+          'reports': loadReports,
+          'settings': loadSettings
+      };
+
+      // Check if the current active tab needs a reload
+      // 'dashboard' in modules -> reload 'home'
+      if (modules.includes('dashboard') && activeId === 'home') reloadMap['home']();
+      if (modules.includes(activeId) && reloadMap[activeId]) {
+          reloadMap[activeId]();
+      }
   }
-
-  if (!res.ok) throw new Error(data.message || 'API error');
-
-  return data;
 }

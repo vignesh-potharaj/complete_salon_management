@@ -1,47 +1,81 @@
 const express = require('express');
-const router  = express.Router();
-const Client  = require('../models/Client');
-const { protect } = require('../middleware/authMiddleware');
-const { validateClient } = require('../middleware/validators');
+const router = express.Router();
+const auth = require('../middleware/auth');
+const Client = require('../models/Client');
+const Appointment = require('../models/Appointment');
+const Bill = require('../models/Bill');
 
-router.use(protect);
-
-router.get('/', async (req, res, next) => {
+// GET /api/clients
+router.get('/', auth, async (req, res) => {
   try {
-    const { gender, search } = req.query;
-    let query = { createdBy: req.user._id };
-    if (gender) query.gender = gender;
-    if (search) query.name = { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
-    const clients = await Client.find(query).sort({ createdAt: -1 });
+    const clients = await Client.find({ userId: req.user.userId }).sort({ createdAt: -1 });
     res.json(clients);
-  } catch (err) { next(err); }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
-router.post('/', validateClient, async (req, res, next) => {
+// POST /api/clients
+router.post('/', auth, async (req, res) => {
   try {
-    const client = await Client.create({ ...req.body, createdBy: req.user._id });
-    res.status(201).json(client);
-  } catch (err) { next(err); }
-});
-
-router.put('/:id', validateClient, async (req, res, next) => {
-  try {
-    const client = await Client.findOneAndUpdate(
-      { _id: req.params.id, createdBy: req.user._id },
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!client) return res.status(404).json({ message: 'Client not found' });
+    const newClient = new Client({
+      ...req.body,
+      userId: req.user.userId
+    });
+    const client = await newClient.save();
     res.json(client);
-  } catch (err) { next(err); }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
-router.delete('/:id', async (req, res, next) => {
+// PUT /api/clients/:id
+router.put('/:id', auth, async (req, res) => {
   try {
-    const client = await Client.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id });
-    if (!client) return res.status(404).json({ message: 'Client not found' });
-    res.json({ message: 'Client deleted' });
-  } catch (err) { next(err); }
+    let client = await Client.findById(req.params.id);
+    if (!client) return res.status(404).json({ msg: 'Client not found' });
+    if (client.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+
+    client = await Client.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+    res.json(client);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// DELETE /api/clients/:id
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) return res.status(404).json({ msg: 'Client not found' });
+    if (client.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+
+    await Client.findByIdAndRemove(req.params.id);
+    res.json({ msg: 'Client removed' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET /api/clients/:id/history
+router.get('/:id/history', auth, async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) return res.status(404).json({ msg: 'Client not found' });
+    if (client.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+
+    const appointments = await Appointment.find({ clientId: req.params.id, userId: req.user.userId }).sort({ date: -1, time: -1 });
+    const bills = await Bill.find({ clientId: req.params.id, userId: req.user.userId }).sort({ date: -1 });
+
+    res.json({ appointments, bills });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 module.exports = router;

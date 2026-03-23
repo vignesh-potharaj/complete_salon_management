@@ -1,6 +1,6 @@
 /* ==========================================================
    SalonPro — script.js
-   100% real data from MongoDB. Zero hardcoded values.
+   Frontend Orchestration (Vanilla JS)
    ========================================================== */
 
 /* ─── NAVIGATION ─────────────────────────────────────────── */
@@ -8,7 +8,7 @@
 function showSection(sectionId) {
   document.querySelectorAll('.section').forEach(s => s.classList.add('section-hidden'));
   const target = document.getElementById(sectionId);
-  target.classList.remove('section-hidden');
+  if (target) target.classList.remove('section-hidden');
 
   if (window.innerWidth <= 768) {
     document.querySelector('.sidebar').classList.remove('open');
@@ -19,9 +19,11 @@ function showSection(sectionId) {
   if (sectionId === 'calendar')  loadCalendar();
   if (sectionId === 'clients')   loadClients();
   if (sectionId === 'staff')     loadStaff();
+  if (sectionId === 'services')  loadServices();
   if (sectionId === 'inventory') loadInventory();
-  if (sectionId === 'checkout')  { populateProductDropdown(); loadBillHistory(); }
+  if (sectionId === 'checkout')  { populateProductDropdown(); populateServiceDropdown(); populateClientDropdown(); loadBillHistory(); }
   if (sectionId === 'reports')   loadReports();
+  if (sectionId === 'settings')  loadSettings();
 }
 
 function toggleSidebar() {
@@ -29,7 +31,7 @@ function toggleSidebar() {
   document.querySelector('.sidebar-overlay').classList.toggle('active');
 }
 
-/* ─── HELPERS ────────────────────────────────────────────── */
+/* ─── DOM HELPERS ────────────────────────────────────────── */
 
 function setEl(id, value) {
   const el = document.getElementById(id);
@@ -43,16 +45,25 @@ function statusColor(s) {
        : '#3498db';
 }
 
-function openModal(client, service, time, amount, staff) {
+function openModal(client, service, time, amount, staff, id) {
   setEl('modalClient', client);   setEl('modalService', service);
   setEl('modalTime', time);       setEl('modalAmount', amount);
   setEl('modalStaff', staff);
-  document.getElementById('appointmentModal').style.display = 'block';
+  
+  // Attach appointment ID for converting to bill
+  const appointmentModal = document.getElementById('appointmentModal');
+  appointmentModal.dataset.apptId = id;
+  appointmentModal.dataset.apptClient = client;
+  appointmentModal.dataset.apptService = service;
+  appointmentModal.dataset.apptStaff = staff;
+  
+  appointmentModal.style.display = 'block';
 }
 function closeModal() { document.getElementById('appointmentModal').style.display = 'none'; }
 
+
 /* ══════════════════════════════════════════════════════════
-   1. DASHBOARD — 100% real data, zero hardcoded
+   1. DASHBOARD
    ══════════════════════════════════════════════════════════ */
 
 async function loadDashboard() {
@@ -61,24 +72,25 @@ async function loadDashboard() {
 
     const [stats, appointments, inventory, clients] = await Promise.all([
       api('/bills/stats/today'),
-      api(`/appointments?date=${today}`),
+      api(`/appointments`), // Fetch all then filter locally for simplicity, or API could filter
       api('/inventory'),
       api('/clients')
     ]);
 
-    // ── Sales today ───────────────────────────────────────
-    setEl('dashTotalSales', '₹' + (stats.totalSales || 0).toLocaleString('en-IN'));
-    setEl('dashTotalBills', stats.totalBills + ' bill(s) today');
+    const todaysAppointments = appointments.filter(a => a.date === today);
 
-    // ── Appointments today ────────────────────────────────
-    setEl('dashApptCount', appointments.length);
-    const ongoing = appointments.filter(a => a.status === 'Ongoing').length;
+    // Sales today
+    setEl('dashTotalSales', '₹' + (stats.totalSales || 0).toLocaleString('en-IN'));
+
+    // Appointments today
+    setEl('dashApptCount', todaysAppointments.length);
+    const ongoing = todaysAppointments.filter(a => a.status === 'Ongoing').length;
     setEl('dashApptOngoing', ongoing + ' ongoing right now');
 
-    // ── Total clients ─────────────────────────────────────
+    // Total clients
     setEl('dashTotalClients', clients.length);
 
-    // ── Low stock alerts ──────────────────────────────────
+    // Low stock alerts
     const lowItems  = inventory.filter(i => i.stock <= i.minStock);
     const alertList = document.getElementById('dashLowStockList');
     if (alertList) {
@@ -91,22 +103,21 @@ async function loadDashboard() {
       }
     }
 
-    // ── Today's appointments table ────────────────────────
+    // Today's appointments table
     const table = document.getElementById('dashApptTable');
     if (table) {
-      // keep header, remove old rows
       const rows = table.querySelectorAll('tr:not(:first-child)');
       rows.forEach(r => r.remove());
 
-      if (appointments.length === 0) {
+      if (todaysAppointments.length === 0) {
         table.innerHTML += `<tr><td colspan="4" style="text-align:center;color:#999;padding:16px;">No appointments today yet</td></tr>`;
       } else {
-        appointments.forEach(a => {
+        todaysAppointments.forEach(a => {
           table.innerHTML += `
             <tr>
               <td>${a.time}</td>
               <td>${a.clientName}</td>
-              <td>${a.service}</td>
+              <td>${a.serviceName}</td>
               <td><span style="padding:3px 8px;border-radius:4px;font-size:12px;background:${statusColor(a.status)};color:white;">${a.status}</span></td>
             </tr>`;
         });
@@ -114,84 +125,107 @@ async function loadDashboard() {
     }
 
   } catch (err) {
-    console.error('Dashboard error:', err);
-    setEl('dashTotalSales',  'Error');
-    setEl('dashApptCount',   'Error');
-    setEl('dashTotalClients','Error');
+    showToast('Dashboard error', 'error');
   }
 }
 
-/* ─── Quick Add Appointment (dashboard form) ─────────────── */
+// Quick Add Appointment form on dashboard
 const appointmentForm = document.getElementById('appointmentForm');
 if (appointmentForm) {
   appointmentForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     const clientName = this.children[0].value.trim();
-    const service    = this.children[1].value.trim();
+    const serviceName    = this.children[1].value.trim();
     const time       = this.children[2].value;
+    const date       = new Date().toISOString().split('T')[0]; // Today
+    
     try {
-      await api('/appointments', { method: 'POST', body: { clientName, service, time, status: 'Upcoming' } });
+      // Need a default client and staff ID normally. Let's create dummy ones or fetch first available.
+      // Quick add assumes some defaults if not specified
+      const clients = await api('/clients');
+      const services = await api('/services');
+      const staffList = await api('/staff');
+      
+      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
+      if (!client) {
+          // Create client
+          client = await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+      }
+
+      let _staff = staffList.length > 0 ? staffList[0] : null;
+      let _service = services.find(s => s.name.toLowerCase() === serviceName.toLowerCase()) || (services.length > 0 ? services[0] : null);
+
+      if (!_staff || !_service) throw new Error('Add at least one Staff and Service in settings first.');
+
+      await api('/appointments', { 
+        method: 'POST', 
+        body: { 
+          clientId: client._id, clientName: client.name, 
+          serviceId: _service._id, serviceName: serviceName, 
+          staffId: _staff._id, staffName: _staff.name,
+          date, time, duration: _service.durationMins || 30, status: 'Upcoming' 
+        } 
+      });
+      
       this.reset();
+      showToast('Appointment added');
       loadDashboard();
-    } catch (err) { alert('Error: ' + err.message); }
+    } catch (err) { showToast(err.message, 'error'); }
   });
 }
 
 /* ══════════════════════════════════════════════════════════
-   2. CALENDAR — real appointments from DB
+   2. CALENDAR / APPOINTMENTS
    ══════════════════════════════════════════════════════════ */
 
 const SLOT_COLORS = ['#ff4d4d','#6c5ce7','#0984e3','#e17055','#00b894','#fdcb6e','#fd79a8'];
 
 async function loadCalendar() {
   try {
-    // Date header
     const header = document.getElementById('calendarDateHeader');
     if (header) header.innerText = new Date().toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
     const today = new Date().toISOString().split('T')[0];
     const [appointments, staff] = await Promise.all([
-      api(`/appointments?date=${today}`),
+      api(`/appointments`),
       api('/staff')
     ]);
 
-    // Staff row
+    const todaysAppointments = appointments.filter(a => a.date === today);
+
     const staffRow = document.getElementById('calendarStaffRow');
     if (staffRow) {
       if (staff.length === 0) {
-        staffRow.innerHTML = `<div class="staff-card"><img src="https://randomuser.me/api/portraits/lego/1.jpg"><span>No staff yet</span></div>`;
+        staffRow.innerHTML = `<div class="staff-card"><img src="https://ui-avatars.com/api/?name=S"><span>No staff</span></div>`;
       } else {
         staffRow.innerHTML = staff.slice(0, 5).map(s => `
           <div class="staff-card">
-            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff&size=80"
-                 onerror="this.src='https://randomuser.me/api/portraits/lego/1.jpg'">
+            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff&size=80">
             <span>${s.name}</span>
           </div>`).join('');
       }
     }
 
-    // Calendar grid
     const grid = document.getElementById('calendarGrid');
     if (!grid) return;
-    grid.innerHTML = ''; // clear everything
+    grid.innerHTML = ''; 
 
-    if (appointments.length === 0) {
-      grid.innerHTML = `<div style="grid-column:1/-1;grid-row:1;padding:24px;text-align:center;color:#999;font-size:14px;">No appointments today. Click "Add Appointment +" to add one.</div>`;
-      return;
+    if (todaysAppointments.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;grid-row:1;padding:24px;text-align:center;color:#999;font-size:14px;">No appointments today.</div>`;
+    } else {
+      todaysAppointments.forEach((appt, idx) => {
+        const hour     = parseTimeToHour(appt.time);
+        const rowIndex = Math.max(1, hour - 7); 
+        const div      = document.createElement('div');
+        div.className  = 'appointment';
+        div.style.cssText = `grid-column:${(idx % 5) + 1};grid-row:${rowIndex};background:${SLOT_COLORS[idx % SLOT_COLORS.length]};`;
+        div.innerHTML  = `<strong>${appt.clientName}</strong><br>${appt.serviceName}<br>${appt.time}`;
+        div.onclick    = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id);
+        grid.appendChild(div);
+      });
     }
 
-    appointments.forEach((appt, idx) => {
-      const hour     = parseTimeToHour(appt.time);
-      const rowIndex = Math.max(1, hour - 7); // 8AM = row 1
-      const div      = document.createElement('div');
-      div.className  = 'appointment';
-      div.style.cssText = `grid-column:${(idx % 5) + 1};grid-row:${rowIndex};background:${SLOT_COLORS[idx % SLOT_COLORS.length]};`;
-      div.innerHTML  = `<strong>${appt.clientName}</strong><br>${appt.service}<br>${appt.time}`;
-      div.onclick    = () => openModal(appt.clientName, appt.service, appt.time, '—', '—');
-      grid.appendChild(div);
-    });
-
-  } catch (err) { console.error('Calendar error:', err); }
+  } catch (err) { showToast('Calendar error', 'error'); }
 }
 
 function parseTimeToHour(t) {
@@ -209,20 +243,41 @@ function closeAddApptModal() { document.getElementById('addApptModal').style.dis
 
 async function saveAppointment() {
   const clientName = document.getElementById('apptClient').value.trim();
-  const service    = document.getElementById('apptService').value.trim();
+  const serviceName    = document.getElementById('apptService').value.trim();
   const time       = document.getElementById('apptTime').value;
   const btn        = document.getElementById('saveApptBtn');
-  if (!clientName || !service || !time) { alert('Please fill all fields'); return; }
+  
+  if (!clientName || !serviceName || !time) { showToast('Please fill all fields', 'error'); return; }
+  
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
-    await api('/appointments', { method: 'POST', body: { clientName, service, time, status: 'Upcoming' } });
+      const clients = await api('/clients');
+      const services = await api('/services');
+      const staffList = await api('/staff');
+      
+      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+      let _staff = staffList.length > 0 ? staffList[0] : null;
+      let _service = services.find(s => s.name.toLowerCase() === serviceName.toLowerCase()) || (services.length > 0 ? services[0] : null);
+
+      if (!_staff || !_service) throw new Error('Missing Staff or Service details.');
+
+      await api('/appointments', { 
+        method: 'POST', 
+        body: { 
+          clientId: client._id, clientName: client.name, 
+          serviceId: _service._id, serviceName: _service.name, 
+          staffId: _staff._id, staffName: _staff.name,
+          date: new Date().toISOString().split('T')[0], time, duration: _service.durationMins || 30, status: 'Upcoming' 
+        } 
+      });
+      
     closeAddApptModal();
     document.getElementById('apptClient').value = '';
     document.getElementById('apptService').value = '';
     document.getElementById('apptTime').value = '';
-    loadCalendar();
-    loadDashboard();
-  } catch (err) { alert('Error: ' + err.message); }
+    showToast('Appointment Saved');
+    refreshRelated(['calendar', 'dashboard']);
+  } catch (err) { showToast(err.message, 'error'); }
   finally { btn.disabled = false; btn.textContent = 'Save Appointment'; }
 }
 
@@ -233,36 +288,24 @@ async function saveAppointment() {
 async function loadClients() {
   try {
     const clients = await api('/clients');
-
-    // Stats
-    const now       = new Date();
-    const thisMonth = clients.filter(c => {
-      const d = new Date(c.createdAt);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    }).length;
-
     setEl('totalClientsCount',  clients.length);
-    setEl('newClientsMonth',    thisMonth);
-    setEl('femaleClientsCount', clients.filter(c => c.gender === 'Female').length);
-    setEl('maleClientsCount',   clients.filter(c => c.gender === 'Male').length);
 
-    // Table
     const tbody = document.getElementById('clientsTableBody');
     if (!tbody) return;
     if (clients.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#999;padding:24px;">No clients yet. Add your first client!</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#999;padding:24px;">No clients yet.</td></tr>`;
       return;
     }
     tbody.innerHTML = clients.map(c => `
       <tr>
         <td>${c.name}</td>
         <td>${c.phone}</td>
-        <td>${c.firstVisit ? new Date(c.firstVisit).toLocaleDateString('en-IN') : '—'}</td>
+        <td>${new Date(c.createdAt).toLocaleDateString()}</td>
         <td>${c.totalVisits || 0}</td>
-        <td>${c.lastVisit  ? new Date(c.lastVisit).toLocaleDateString('en-IN')  : '—'}</td>
-        <td>₹${(c.totalSpent || 0).toLocaleString('en-IN')}</td>
+        <td>${c.lastVisit  ? new Date(c.lastVisit).toLocaleDateString()  : '—'}</td>
+        <td>₹${(c.totalSpend || 0).toLocaleString('en-IN')}</td>
       </tr>`).join('');
-  } catch (err) { console.error('Clients error:', err); }
+  } catch (err) { showToast('Clients error', 'error'); }
 }
 
 function openAddClientModal()  { document.getElementById('addClientModal').style.display = 'block'; }
@@ -271,35 +314,16 @@ function closeAddClientModal() { document.getElementById('addClientModal').style
 async function saveClient() {
   const name   = document.getElementById('newClientName').value.trim();
   const phone  = document.getElementById('newClientPhone').value.trim();
-  const gender = document.getElementById('newClientGender').value;
   const email  = document.getElementById('newClientEmail').value.trim();
-  if (!name || !phone) { alert('Name and phone are required'); return; }
+  
+  if (!name || !phone) { showToast('Name and phone are required', 'error'); return; }
   try {
-    await api('/clients', { method: 'POST', body: { name, phone, gender, email } });
+    await api('/clients', { method: 'POST', body: { name, phone, email } });
     closeAddClientModal();
     ['newClientName','newClientPhone','newClientEmail'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('newClientGender').value = '';
-    loadClients();
-  } catch (err) { alert('Error: ' + err.message); }
-}
-
-async function exportClients() {
-  try {
-    const clients = await api('/clients');
-    if (clients.length === 0) { alert('No clients to export'); return; }
-    const headers = ['Name','Phone','Gender','First Visit','Total Visits','Last Visit','Total Spent'];
-    const rows = clients.map(c => [
-      c.name, c.phone, c.gender || '',
-      c.firstVisit ? new Date(c.firstVisit).toLocaleDateString('en-IN') : '',
-      c.totalVisits || 0,
-      c.lastVisit  ? new Date(c.lastVisit).toLocaleDateString('en-IN')  : '',
-      c.totalSpent || 0
-    ]);
-    const csv  = [headers, ...rows].map(r => r.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob); link.download = 'clients.csv'; link.click();
-  } catch (err) { alert('Export failed'); }
+    showToast('Client added');
+    refreshRelated(['clients', 'dashboard']);
+  } catch (err) { showToast(err.message, 'error'); }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -309,8 +333,17 @@ async function exportClients() {
 async function loadStaff() {
   try {
     const staff = await api('/staff');
+    
+    // Compute async performance for each
+    for (let s of staff) {
+        try {
+            const perf = await api(`/staff/${s._id}/performance`);
+            s.totalRevenue = perf.revenueThisMonth;
+            s.earned = perf.commissionThisMonth;
+        } catch(e) { s.totalRevenue = 0; s.earned = 0; }
+    }
 
-    const present  = staff.filter(s => s.status === 'Present').length;
+    const present  = staff.filter(s => s.active).length;
     const totalRev = staff.reduce((s, m) => s + (m.totalRevenue || 0), 0);
     const top      = [...staff].sort((a, b) => (b.totalRevenue || 0) - (a.totalRevenue || 0))[0];
 
@@ -322,20 +355,20 @@ async function loadStaff() {
     const tbody = document.querySelector('#staffTable tbody');
     if (!tbody) return;
     if (staff.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#999;padding:24px;">No staff yet. Add your first staff member!</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#999;padding:24px;">No staff yet.</td></tr>`;
       return;
     }
     tbody.innerHTML = staff.map(s => `
-      <tr onclick="openStaffProfile('${s.name}','${s.role}','${s.phone}','${s.commission}','${s.totalRevenue||0}','${s.status}')">
+      <tr onclick="openStaffProfile('${s.name}','${s.role}','${s.phone}','${s.commissionPct}','${s.totalRevenue}','${s.active}')">
         <td>${s.name}</td>
         <td>${s.role}</td>
         <td>${s.phone}</td>
-        <td>${s.commission}%</td>
+        <td>${s.commissionPct}%</td>
         <td>₹${(s.totalRevenue || 0).toLocaleString('en-IN')}</td>
-        <td><span class="status ${s.status === 'Present' ? 'present' : 'absent'}">${s.status}</span></td>
-        <td><button class="delete-btn" onclick="deleteStaffById(event,'${s._id}')">Delete</button></td>
+        <td><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
+        <td><button class="no-print" style="color:red" onclick="deleteStaffById(event,'${s._id}')">Delete</button></td>
       </tr>`).join('');
-  } catch (err) { console.error('Staff error:', err); }
+  } catch (err) { showToast('Staff error', 'error'); }
 }
 
 function openStaffModal()  { document.getElementById('addStaffModal').style.display = 'block'; }
@@ -346,23 +379,24 @@ async function addStaff() {
   const role       = document.getElementById('newStaffRole').value.trim();
   const phone      = document.getElementById('newStaffPhone').value.trim();
   const commission = document.getElementById('newStaffCommission').value;
-  if (!name || !role || !phone || !commission) { alert('Please fill all fields'); return; }
+  if (!name || !role || !phone || !commission) { showToast('Please fill all fields', 'error'); return; }
   try {
-    await api('/staff', { method: 'POST', body: { name, role, phone, commission: Number(commission) } });
+    await api('/staff', { method: 'POST', body: { name, role, phone, commissionPct: Number(commission) } });
     closeStaffModal();
     ['newStaffName','newStaffRole','newStaffPhone','newStaffCommission'].forEach(id => document.getElementById(id).value = '');
-    loadStaff();
-  } catch (err) { alert('Error: ' + err.message); }
+    showToast('Staff added');
+    refreshRelated(['staff']);
+  } catch (err) { showToast(err.message, 'error'); }
 }
 
 async function deleteStaffById(event, id) {
   event.stopPropagation();
   if (!confirm('Remove this staff member?')) return;
-  try { await api(`/staff/${id}`, { method: 'DELETE' }); closeStaffPanel(); loadStaff(); }
-  catch (err) { alert('Error: ' + err.message); }
+  try { await api(`/staff/${id}`, { method: 'DELETE' }); closeStaffPanel(); showToast('Staff deleted'); refreshRelated(['staff']); }
+  catch (err) { showToast(err.message, 'error'); }
 }
 
-function openStaffProfile(name, role, phone, commission, revenue, status) {
+function openStaffProfile(name, role, phone, commission, revenue, active) {
   setEl('staffName',        name);
   setEl('staffRole',        role);
   setEl('staffPhone',       phone);
@@ -370,33 +404,82 @@ function openStaffProfile(name, role, phone, commission, revenue, status) {
   setEl('staffRevenue',     Number(revenue).toLocaleString('en-IN'));
   setEl('commissionEarned', '₹' + Math.round(Number(revenue) * Number(commission) / 100).toLocaleString('en-IN'));
   document.getElementById('staffPanel').classList.add('active');
-  loadStaffChart();
 }
 function closeStaffPanel() { document.getElementById('staffPanel').classList.remove('active'); }
 
-let staffChart;
-function loadStaffChart() {
-  const ctx = document.getElementById('staffChart');
-  if (!ctx) return;
-  if (staffChart) staffChart.destroy();
-  staffChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels: ['Jan','Feb','Mar','Apr','May','Jun'], datasets: [{ label: 'Revenue', data: [0,0,0,0,0,0], borderWidth: 2, tension: 0.3 }] }
-  });
-}
-
 /* ══════════════════════════════════════════════════════════
-   5. INVENTORY
+   5. SERVICES CATALOG
    ══════════════════════════════════════════════════════════ */
 
-let inventoryHistory = {};
+async function loadServices() {
+    try {
+        const services = await api('/services');
+        const tbody = document.querySelector('#servicesTable tbody');
+        if (!tbody) return;
+        
+        if (services.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#999;padding:24px;">No services yet.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = services.map(s => `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.category}</td>
+                <td>${s.durationMins} m</td>
+                <td>₹${s.defaultPrice}</td>
+                <td><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
+                <td>
+                    <button class="no-print" style="color:red" onclick="deleteServiceById('${s._id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch(err) { showToast('Services error', 'error'); }
+}
+
+function openAddServiceModal() { document.getElementById('addServiceModal').style.display = 'block'; }
+function closeAddServiceModal() { document.getElementById('addServiceModal').style.display = 'none'; }
+
+async function saveService() {
+    const name = document.getElementById('newServiceName').value.trim();
+    const category = document.getElementById('newServiceCategory').value.trim();
+    const duration = document.getElementById('newServiceDuration').value;
+    const price = document.getElementById('newServicePrice').value;
+
+    if(!name || !category || !duration || !price) { showToast('Fill all fields', 'error'); return; }
+
+    try {
+        await api('/services', {
+            method: 'POST',
+            body: { name, category, durationMins: Number(duration), defaultPrice: Number(price) }
+        });
+        closeAddServiceModal();
+        ['newServiceName','newServiceCategory','newServiceDuration','newServicePrice'].forEach(id => document.getElementById(id).value = '');
+        showToast('Service saved');
+        refreshRelated(['services']);
+    } catch(err) { showToast(err.message, 'error'); }
+}
+
+async function deleteServiceById(id) {
+    if(!confirm('Delete service?')) return;
+    try {
+        await api(`/services/${id}`, { method: 'DELETE' });
+        showToast('Service deleted');
+        refreshRelated(['services']);
+    } catch(err) { showToast(err.message, 'error')}
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   6. INVENTORY
+   ══════════════════════════════════════════════════════════ */
 
 async function loadInventory() {
   try {
     const items = await api('/inventory');
 
     const lowStock   = items.filter(i => i.stock <= i.minStock).length;
-    const totalValue = items.reduce((s, i) => s + i.stock * i.purchasePrice, 0);
+    const totalValue = items.reduce((s, i) => s + i.stock * i.costPrice, 0);
     setEl('invTotalProducts', items.length);
     setEl('invLowStock',      lowStock);
     setEl('invTotalValue',    '₹' + totalValue.toLocaleString('en-IN'));
@@ -404,31 +487,30 @@ async function loadInventory() {
     const tbody = document.querySelector('#inventoryTable tbody');
     if (!tbody) return;
     if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:#999;padding:24px;">No products yet. Add your first product!</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:#999;padding:24px;">No products yet.</td></tr>`;
       return;
     }
     tbody.innerHTML = items.map(item => {
-      const reorder = item.stock < item.minStock ? item.minStock - item.stock : 0;
-      const profit  = item.sellingPrice - item.purchasePrice;
-      const val     = item.stock * item.purchasePrice;
+      const profit  = item.sellPrice - item.costPrice;
+      const val     = item.stock * item.costPrice;
       const cls     = item.stock <= item.minStock ? 'inv-low' : 'inv-good';
       return `
         <tr>
           <td>${item.name}</td><td>${item.category}</td>
-          <td>${item.stock}</td><td>${item.minStock}</td><td>${reorder}</td>
-          <td>${item.supplier || '—'}</td><td>${item.supplierPhone || '—'}</td>
-          <td>₹${item.purchasePrice}</td><td>₹${item.sellingPrice}</td>
+          <td>${item.stock} ${item.unit}</td><td>${item.minStock}</td>
+          <td>Reorder ${item.stock < item.minStock ? item.minStock - item.stock : 0}</td>
+          <td>${item.brand || '—'}</td><td>—</td>
+          <td>₹${item.costPrice}</td><td>₹${item.sellPrice}</td>
           <td>₹${profit}</td><td>₹${val.toLocaleString('en-IN')}</td>
           <td><span class="${cls}">${item.stock <= item.minStock ? 'Low' : 'Good'}</span></td>
           <td>
             <button class="inv-action-btn" onclick="changeStockById('${item._id}',1)">+</button>
             <button class="inv-action-btn" onclick="changeStockById('${item._id}',-1)">-</button>
-            <button class="inv-action-btn" onclick="openHistory('${item._id}','${item.name}')">History</button>
-            <button class="inv-action-btn" onclick="deleteInventoryItem('${item._id}')">Delete</button>
+            <button class="inv-action-btn" style="color:red" onclick="deleteInventoryItem('${item._id}')">Delete</button>
           </td>
         </tr>`;
     }).join('');
-  } catch (err) { console.error('Inventory error:', err); }
+  } catch (err) { showToast('Inventory error', 'error'); }
 }
 
 function openInvModal()  { document.getElementById('inventoryModal').style.display = 'block'; }
@@ -439,64 +521,41 @@ async function addInventory() {
   const category      = document.getElementById('invCategory').value.trim();
   const stock         = parseInt(document.getElementById('invStock').value);
   const minStock      = parseInt(document.getElementById('invMin').value);
-  const supplier      = document.getElementById('invSupplier').value.trim();
-  const supplierPhone = document.getElementById('invPhone').value.trim();
   const purchasePrice = parseInt(document.getElementById('invPurchase').value);
   const sellingPrice  = parseInt(document.getElementById('invSelling').value);
+  const brand         = document.getElementById('invSupplier').value.trim(); // Mapping supplier to brand
 
   if (!name || !category || isNaN(stock) || isNaN(minStock) || isNaN(purchasePrice) || isNaN(sellingPrice)) {
-    alert('Please fill all required fields'); return;
+    showToast('Please fill all required fields', 'error'); return;
   }
   if (sellingPrice <= purchasePrice) {
-    alert('Selling price must be greater than purchase price'); return;
+    showToast('Selling price must be greater than purchase price', 'error'); return;
   }
   try {
-    await api('/inventory', { method: 'POST', body: { name, category, stock, minStock, supplier, supplierPhone, purchasePrice, sellingPrice } });
+    await api('/inventory', { method: 'POST', body: { name, category, stock, minStock, brand, unit: 'pcs', costPrice: purchasePrice, sellPrice: sellingPrice } });
     ['invName','invCategory','invStock','invMin','invSupplier','invPhone','invPurchase','invSelling'].forEach(id => document.getElementById(id).value = '');
     closeInvModal();
-    loadInventory();
-  } catch (err) { alert('Error: ' + err.message); }
+    showToast('Product saved');
+    refreshRelated(['inventory', 'dashboard', 'checkout']);
+  } catch (err) { showToast(err.message, 'error'); }
 }
 
 async function changeStockById(id, delta) {
   try {
-    await api(`/inventory/${id}/stock`, { method: 'PATCH', body: { delta } });
-    if (!inventoryHistory[id]) inventoryHistory[id] = [];
-    inventoryHistory[id].push({ date: new Date().toLocaleString('en-IN'), action: delta > 0 ? 'Stock increased by 1' : 'Stock decreased by 1' });
-    loadInventory();
-  } catch (err) { alert('Error: ' + err.message); }
+    await api(`/inventory/${id}/adjust-stock`, { method: 'POST', body: { adjustment: delta, reason: 'Manual update' } });
+    refreshRelated(['inventory', 'dashboard']);
+  } catch (err) { showToast(err.message, 'error'); }
 }
 
 async function deleteInventoryItem(id) {
   if (!confirm('Delete this product?')) return;
-  try { await api(`/inventory/${id}`, { method: 'DELETE' }); loadInventory(); }
-  catch (err) { alert('Error: ' + err.message); }
+  try { await api(`/inventory/${id}`, { method: 'DELETE' }); refreshRelated(['inventory']); }
+  catch (err) { showToast(err.message, 'error'); }
 }
 
-function openHistory(id, name) {
-  const history = inventoryHistory[id] || [];
-  document.getElementById('inventoryHistoryContent').innerHTML = history.length === 0
-    ? '<p style="color:#999">No stock changes recorded in this session.</p>'
-    : history.map(h => `<p><strong>${h.date}</strong><br>${h.action}</p><hr>`).join('');
-  document.getElementById('inventoryHistoryModal').style.display = 'block';
-}
-function closeHistory() { document.getElementById('inventoryHistoryModal').style.display = 'none'; }
-
-async function exportInventory() {
-  try {
-    const items = await api('/inventory');
-    if (items.length === 0) { alert('No products to export'); return; }
-    const headers = ['Product','Category','Stock','Min','Supplier','Purchase','Selling','Status'];
-    const rows = items.map(i => [i.name, i.category, i.stock, i.minStock, i.supplier||'', i.purchasePrice, i.sellingPrice, i.stock<=i.minStock?'Low':'Good']);
-    const csv  = [headers,...rows].map(r=>r.join(',')).join('\n');
-    const blob = new Blob([csv],{type:'text/csv'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob); link.download = 'inventory.csv'; link.click();
-  } catch (err) { alert('Export failed'); }
-}
 
 /* ══════════════════════════════════════════════════════════
-   6. BILLING — save every sale to DB
+   7. CHECKOUT / BILLING
    ══════════════════════════════════════════════════════════ */
 
 let billItems = [];
@@ -511,16 +570,42 @@ async function populateProductDropdown() {
       select.innerHTML = '<option value="">No products in stock</option>';
       return;
     }
-    select.innerHTML = '<option value="">Select Product</option>' +
-      available.map(i => `<option value="${i._id}|${i.name}|${i.sellingPrice}">${i.name} — ₹${i.sellingPrice} (${i.stock} in stock)</option>`).join('');
-  } catch (err) { console.error('Dropdown error:', err); }
+    select.innerHTML = '<option value="">Select Product...</option>' +
+      available.map(i => `<option value="${i._id}|${i.name}|${i.sellPrice}">${i.name} — ₹${i.sellPrice} (${i.stock} in stock)</option>`).join('');
+  } catch (err) {}
+}
+
+async function populateServiceDropdown() {
+  try {
+    const services  = await api('/services');
+    const select = document.getElementById('serviceSelect');
+    if (!select) return;
+    select.innerHTML = '<option value="">Select Service...</option>' +
+      services.map(s => `<option value="${s._id}|${s.name}|${s.defaultPrice}">${s.name} — ₹${s.defaultPrice}</option>`).join('');
+  } catch(err) {}
+}
+
+async function populateClientDropdown() {
+  // If we had a dropdown, we could populate it here.
+  // The system uses a text input "billClient", we can convert it to datalist
+  try {
+    const clients = await api('/clients');
+    let dataList = document.getElementById('clientDataList');
+    if (!dataList) {
+        dataList = document.createElement('datalist');
+        dataList.id = 'clientDataList';
+        document.body.appendChild(dataList);
+        document.getElementById('billClient').setAttribute('list', 'clientDataList');
+    }
+    dataList.innerHTML = clients.map(c => `<option value="${c.name}"></option>`).join('');
+  } catch(e){}
 }
 
 function addServiceToBill() {
   const val = document.getElementById('serviceSelect').value;
   if (!val) return;
-  const [name, price] = val.split('|');
-  addToBill(name, 'Service', parseInt(price));
+  const [id, name, price] = val.split('|');
+  addToBill(name, 'Service', parseInt(price), id);
   document.getElementById('serviceSelect').value = '';
 }
 
@@ -532,9 +617,9 @@ function addProductToBill() {
   document.getElementById('productSelect').value = '';
 }
 
-function addToBill(name, type, price, productId = null) {
+function addToBill(name, type, price, refId = null) {
   const existing = billItems.find(i => i.name === name);
-  if (existing) { existing.qty++; } else { billItems.push({ name, type, price, qty: 1, productId }); }
+  if (existing) { existing.qty++; } else { billItems.push({ name, type, price, qty: 1, refId }); }
   renderBill();
 }
 
@@ -567,54 +652,55 @@ function changeQty(index, delta) {
 }
 function removeItem(index) { billItems.splice(index, 1); renderBill(); }
 
+let taxPctGlobal = 0; // fetched from settings
+
 function calculateTotals() {
   const subtotal = billItems.reduce((s, i) => s + i.qty * i.price, 0);
-  const gst      = Math.round(subtotal * 0.18);
+  const gst      = Math.round(subtotal * (taxPctGlobal / 100));
   const total    = subtotal + gst;
   setEl('billSubtotal', subtotal.toLocaleString('en-IN'));
   setEl('billGST',      gst.toLocaleString('en-IN'));
   setEl('billTotal',    total.toLocaleString('en-IN'));
 }
 
-function printBill() {
-  const client = document.getElementById('billClient').value;
-  setEl('printClientName', client);
-  setEl('billDate', new Date().toLocaleString('en-IN'));
-  window.print();
-}
-
 async function finalizeSale() {
-  if (billItems.length === 0) { alert('Add at least one item to the bill'); return; }
+  if (billItems.length === 0) { showToast('Add items to bill', 'error'); return; }
   const clientName    = document.getElementById('billClient').value.trim();
   const paymentMethod = document.getElementById('paymentMethod').value;
-  if (!clientName) { alert('Please enter the client name'); return; }
-
-  const subtotal   = billItems.reduce((s, i) => s + i.qty * i.price, 0);
-  const gst        = Math.round(subtotal * 0.18);
-  const grandTotal = subtotal + gst;
-  const items      = billItems.map(i => ({ name: i.name, type: i.type, qty: i.qty, price: i.price, total: i.qty * i.price }));
+  if (!clientName) { showToast('Please enter client name', 'error'); return; }
 
   try {
-    // Save bill
-    await api('/bills', { method: 'POST', body: { clientName, items, subtotal, gst, grandTotal, paymentMethod } });
+      // Create or find client
+      const clients = await api('/clients');
+      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
 
-    // Deduct stock for products sold
-    for (const item of billItems) {
-      if (item.type === 'Product' && item.productId) {
-        await api(`/inventory/${item.productId}/stock`, { method: 'PATCH', body: { delta: -item.qty } });
-      }
-    }
+      // Need staff ID. Default to first staff.
+      const staffList = await api('/staff');
+      let _staff = staffList[0];
+      if (!_staff) throw new Error('Create Staff first to link a bill');
 
-    // Clear bill
-    billItems = [];
-    renderBill();
-    document.getElementById('billClient').value = '';
+      const subtotal   = billItems.reduce((s, i) => s + i.qty * i.price, 0);
+      const gst        = Math.round(subtotal * (taxPctGlobal / 100));
+      const grandTotal = subtotal + gst;
+      const items      = billItems.map(i => ({ name: i.name, type: i.type, qty: i.qty, unitPrice: i.price, subtotal: i.qty * i.price, refId: i.refId }));
 
-    alert(`✓ Bill saved! ₹${grandTotal.toLocaleString('en-IN')} — ${paymentMethod}`);
-    populateProductDropdown();
-    loadBillHistory();
+      await api('/bills', { 
+          method: 'POST', 
+          body: { 
+              clientId: client._id, clientName: client.name,
+              staffId: _staff._id, staffName: _staff.name,
+              lineItems: items,
+              subtotal, taxPct: taxPctGlobal, taxAmount: gst, grandTotal, paymentMethod 
+          } 
+      });
 
-  } catch (err) { alert('Failed to save: ' + err.message); }
+      billItems = [];
+      renderBill();
+      document.getElementById('billClient').value = '';
+      showToast(`Bill saved: ₹${grandTotal}`);
+      refreshRelated(['checkout', 'reports', 'dashboard', 'inventory', 'clients']);
+
+  } catch(err) { showToast(err.message, 'error'); }
 }
 
 async function loadBillHistory() {
@@ -623,162 +709,71 @@ async function loadBillHistory() {
     const tbody = document.getElementById('billHistoryBody');
     if (!tbody) return;
     if (bills.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No bills yet. Finalize a sale to see history.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No bills yet.</td></tr>`;
       return;
     }
     tbody.innerHTML = bills.map(b => `
       <tr>
         <td>${new Date(b.createdAt).toLocaleDateString('en-IN')}</td>
         <td>${b.clientName}</td>
-        <td>${b.items.length} item(s)</td>
+        <td>${b.lineItems.length} item(s)</td>
         <td>₹${b.grandTotal.toLocaleString('en-IN')}</td>
         <td><span style="padding:2px 8px;border-radius:4px;background:#eafaf1;color:#1e8449;font-size:12px;">${b.paymentMethod}</span></td>
       </tr>`).join('');
-  } catch (err) { console.error('Bill history error:', err); }
+  } catch (err) { }
 }
 
 /* ══════════════════════════════════════════════════════════
-   7. REPORTS — real data from DB
+   8. REPORTS
    ══════════════════════════════════════════════════════════ */
 
 const _charts = {};
 
 async function loadReports() {
   try {
-    const [summary, staff, inventory, clients] = await Promise.all([
-      api('/bills/stats/summary'),
+    const [bills, staff, inventory, clients] = await Promise.all([
+      api('/bills/stats/range'), // Fetches all bills by default
       api('/staff'),
       api('/inventory'),
       api('/clients')
     ]);
 
-    // Executive cards — all real
-    setEl('repTotalRevenue',     '₹' + (summary.totalRevenue || 0).toLocaleString('en-IN'));
-    setEl('repNetProfit',        '₹' + Math.round((summary.totalRevenue || 0) * 0.28).toLocaleString('en-IN'));
-    setEl('repTotalBills',       summary.totalBills || 0);
-    setEl('repAvgBill',          '₹' + (summary.avgBill || 0).toLocaleString('en-IN'));
-    setEl('repTotalStaff',       staff.length);
-    setEl('repTotalClientsRep',  clients.length);
+    const totalRev = bills.reduce((acc, b) => acc + b.grandTotal, 0);
+    const avgBill = bills.length ? Math.round(totalRev / bills.length) : 0;
 
-    const invValue  = inventory.reduce((s, i) => s + i.stock * i.purchasePrice, 0);
-    const lowStock  = inventory.filter(i => i.stock <= i.minStock);
-    setEl('repInvValue',         '₹' + invValue.toLocaleString('en-IN'));
-    setEl('repLowStock',         lowStock.length);
+    setEl('repTotalRevenue', '₹' + totalRev.toLocaleString('en-IN'));
+    setEl('repTotalBills', bills.length);
+    setEl('repAvgBill', '₹' + avgBill.toLocaleString('en-IN'));
+    setEl('repNetProfit', '₹' + Math.round(totalRev * 0.3).toLocaleString('en-IN')); // Estimation
+    
+    setEl('repTotalStaff', staff.length);
+    setEl('repTotalClientsRep', clients.length);
 
-    // Inventory tab cards
-    setEl('repInvValue2',        '₹' + invValue.toLocaleString('en-IN'));
-    setEl('repLowStockCount',    lowStock.length);
-    setEl('repTotalProducts',    inventory.length);
-    setEl('repLowStockValue',    '₹' + lowStock.reduce((s, i) => s + i.minStock * i.purchasePrice, 0).toLocaleString('en-IN'));
+    const invValue  = inventory.reduce((s, i) => s + i.stock * i.costPrice, 0);
+    const lowStock  = inventory.filter(i => i.stock <= i.minStock).length;
+    setEl('repInvValue', '₹' + invValue.toLocaleString('en-IN'));
+    setEl('repLowStock', lowStock);
 
-    // Staff report table
-    const staffTbody = document.getElementById('staffReportTable');
-    if (staffTbody) {
-      staffTbody.innerHTML = staff.length === 0
-        ? `<tr><td colspan="4" style="text-align:center;color:#999;padding:16px;">No staff added yet</td></tr>`
-        : staff.map(s => {
-            const earned = Math.round((s.totalRevenue || 0) * s.commission / 100);
-            return `<tr>
-              <td>${s.name}</td>
-              <td>₹${(s.totalRevenue || 0).toLocaleString('en-IN')}</td>
-              <td>${s.commission}%</td>
-              <td>₹${earned.toLocaleString('en-IN')}</td>
-            </tr>`;
-          }).join('');
-    }
+    // Render Charts
+    Object.values(_charts).forEach(c => { try { c.destroy(); } catch(e){} });
 
-    renderReportCharts(summary, staff, inventory);
+    // Revenue chart
+    const monthMap = {};
+    bills.forEach(b => {
+        const m = new Date(b.date).toLocaleDateString('en-US', { month: 'short' });
+        monthMap[m] = (monthMap[m]||0) + b.grandTotal;
+    });
 
-  } catch (err) { console.error('Reports error:', err); }
-}
+    _charts.exec = new Chart(document.getElementById('execRevenueChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(monthMap).length ? Object.keys(monthMap) : ['No Data'],
+        datasets: [{ label: 'Revenue (₹)', data: Object.values(monthMap).length ? Object.values(monthMap) : [0], backgroundColor: '#6c5ce7' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
 
-function renderReportCharts(summary, staff, inventory) {
-  // Destroy old charts
-  Object.values(_charts).forEach(c => { try { c.destroy(); } catch(e){} });
-
-  // Revenue by month — real bills data
-  const months   = Object.keys(summary.monthlyMap || {}).slice(-6);
-  const revenues = months.map(m => summary.monthlyMap[m] || 0);
-
-  _charts.exec = new Chart(document.getElementById('execRevenueChart'), {
-    type: 'line',
-    data: {
-      labels:   months.length ? months : ['No bills yet'],
-      datasets: [{ label: 'Revenue (₹)', data: revenues.length ? revenues : [0], borderWidth: 2, tension: 0.3, borderColor: '#6c5ce7', backgroundColor: 'rgba(108,92,231,0.1)', fill: true }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  // Service vs product split — real
-  _charts.pie = new Chart(document.getElementById('salesPieChart'), {
-    type: 'pie',
-    data: {
-      labels: ['Services', 'Products'],
-      datasets: [{ data: [summary.serviceRevenue || 0, summary.productRevenue || 0], backgroundColor: ['#6c5ce7', '#00b894'] }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  // Top services — placeholder until service tracking added
-  _charts.topSvc = new Chart(document.getElementById('topServiceChart'), {
-    type: 'bar',
-    data: {
-      labels: ['Haircut', 'Facial', 'Hair Color', 'Keratin', 'Beard', 'Hair Spa'],
-      datasets: [{ label: 'Revenue (₹)', data: [0, 0, 0, 0, 0, 0], backgroundColor: '#6c5ce7' }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  // Staff revenue — real
-  _charts.staffRev = new Chart(document.getElementById('staffRevenueChart'), {
-    type: 'bar',
-    data: {
-      labels:   staff.length ? staff.map(s => s.name) : ['No staff'],
-      datasets: [{ label: 'Revenue (₹)', data: staff.length ? staff.map(s => s.totalRevenue || 0) : [0], backgroundColor: '#0984e3' }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  // Attendance — placeholder
-  _charts.attend = new Chart(document.getElementById('attendanceChart'), {
-    type: 'bar',
-    data: {
-      labels:   staff.length ? staff.map(s => s.name) : ['No staff'],
-      datasets: [{ label: 'Days Present', data: staff.map(() => 0), backgroundColor: '#00b894' }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  // Client growth — placeholder
-  _charts.growth = new Chart(document.getElementById('clientGrowthChart'), {
-    type: 'line',
-    data: {
-      labels: ['Month 1', 'Month 2', 'Month 3'],
-      datasets: [{ label: 'New Clients', data: [0, 0, 0], tension: 0.3, borderWidth: 2 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  // Recurring pie — placeholder
-  _charts.recur = new Chart(document.getElementById('recurringClientChart'), {
-    type: 'pie',
-    data: {
-      labels: ['Recurring', 'New'],
-      datasets: [{ data: [0, 0], backgroundColor: ['#6c5ce7', '#fdcb6e'] }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  // Inventory margin — real
-  const topItems = inventory.slice(0, 8);
-  _charts.invMargin = new Chart(document.getElementById('inventoryMarginChart'), {
-    type: 'bar',
-    data: {
-      labels:   topItems.length ? topItems.map(i => i.name) : ['No products'],
-      datasets: [{ label: 'Profit per Unit (₹)', data: topItems.length ? topItems.map(i => i.sellingPrice - i.purchasePrice) : [0], backgroundColor: '#e17055' }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
+  } catch (err) { showToast('Reports error', 'error'); }
 }
 
 function switchReportTab(tab, btn) {
@@ -788,7 +783,59 @@ function switchReportTab(tab, btn) {
   btn.classList.add('active');
 }
 
+/* ══════════════════════════════════════════════════════════
+   9. SETTINGS
+   ══════════════════════════════════════════════════════════ */
+
+async function loadSettings() {
+    try {
+        const s = await api('/settings');
+        document.getElementById('setSalonName').value = s.salonName || '';
+        document.getElementById('setAddress').value = s.address || '';
+        document.getElementById('setPhone').value = s.phone || '';
+        document.getElementById('setCurrency').value = s.currency || '₹';
+        document.getElementById('setTax').value = s.taxPct || 0;
+        document.getElementById('setDefaultCommission').value = s.defaultCommission || 0;
+        document.getElementById('setLoyalty').checked = s.loyaltyEnabled || false;
+        document.getElementById('setPoints').value = s.pointsPerRupee || 0;
+
+        taxPctGlobal = s.taxPct || 0; // Set global
+    } catch(err) { showToast('Settings error', 'error'); }
+}
+
+async function saveSettings() {
+    try {
+        const payload = {
+            salonName: document.getElementById('setSalonName').value,
+            address: document.getElementById('setAddress').value,
+            phone: document.getElementById('setPhone').value,
+            currency: document.getElementById('setCurrency').value,
+            taxPct: document.getElementById('setTax').value,
+            defaultCommission: document.getElementById('setDefaultCommission').value,
+            loyaltyEnabled: document.getElementById('setLoyalty').checked,
+            pointsPerRupee: document.getElementById('setPoints').value
+        };
+
+        await api('/settings', { method: 'PUT', body: payload });
+        showToast('Settings saved successfully');
+        loadSettings(); // update globals
+    } catch(err) { showToast(err.message, 'error'); }
+}
+
+async function dangerDeleteAccount() {
+    const word = prompt("To permanently delete everything, type DELETE");
+    if (word === 'DELETE') {
+        alert("This was a demo function. Database wipe requested but bypassed for safety context.");
+    }
+}
+
+
 /* ─── INIT ───────────────────────────────────────────────── */
 window.addEventListener('DOMContentLoaded', () => {
-  loadDashboard();
+  const token = localStorage.getItem('token');
+  if (token) {
+    loadSettings().then(() => {
+        loadDashboard(); // Tax pct loaded, proceed
+    });
+  }
 });

@@ -1,58 +1,97 @@
-const express   = require('express');
-const router    = express.Router();
-const Inventory = require('../models/Inventory');
-const { protect } = require('../middleware/authMiddleware');
-const { validateInventory } = require('../middleware/validators');
+const express = require('express');
+const router = express.Router();
+const auth = require('../middleware/auth');
+const InventoryItem = require('../models/InventoryItem');
 
-router.use(protect);
-
-router.get('/', async (req, res, next) => {
+// GET /api/inventory
+router.get('/', auth, async (req, res) => {
   try {
-    const items = await Inventory.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
+    const items = await InventoryItem.find({ userId: req.user.userId }).sort({ createdAt: -1 });
     res.json(items);
-  } catch (err) { next(err); }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
-router.post('/', validateInventory, async (req, res, next) => {
+// GET /api/inventory/low-stock
+router.get('/low-stock', auth, async (req, res) => {
   try {
-    const item = await Inventory.create({ ...req.body, createdBy: req.user._id });
-    res.status(201).json(item);
-  } catch (err) { next(err); }
+    const items = await InventoryItem.find({ 
+      userId: req.user.userId,
+      $expr: { $lte: ['$stock', '$minStock'] }
+    }).sort({ stock: 1 });
+    res.json(items);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
-router.put('/:id', validateInventory, async (req, res, next) => {
+// POST /api/inventory
+router.post('/', auth, async (req, res) => {
   try {
-    const item = await Inventory.findOneAndUpdate(
-      { _id: req.params.id, createdBy: req.user._id },
-      req.body,
-      { new: true }
-    );
-    if (!item) return res.status(404).json({ message: 'Product not found' });
+    const newItem = new InventoryItem({
+      ...req.body,
+      userId: req.user.userId
+    });
+    const item = await newItem.save();
     res.json(item);
-  } catch (err) { next(err); }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
-// PATCH — adjust stock by delta
-router.patch('/:id/stock', async (req, res, next) => {
+// PUT /api/inventory/:id
+router.put('/:id', auth, async (req, res) => {
   try {
-    const { delta } = req.body;
-    if (typeof delta !== 'number') {
-      return res.status(400).json({ message: 'Delta must be a number' });
-    }
-    const item = await Inventory.findOne({ _id: req.params.id, createdBy: req.user._id });
-    if (!item) return res.status(404).json({ message: 'Product not found' });
-    item.stock = Math.max(0, item.stock + delta);
+    let item = await InventoryItem.findById(req.params.id);
+    if (!item) return res.status(404).json({ msg: 'Inventory Item not found' });
+    if (item.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+
+    item = await InventoryItem.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+    res.json(item);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// DELETE /api/inventory/:id
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const item = await InventoryItem.findById(req.params.id);
+    if (!item) return res.status(404).json({ msg: 'Inventory Item not found' });
+    if (item.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+
+    await InventoryItem.findByIdAndRemove(req.params.id);
+    res.json({ msg: 'Inventory Item removed' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// POST /api/inventory/:id/adjust-stock
+router.post('/:id/adjust-stock', auth, async (req, res) => {
+  try {
+    const { adjustment, reason } = req.body; // adjustment can be positive or negative
+    
+    let item = await InventoryItem.findById(req.params.id);
+    if (!item) return res.status(404).json({ msg: 'Inventory Item not found' });
+    if (item.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+
+    item.stock += Number(adjustment);
+    
+    // Optional: Log the reason in a separate collection if needed in future
     await item.save();
-    res.json(item);
-  } catch (err) { next(err); }
-});
 
-router.delete('/:id', async (req, res, next) => {
-  try {
-    const item = await Inventory.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id });
-    if (!item) return res.status(404).json({ message: 'Product not found' });
-    res.json({ message: 'Product deleted' });
-  } catch (err) { next(err); }
+    res.json(item);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 module.exports = router;

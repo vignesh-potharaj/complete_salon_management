@@ -12,6 +12,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
   <div class="container">
 
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle navigation menu">☰</button>
@@ -19,15 +23,18 @@
 
     <!-- SIDEBAR -->
     <div class="sidebar">
-      <h2>SalonPro</h2>
-      <ul>
+      <div class="brand"><span>✂</span> SalonPro</div>
+      <ul class="sidebar-menu">
         <li onclick="showSection('home')">Home</li>
         <li onclick="showSection('calendar')">Calendar</li>
         <li onclick="showSection('clients')">Clients</li>
         <li onclick="showSection('staff')">Staff</li>
+        <li onclick="showSection('services')">Services</li>
         <li onclick="showSection('inventory')">Inventory</li>
         <li onclick="showSection('checkout')">Check-Out</li>
         <li onclick="showSection('reports')">Reports</li>
+        <li onclick="showSection('settings')">Settings</li>
+        <li onclick="logout()" style="color: #ff4d4f; border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px;">Logout</li>
       </ul>
     </div>
 
@@ -38,39 +45,41 @@
         <div class="dashboard">
           <h1>Dashboard</h1>
 
-          <div class="stats-container">
+          <div class="dashboard-cards">
             <div class="card">
-              <h3>Total Sales Today</h3>
-              <p class="big" id="dashTotalSales">Loading...</p>
-              <span id="dashTotalBills" class="muted-text">—</span>
+              <div class="card-title">Total Sales Today</div>
+              <div class="card-value" id="dashTotalSales">Loading...</div>
+              <div id="dashTotalBills" class="card-subtext">—</div>
             </div>
             <div class="card">
-              <h3>Appointments Today</h3>
-              <p class="big" id="dashApptCount">Loading...</p>
-              <span id="dashApptOngoing" class="muted-text">—</span>
+              <div class="card-title">Appointments Today</div>
+              <div class="card-value" id="dashApptCount">Loading...</div>
+              <div id="dashApptOngoing" class="card-subtext">—</div>
             </div>
             <div class="card">
-              <h3>Total Clients</h3>
-              <p class="big" id="dashTotalClients">Loading...</p>
-              <span class="muted-text">Registered in system</span>
+              <div class="card-title">Total Clients</div>
+              <div class="card-value" id="dashTotalClients">Loading...</div>
+              <div class="card-subtext">Registered in system</div>
             </div>
             <div class="card alert-card">
-              <h3>Low Inventory Alerts</h3>
-              <ul id="dashLowStockList"><li class="muted-text">Loading...</li></ul>
+              <div class="card-title" style="color:var(--danger)">Low Inventory</div>
+              <ul id="dashLowStockList" style="list-style:none; padding:0; margin-top:8px;">
+                <li class="muted-text">Loading...</li>
+              </ul>
             </div>
           </div>
 
           <!-- Quick Add Appointment -->
           <div class="quick-add">
             <h2>Quick Add Appointment</h2>
-            <form id="appointmentForm">
+            <form id="appointmentForm" style="display:grid; gap:10px; max-width:400px;">
               <label for="quickClientName" class="sr-only">Client Name</label>
-              <input type="text" id="quickClientName" placeholder="Client Name" required>
+              <input type="text" id="quickClientName" placeholder="Client Name" required class="modal-input">
               <label for="quickService" class="sr-only">Service</label>
-              <input type="text" id="quickService" placeholder="Service" required>
+              <input type="text" id="quickService" placeholder="Service" required class="modal-input">
               <label for="quickTime" class="sr-only">Appointment Time</label>
-              <input type="time" id="quickTime" required>
-              <button type="submit">Add Appointment</button>
+              <input type="time" id="quickTime" required class="modal-input">
+              <button type="submit" class="btn-black">Add Appointment</button>
             </form>
           </div>
 
@@ -86,24 +95,28 @@
 
       <!-- ═══ CALENDAR ═══ -->
       <div id="calendar" class="section section-hidden">
-        <button class="add-btn" onclick="openAddApptModal()">Add Appointment +</button>
-        <div class="calendar-header"><h2 id="calendarDateHeader">Loading...</h2></div>
-
-        <div class="staff-row" id="calendarStaffRow">
-          <div class="staff-card">
-            <img src="https://randomuser.me/api/portraits/lego/1.jpg" alt="Staff member">
-            <span>Loading...</span>
+        <div class="calendar-wrapper">
+          <div class="calendar-header">
+            <h2 id="calendarDateHeader">Loading...</h2>
+            <button class="btn-primary" onclick="openAddApptModal()">Add Appointment +</button>
           </div>
-        </div>
 
-        <div class="calendar-container">
-          <div class="time-column">
-            <div>8:00 AM</div><div>9:00 AM</div><div>10:00 AM</div>
-            <div>11:00 AM</div><div>12:00 PM</div><div>1:00 PM</div>
-            <div>2:00 PM</div><div>3:00 PM</div><div>4:00 PM</div>
-            <div>5:00 PM</div><div>6:00 PM</div>
+          <div class="staff-row" id="calendarStaffRow">
+            <div class="staff-card">
+              <img src="https://randomuser.me/api/portraits/lego/1.jpg" alt="Staff member">
+              <span>Loading...</span>
+            </div>
           </div>
-          <div class="calendar-grid" id="calendarGrid"></div>
+
+          <div class="calendar-grid-container">
+            <div class="time-slots">
+              <div>8:00 AM</div><div>9:00 AM</div><div>10:00 AM</div>
+              <div>11:00 AM</div><div>12:00 PM</div><div>1:00 PM</div>
+              <div>2:00 PM</div><div>3:00 PM</div><div>4:00 PM</div>
+              <div>5:00 PM</div><div>6:00 PM</div>
+            </div>
+            <div class="grid-content" id="calendarGrid"></div>
+          </div>
         </div>
       </div>
 
@@ -139,27 +152,39 @@
       <div id="clients" class="section section-hidden">
         <h2>Client List</h2>
 
-        <div class="client-stats">
-          <div class="stat-card"><h3 id="totalClientsCount">0</h3><p>Total Clients</p></div>
-          <div class="stat-card"><h3 id="newClientsMonth">0</h3><p>New This Month</p></div>
-          <div class="stat-card"><h3 id="femaleClientsCount">0</h3><p>Female Clients</p></div>
-          <div class="stat-card"><h3 id="maleClientsCount">0</h3><p>Male Clients</p></div>
+        <div class="dashboard-cards">
+          <div class="card">
+            <div class="card-title">Total Clients</div>
+            <div class="card-value" id="totalClientsCount">0</div>
+          </div>
+          <div class="card">
+            <div class="card-title">New This Month</div>
+            <div class="card-value" id="newClientsMonth">0</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Female Clients</div>
+            <div class="card-value" id="femaleClientsCount">0</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Male Clients</div>
+            <div class="card-value" id="maleClientsCount">0</div>
+          </div>
         </div>
 
-        <div class="client-filters">
+        <div class="mb-15" style="display:flex; gap:10px; align-items:center;">
           <label for="clientGenderFilter" class="sr-only">Filter by gender</label>
-          <select id="clientGenderFilter" title="Filter by gender">
+          <select id="clientGenderFilter" title="Filter by gender" style="width:150px;">
             <option value="">All Clients</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
           </select>
           <label for="clientDateFrom" class="sr-only">From date</label>
-          <input type="date" id="clientDateFrom" title="From date">
+          <input type="date" id="clientDateFrom" title="From date" style="width:150px;">
           <label for="clientDateTo" class="sr-only">To date</label>
-          <input type="date" id="clientDateTo" title="To date">
-          <button class="search-btn"     onclick="loadClients()">Search</button>
-          <button class="export-btn"     onclick="exportClients()">Export</button>
-          <button class="add-client-btn" onclick="openAddClientModal()">+ Add Client</button>
+          <input type="date" id="clientDateTo" title="To date" style="width:150px;">
+          <button class="btn-primary" onclick="loadClients()">Search</button>
+          <button class="btn-black" onclick="exportClients()">Export</button>
+          <button class="btn-primary" onclick="openAddClientModal()">+ Add Client</button>
         </div>
 
         <div class="table-container">
@@ -204,15 +229,27 @@
       <div id="staff" class="section section-hidden">
         <h2>Staff Management</h2>
 
-        <div class="staff-stats">
-          <div class="stat-card"><h3 id="totalStaffCount">0</h3><p>Total Staff</p></div>
-          <div class="stat-card"><h3 id="onDutyCount">0</h3><p>On Duty Today</p></div>
-          <div class="stat-card"><h3 id="staffTotalRevenue">₹0</h3><p>Total Revenue</p></div>
-          <div class="stat-card"><h3 id="topPerformerName">—</h3><p>Top Performer</p></div>
+        <div class="dashboard-cards">
+          <div class="card">
+            <div class="card-title">Total Staff</div>
+            <div class="card-value" id="totalStaffCount">0</div>
+          </div>
+          <div class="card">
+            <div class="card-title">On Duty Today</div>
+            <div class="card-value" id="onDutyCount">0</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Total Revenue</div>
+            <div class="card-value" id="staffTotalRevenue">₹0</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Top Performer</div>
+            <div class="card-value" id="topPerformerName" style="font-size:1.5rem; display:flex; align-items:center; height:100%;">—</div>
+          </div>
         </div>
 
         <div class="mb-15">
-          <button class="add-staff-btn" onclick="openStaffModal()">+ Add Staff</button>
+          <button class="btn-primary" onclick="openStaffModal()">+ Add Staff</button>
         </div>
 
         <div class="table-container">
@@ -328,16 +365,16 @@
       <div id="checkout" class="section section-hidden">
         <h2 class="no-print">Billing & Checkout</h2>
 
-        <div class="billing-container">
+        <div class="checkout-grid">
 
-          <div class="billing-left no-print">
+          <div class="checkout-panel no-print">
 
-            <div class="bill-card">
+            <div class="bill-card mb-15">
               <label for="billClient">Client Name</label>
-              <input type="text" id="billClient" placeholder="Enter client name" class="bill-input">
+              <input type="text" id="billClient" placeholder="Enter client name" class="modal-input">
             </div>
 
-            <div class="bill-card">
+            <div class="bill-card mb-15">
               <label for="paymentMethod">Payment Method</label>
               <select id="paymentMethod" title="Select payment method" class="bill-input">
                 <option value="Cash">Cash</option>
@@ -347,23 +384,17 @@
               </select>
             </div>
 
-            <div class="bill-card">
+            <div class="bill-card mb-15">
               <label for="serviceSelect">Add Service</label>
-              <select id="serviceSelect" title="Select service" class="bill-input">
-                <option value="">Select Service</option>
-                <option value="Haircut|800">Haircut - ₹800</option>
-                <option value="Facial|1800">Facial - ₹1800</option>
-                <option value="Hair Color|2500">Hair Color - ₹2500</option>
-                <option value="Keratin|4500">Keratin - ₹4500</option>
-                <option value="Beard Styling|600">Beard Styling - ₹600</option>
-                <option value="Hair Spa|1200">Hair Spa - ₹1200</option>
+              <select id="serviceSelect" title="Select service" class="modal-input">
+                <option value="">Select Service...</option>
               </select>
-              <button onclick="addServiceToBill()" class="btn-add-item">Add</button>
+              <button onclick="addServiceToBill()" class="btn-black">Add Service</button>
             </div>
 
-            <div class="bill-card">
-              <label for="productSelect">Add Product from Inventory</label>
-              <select id="productSelect" title="Select product" class="bill-input">
+            <div class="bill-card mb-15">
+              <label for="productSelect">Add Product</label>
+              <select id="productSelect" title="Select product" class="modal-input">
                 <option value="">Loading products...</option>
               </select>
               <button onclick="addProductToBill()" class="btn-add-item">Add</button>
@@ -378,26 +409,28 @@
           </div>
 
           <!-- Print area -->
-          <div class="billing-right" id="bill-area">
-            <h3>Salon Bill</h3>
-            <p>Client: <strong><span id="printClientName"></span></strong></p>
-            <p>Date: <span id="billDate"></span></p>
+          <div class="checkout-panel bill-area" id="bill-area">
+            <h3 style="border-bottom:2px solid var(--primary); padding-bottom:10px; margin-bottom:20px;">SalonPro Bill</h3>
+            <p><strong>Client:</strong> <span id="printClientName"></span></p>
+            <p style="margin-bottom:20px;"><strong>Date:</strong> <span id="billDate"></span></p>
 
-            <table id="billTable">
-              <thead>
-                <tr><th>Item</th><th>Type</th><th>Qty</th><th>Price</th><th>Total</th><th class="no-print">Remove</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-
-            <div class="bill-summary">
-              <p>Subtotal: ₹<span id="billSubtotal">0</span></p>
-              <p>GST (18%): ₹<span id="billGST">0</span></p>
-              <h3>Grand Total: ₹<span id="billTotal">0</span></h3>
+            <div class="table-container mb-15" style="box-shadow:none; border:none; border-top:1px dashed #ccc; border-bottom:1px dashed #ccc; border-radius:0;">
+              <table id="billTable" style="margin-top:10px; margin-bottom:10px;">
+                <thead>
+                  <tr><th>Item</th><th>Type</th><th>Qty</th><th>Price</th><th>Total</th><th class="no-print">Remove</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
-          </div>
 
-          <button class="print-btn no-print" onclick="printBill()">🖨 Print Bill</button>
+            <div class="bill-summary" style="text-align:right;">
+              <p>Subtotal: ₹<span id="billSubtotal">0</span></p>
+              <p>Tax: ₹<span id="billGST">0</span></p>
+              <h2 style="margin-top:10px;">Total: ₹<span id="billTotal">0</span></h2>
+            </div>
+            
+            <button class="btn-black no-print mt-20 btn-full" onclick="printBill()">🖨 Print Bill</button>
+          </div>
 
         </div>
 
@@ -432,15 +465,15 @@
 
         <!-- Executive -->
         <div id="report-executive" class="report-content">
-          <div class="report-cards">
-            <div class="report-card"><h3 id="repTotalRevenue">₹0</h3><p>Total Revenue</p></div>
-            <div class="report-card"><h3 id="repNetProfit">₹0</h3><p>Est. Net Profit</p></div>
-            <div class="report-card"><h3 id="repTotalBills">0</h3><p>Total Bills</p></div>
-            <div class="report-card"><h3 id="repAvgBill">₹0</h3><p>Avg Bill Value</p></div>
-            <div class="report-card"><h3 id="repTotalStaff">0</h3><p>Total Staff</p></div>
-            <div class="report-card"><h3 id="repTotalClientsRep">0</h3><p>Total Clients</p></div>
-            <div class="report-card"><h3 id="repLowStock">0</h3><p>Low Stock Items</p></div>
-            <div class="report-card"><h3 id="repInvValue">₹0</h3><p>Inventory Value</p></div>
+          <div class="dashboard-cards">
+            <div class="card"><div class="card-title">Total Revenue</div><div class="card-value" id="repTotalRevenue">₹0</div></div>
+            <div class="card"><div class="card-title">Est. Net Profit</div><div class="card-value" id="repNetProfit">₹0</div></div>
+            <div class="card"><div class="card-title">Total Bills</div><div class="card-value" id="repTotalBills">0</div></div>
+            <div class="card"><div class="card-title">Avg Bill Value</div><div class="card-value" id="repAvgBill">₹0</div></div>
+            <div class="card"><div class="card-title">Total Staff</div><div class="card-value" id="repTotalStaff">0</div></div>
+            <div class="card"><div class="card-title">Total Clients</div><div class="card-value" id="repTotalClientsRep">0</div></div>
+            <div class="card"><div class="card-title" style="color:var(--danger)">Low Stock Items</div><div class="card-value" id="repLowStock">0</div></div>
+            <div class="card"><div class="card-title">Inventory Value</div><div class="card-value" id="repInvValue">₹0</div></div>
           </div>
           <div class="chart-box chart-tall">
             <canvas id="execRevenueChart"></canvas>
@@ -479,17 +512,97 @@
 
         <!-- Inventory -->
         <div id="report-inventory" class="report-content section-hidden">
-          <div class="report-cards">
-            <div class="report-card"><h3 id="repInvValue2">₹0</h3><p>Total Stock Value</p></div>
-            <div class="report-card"><h3 id="repLowStockCount">0</h3><p>Low Stock Items</p></div>
-            <div class="report-card"><h3 id="repTotalProducts">0</h3><p>Total Products</p></div>
-            <div class="report-card"><h3 id="repLowStockValue">₹0</h3><p>Low Stock Value</p></div>
+          <div class="dashboard-cards">
+            <div class="card"><div class="card-title">Total Stock Value</div><div class="card-value" id="repInvValue2">₹0</div></div>
+            <div class="card"><div class="card-title">Low Stock Items</div><div class="card-value" id="repLowStockCount">0</div></div>
+            <div class="card"><div class="card-title">Total Products</div><div class="card-value" id="repTotalProducts">0</div></div>
+            <div class="card"><div class="card-title">Low Stock Value</div><div class="card-value" id="repLowStockValue">₹0</div></div>
           </div>
           <div class="chart-box chart-tall mt-20">
             <canvas id="inventoryMarginChart"></canvas>
           </div>
         </div>
 
+      </div>
+
+      <!-- ═══ SERVICES CATALOG ═══ -->
+      <div id="services" class="section section-hidden">
+        <h2>Services Catalog</h2>
+        <div class="mb-15">
+          <button class="add-btn" onclick="openAddServiceModal()">+ Add Service</button>
+        </div>
+        <div class="table-container">
+          <table id="servicesTable">
+            <thead>
+              <tr><th>Name</th><th>Category</th><th>Duration (Mins)</th><th>Default Price (₹)</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" class="table-empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Add Service Modal -->
+      <div id="addServiceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addServiceTitle">
+        <div class="modal-content">
+          <span class="close" onclick="closeAddServiceModal()" aria-label="Close">&times;</span>
+          <h3 id="addServiceTitle">Add Service</h3>
+          <input type="hidden" id="editServiceId">
+          <label for="newServiceName">Name</label>
+          <input type="text" id="newServiceName" placeholder="e.g. Haircut" class="modal-input">
+          <label for="newServiceCategory">Category</label>
+          <input type="text" id="newServiceCategory" placeholder="e.g. Hair" class="modal-input">
+          <label for="newServiceDuration">Duration (Mins)</label>
+          <input type="number" id="newServiceDuration" placeholder="e.g. 30" class="modal-input">
+          <label for="newServicePrice">Default Price (₹)</label>
+          <input type="number" id="newServicePrice" placeholder="e.g. 500" class="modal-input">
+          <button onclick="saveService()" class="btn-black btn-full">Save Service</button>
+        </div>
+      </div>
+
+      <!-- ═══ SETTINGS ═══ -->
+      <div id="settings" class="section section-hidden">
+        <h2>Salon Settings</h2>
+        
+        <div class="settings-container" style="max-width: 600px; background: white; padding: 20px; border-radius: 8px;">
+          <h3>General Settings</h3>
+          <label for="setSalonName">Salon Name</label>
+          <input type="text" id="setSalonName" class="modal-input">
+          
+          <label for="setAddress">Address</label>
+          <input type="text" id="setAddress" class="modal-input">
+          
+          <label for="setPhone">Phone Number</label>
+          <input type="text" id="setPhone" class="modal-input">
+          
+          <label for="setCurrency">Currency Symbol</label>
+          <input type="text" id="setCurrency" class="modal-input" placeholder="e.g. ₹ or $">
+          
+          <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+          
+          <h3>Billing & Taxes</h3>
+          <label for="setTax">Default Tax % (e.g. GST)</label>
+          <input type="number" id="setTax" class="modal-input" placeholder="e.g. 18">
+          
+          <label for="setDefaultCommission">Default Staff Commission %</label>
+          <input type="number" id="setDefaultCommission" class="modal-input" placeholder="e.g. 20">
+          
+          <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+          
+          <h3>Loyalty Program</h3>
+          <div style="margin-bottom: 12px;">
+            <label style="display:inline;"><input type="checkbox" id="setLoyalty"> Enable Loyalty Points</label>
+          </div>
+          <label for="setPoints">Points per spent unit (e.g. 1 point per 100 spent -> put 0.01)</label>
+          <input type="number" id="setPoints" class="modal-input" step="0.01">
+          
+          <button onclick="saveSettings()" class="btn-black mt-20" style="padding: 12px 24px;">Save Settings</button>
+          
+          <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ff4d4f;">
+          <h3 style="color: #ff4d4f;">Danger Zone</h3>
+          <button onclick="dangerDeleteAccount()" style="padding: 10px; background: #fff0f0; color: #ff4d4f; border: 1px solid #ffccba; border-radius: 6px; cursor: pointer;">Delete Entire Salon Account & Data</button>
+        </div>
       </div>
 
     </div><!-- end .main -->

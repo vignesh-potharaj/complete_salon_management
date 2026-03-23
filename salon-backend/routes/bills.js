@@ -1,71 +1,119 @@
 const express = require('express');
-const router  = express.Router();
-const Bill    = require('../models/Bill');
-const { protect } = require('../middleware/authMiddleware');
-const { validateBill } = require('../middleware/validators');
+const router = express.Router();
+const auth = require('../middleware/auth');
+const Bill = require('../models/Bill');
+const InventoryItem = require('../models/InventoryItem');
+const Client = require('../models/Client');
+const Staff = require('../models/Staff');
 
-router.use(protect);
-
-router.post('/', validateBill, async (req, res, next) => {
+// GET /api/bills
+router.get('/', auth, async (req, res) => {
   try {
-    const { clientName, items, subtotal, gst, grandTotal, paymentMethod } = req.body;
-    const bill = await Bill.create({
-      clientName, items, subtotal, gst, grandTotal,
-      paymentMethod: paymentMethod || 'Cash',
-      createdBy: req.user._id
-    });
-    res.status(201).json(bill);
-  } catch (err) { next(err); }
-});
-
-router.get('/', async (req, res, next) => {
-  try {
-    const { date, clientName } = req.query;
-    let query = { createdBy: req.user._id };
-    if (date) {
-      const start = new Date(date);
-      const end   = new Date(date);
-      end.setDate(end.getDate() + 1);
-      query.createdAt = { $gte: start, $lt: end };
-    }
-    if (clientName) {
-      query.clientName = { $regex: clientName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
-    }
-    const bills = await Bill.find(query).sort({ createdAt: -1 });
+    const bills = await Bill.find({ userId: req.user.userId }).sort({ date: -1 });
     res.json(bills);
-  } catch (err) { next(err); }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
-router.get('/stats/today', async (req, res, next) => {
+// GET /api/bills/:id
+router.get('/:id', auth, async (req, res) => {
   try {
-    const start = new Date(); start.setHours(0,0,0,0);
-    const end   = new Date(); end.setHours(23,59,59,999);
-    const bills = await Bill.find({ createdBy: req.user._id, createdAt: { $gte: start, $lte: end } });
-    const totalSales = bills.reduce((s, b) => s + b.grandTotal, 0);
-    const totalBills = bills.length;
-    const avgBill    = totalBills > 0 ? Math.round(totalSales / totalBills) : 0;
-    res.json({ totalSales, totalBills, avgBill });
-  } catch (err) { next(err); }
+    const bill = await Bill.findById(req.params.id);
+    if (!bill) return res.status(404).json({ msg: 'Bill not found' });
+    if (bill.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+
+    res.json(bill);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
-router.get('/stats/summary', async (req, res, next) => {
+// GET /api/bills/stats/today
+router.get('/stats/today', auth, async (req, res) => {
   try {
-    const bills = await Bill.find({ createdBy: req.user._id });
-    const totalRevenue = bills.reduce((s, b) => s + b.grandTotal, 0);
-    const totalBills   = bills.length;
-    const avgBill      = totalBills > 0 ? Math.round(totalRevenue / totalBills) : 0;
-    const monthlyMap   = {};
-    let serviceRevenue = 0, productRevenue = 0;
-    bills.forEach(b => {
-      const key = new Date(b.createdAt).toLocaleString('en-IN', { month: 'short', year: '2-digit' });
-      monthlyMap[key] = (monthlyMap[key] || 0) + b.grandTotal;
-      b.items.forEach(item => {
-        if (item.type === 'Service') serviceRevenue += item.total;
-        else productRevenue += item.total;
-      });
+    const startOfDay = new Date();
+    startOfDay.setHours(0,0,0,0);
+    
+    const bills = await Bill.find({
+      userId: req.user.userId,
+      date: { $gte: startOfDay }
     });
-    res.json({ totalRevenue, totalBills, avgBill, serviceRevenue, productRevenue, monthlyMap });
-  } catch (err) { next(err); }
+
+    const totalSales = bills.reduce((acc, bill) => acc + bill.grandTotal, 0);
+    
+    res.json({ totalSales });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET /api/bills/stats/range
+router.get('/stats/range', auth, async (req, res) => {
+    try {
+      const { from, to } = req.query;
+      const query = { userId: req.user.userId };
+      
+      if (from || to) {
+        query.date = {};
+        if (from) query.date.$gte = new Date(from);
+        if (to) {
+          const toDate = new Date(to);
+          toDate.setHours(23,59,59,999);
+          query.date.$lte = toDate;
+        }
+      }
+      
+      const bills = await Bill.find(query).sort({ date: 1 });
+      res.json(bills);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  });
+
+// POST /api/bills
+router.post('/', auth, async (req, res) => {
+  try {
+    const newBill = new Bill({
+      ...req.body,
+      userId: req.user.userId
+    });
+
+    const bill = await newBill.save();
+
+    // 1. Decrement inventory for every product used
+    for (let item of bill.lineItems) {
+        if (item.type === 'Product' && item.refId) {
+            await InventoryItem.findByIdAndUpdate(
+                item.refId,
+                { $inc: { stock: -item.qty } } // decrease stock
+            );
+        }
+    }
+
+    // 2. Update client's total spend + visit count
+    if (bill.clientId) {
+        await Client.findByIdAndUpdate(
+            bill.clientId,
+            { 
+               $inc: { totalSpend: bill.grandTotal, totalVisits: 1 },
+               $set: { lastVisit: new Date() }
+            }
+        );
+    }
+
+    // 3. Increment staff revenue counter isn't explicitly stored as a monolithic counter in Staff schema,
+    // because it's calculated on-the-fly in `/staff/:id/performance` by aggregating Bills.
+
+    res.json(bill);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 module.exports = router;

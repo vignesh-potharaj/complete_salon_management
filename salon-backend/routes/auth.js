@@ -1,62 +1,100 @@
 const express = require('express');
-const router  = express.Router();
-const jwt     = require('jsonwebtoken');
-const User    = require('../models/User');
-const { loginLimiter, registerLimiter } = require('../middleware/rateLimiter');
-const { validateRegister, validateLogin } = require('../middleware/validators');
+const router = express.Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { check, validationResult } = require('express-validator');
 
-const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, {
-  expiresIn: process.env.JWT_EXPIRE || '7d'
-});
+const User = require('../models/User');
 
-// @route  POST /api/auth/register
-router.post('/register', registerLimiter, validateRegister, async (req, res, next) => {
+// POST /api/auth/register
+// Register new user (Salon owner)
+router.post('/register', [
+  check('userId', 'userId is required').not().isEmpty(),
+  check('name', 'Name is required').not().isEmpty(),
+  check('salonName', 'Salon Name is required').not().isEmpty(),
+  check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 })
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { userId, name, salonName, password } = req.body;
+
   try {
-    const { userId, name, salonName, password } = req.body;
+    let user = await User.findOne({ userId });
 
-    const exists = await User.findOne({ userId: userId.toLowerCase() });
-    if (exists) {
-      return res.status(400).json({ message: 'This User ID is already taken. Please choose another.' });
+    if (user) {
+      return res.status(400).json({ msg: 'User already exists' });
     }
 
-    const user = await User.create({ userId: userId.toLowerCase(), name, salonName, password });
+    user = new User({ userId, name, salonName, passwordHash: password });
 
-    res.status(201).json({
-      _id:       user._id,
-      userId:    user.userId,
-      name:      user.name,
-      salonName: user.salonName,
-      role:      user.role,
-      token:     generateToken(user._id)
-    });
-  } catch (error) { next(error); }
+    // Encrypt password
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(password, salt);
+
+    await user.save();
+
+    // Return JWT
+    const payload = { user: { userId: user.userId } };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '5 days' },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token, user: { userId, name, salonName } });
+      }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
 });
 
-// @route  POST /api/auth/login
-router.post('/login', loginLimiter, validateLogin, async (req, res, next) => {
-  try {
-    const { userId, password } = req.body;
+// POST /api/auth/login
+// Authenticate user & get token
+router.post('/login', [
+  check('userId', 'userId is required').exists(),
+  check('password', 'Password is required').exists()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-    const user = await User.findOne({ userId: userId.toLowerCase() });
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: 'Invalid User ID or password' });
+  const { userId, password } = req.body;
+
+  try {
+    let user = await User.findOne({ userId });
+
+    if (!user) {
+      return res.status(400).json({ msg: 'Invalid Credentials' });
     }
 
-    res.json({
-      _id:       user._id,
-      userId:    user.userId,
-      name:      user.name,
-      salonName: user.salonName,
-      role:      user.role,
-      token:     generateToken(user._id)
-    });
-  } catch (error) { next(error); }
-});
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
 
-// @route  GET /api/auth/me
-const { protect } = require('../middleware/authMiddleware');
-router.get('/me', protect, async (req, res) => {
-  res.json(req.user);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Invalid Credentials' });
+    }
+
+    const payload = { user: { userId: user.userId } };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '5 days' },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token, user: { userId: user.userId, name: user.name, salonName: user.salonName } });
+      }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
 });
 
 module.exports = router;

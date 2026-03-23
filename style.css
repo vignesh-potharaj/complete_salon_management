@@ -1,299 +1,358 @@
-/* ==============================================
-   ADDITIONS — paste these at the bottom of
-   your existing style.css file
-   ============================================== */
+/* ==========================================================
+   SalonPro — Modern Vanilla CSS (Premium & Responsive)
+   ========================================================== */
 
-/* Screen-reader only labels (accessibility) */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+/* ─── CSS VARIABLES ─── */
+:root {
+  --primary: #1e1e24; /* deep dark for primary elements */
+  --accent: #8e44ad;  /* elegant purple */
+  --accent-hover: #9b59b6;
+  --bg-color: #f4f6f8; /* soft cool gray background */
+  --surface: #ffffff;
+  --text-main: #2d3436;
+  --text-muted: #636e72;
+  --border: #e1e8ed;
+  
+  /* Status Colors */
+  --success: #27ae60;
+  --success-bg: #eafaf1;
+  --danger: #e74c3c;
+  --danger-bg: #fdecea;
+  --warning: #f1c40f;
+  --info: #3498db;
+
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+  
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Muted text for sub-labels */
-.muted-text {
-  color: #888;
+/* ─── RESET & TYPOGRAPHY ─── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Table empty state */
-.table-empty {
-  text-align: center;
-  color: #999;
-  padding: 20px;
-}
+h1, h2, h3, h4 { color: var(--primary); font-weight: 700; }
+h2 { font-size: 1.75rem; margin-bottom: 20px; letter-spacing: -0.5px; }
+h3 { font-size: 1.25rem; margin-bottom: 12px; }
 
-/* Reusable spacing */
-.mb-15 { margin-bottom: 15px; }
-.mt-20 { margin-top: 20px; }
-
-/* Modal inputs — replaces all inline styles on modal form fields */
-.modal-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.modal-input:focus {
-  outline: none;
-  border-color: #111;
-}
-
-/* Modal labels */
-.modal-content label {
-  display: block;
-  font-size: 13px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 4px;
-}
-
-/* Black full-width button used in modals */
-.btn-black {
-  padding: 10px 20px;
-  background: #111;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.btn-black:hover { background: #333; }
-
-.btn-full {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Bill section inputs */
-.bill-input {
-  width: 100%;
-  padding: 8px 10px;
-  margin-top: 5px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.bill-input:focus {
-  outline: none;
-  border-color: #111;
-}
-
-/* Add to bill button */
-.btn-add-item {
-  margin-top: 8px;
-  padding: 8px 16px;
-  background: #111;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.btn-add-item:hover { background: #333; }
-
-/* Finalize sale button */
-.btn-finalize {
-  width: 100%;
-  padding: 13px;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: bold;
-  transition: background 0.2s;
-}
-
-.btn-finalize:hover { background: #219a52; }
-
-/* Bill history section spacing */
-.bill-history-section {
-  margin-top: 30px;
-}
-
-/* Chart height utility */
-.chart-tall {
+/* ─── LAYOUT ─── */
+.container {
+  display: flex;
+  min-height: 100vh;
   position: relative;
-  height: 300px;
 }
 
-/* Chart row grid (reports) */
-.chart-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  transition: transform 0.3s ease;
+  box-shadow: var(--shadow-sm);
 }
 
-@media screen and (max-width: 768px) {
-  .chart-row {
-    grid-template-columns: 1fr;
-  }
+.brand {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -1px;
 }
-/* ==============================================
-   ADDITIONS — paste these at the bottom of
-   your existing style.css file
-   ============================================== */
+.brand span { color: var(--accent); }
 
-/* Replaces all style="display:none;" inline styles on sections */
-.section-hidden {
+.sidebar-menu { list-style: none; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+.sidebar-menu li {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-menu li:hover {
+  background: var(--bg-color);
+  color: var(--primary);
+  transform: translateX(4px);
+}
+
+.sidebar-menu li.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(30, 30, 36, 0.2);
+}
+
+/* ─── MAIN CONTENT ─── */
+.main {
+  flex: 1;
+  margin-left: 260px;
+  padding: 40px;
+  max-width: 1400px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.hamburger {
   display: none;
-}
-
-/* Screen-reader only labels (accessibility) */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Muted text for sub-labels */
-.muted-text {
-  color: #888;
-}
-
-/* Table empty state */
-.table-empty {
-  text-align: center;
-  color: #999;
-  padding: 20px;
-}
-
-/* Reusable spacing */
-.mb-15 { margin-bottom: 15px; }
-.mt-20 { margin-top: 20px; }
-
-/* Modal inputs — replaces all inline styles on modal form fields */
-.modal-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.modal-input:focus {
-  outline: none;
-  border-color: #111;
-}
-
-/* Modal labels */
-.modal-content label {
-  display: block;
-  font-size: 13px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 4px;
-}
-
-/* Black full-width button used in modals */
-.btn-black {
-  padding: 10px 20px;
-  background: #111;
-  color: white;
+  background: none;
   border: none;
-  border-radius: 6px;
+  font-size: 1.5rem;
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
+  color: var(--primary);
+  margin-bottom: 20px;
 }
 
-.btn-black:hover { background: #333; }
-
-.btn-full {
-  width: 100%;
-  box-sizing: border-box;
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 90;
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* Bill section inputs */
-.bill-input {
-  width: 100%;
-  padding: 8px 10px;
-  margin-top: 5px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
+/* ─── SECTIONS & CARDS ─── */
+.section { animation: slideUp 0.4s ease-out; }
+.section-hidden { display: none !important; }
 
-.bill-input:focus {
-  outline: none;
-  border-color: #111;
-}
-
-/* Add to bill button */
-.btn-add-item {
-  margin-top: 8px;
-  padding: 8px 16px;
-  background: #111;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.btn-add-item:hover { background: #333; }
-
-/* Finalize sale button */
-.btn-finalize {
-  width: 100%;
-  padding: 13px;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: bold;
-  transition: background 0.2s;
-}
-
-.btn-finalize:hover { background: #219a52; }
-
-/* Bill history section spacing */
-.bill-history-section {
-  margin-top: 30px;
-}
-
-/* Chart height utility */
-.chart-tall {
-  position: relative;
-  height: 300px;
-}
-
-/* Chart row grid (reports) */
-.chart-row {
+.dashboard-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: #d1d8dd;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--accent);
+  border-radius: 4px 0 0 4px;
+}
+
+.card-title { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; }
+.card-value { font-size: 2.2rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.card-subtext { font-size: 0.85rem; color: #888; }
+
+/* ─── TABLES ─── */
+.table-container {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th, td { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+th { background: #fdfdfd; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafbfc; }
+
+.table-empty { text-align: center; color: var(--text-muted); padding: 40px; font-style: italic; }
+
+/* Status Badges */
+.status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+.status.present, .status.Active, .status.Completed { background: var(--success-bg); color: var(--success); }
+.status.absent, .status.Inactive, .status.Cancelled { background: var(--danger-bg); color: var(--danger); }
+.status.Upcoming { background: #ebf5fb; color: var(--info); }
+.status.Ongoing { background: #fef5e7; color: var(--warning); }
+
+/* ─── BUTTONS & INPUTS ─── */
+.add-btn, .btn-black, .btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.add-btn:hover, .btn-black:hover, .btn-primary:hover { background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-1px); }
+
+.modal-input, .bill-input, select, input[type="text"], input[type="number"], input[type="date"], input[type="time"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  background: #fdfdfd;
+  transition: var(--transition);
+  font-family: inherit;
+  color: var(--text-main);
+}
+
+.modal-input:focus, .bill-input:focus, select:focus, input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.1);
+  background: var(--surface);
+}
+
+label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+
+/* ─── MODALS ─── */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background: var(--surface);
+  width: 90%;
+  max-width: 500px;
+  margin: 5vh auto;
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-content h3 { font-size: 1.5rem; margin-bottom: 24px; color: var(--primary); border-bottom: 2px solid var(--bg-color); padding-bottom: 12px;}
+.close { position: absolute; right: 24px; top: 24px; font-size: 24px; cursor: pointer; color: var(--text-muted); transition: color 0.2s; line-height: 1; }
+.close:hover { color: var(--danger); }
+
+/* ─── CALENDAR GRID ─── */
+.calendar-wrapper {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+.staff-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+.staff-card { background: var(--bg-color); padding: 12px; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 0.9rem;}
+.staff-card img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: var(--shadow-sm); }
+
+.calendar-grid-container { display: grid; grid-template-columns: 60px 1fr; gap: 10px; min-width: 800px; }
+.time-slots { display: grid; grid-template-rows: repeat(12, 80px); color: var(--text-muted); font-size: 0.8rem; font-weight: 500; text-align: right; padding-right: 15px;}
+.time-slots div { border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: flex-end; padding-top: 5px; }
+.grid-content { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(12, 80px); gap: 10px; background-size: 100% 80px; background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px); }
+
+.appointment {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.appointment:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); filter: brightness(1.1); }
+.appointment strong { font-size: 0.9rem; display: block; margin-bottom: 4px; }
+
+/* ─── UTILITIES ─── */
+.mb-15 { margin-bottom: 15px; } .mt-20 { margin-top: 20px; } .mt-30 { margin-top: 30px; }
+.text-right { text-align: right; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes modalPop { from { opacity: 0; transform: scale(0.95) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+/* ─── RESPONSIVE ─── */
+@media screen and (max-width: 1024px) {
+  .dashboard-cards { grid-template-columns: 1fr 1fr; }
 }
 
 @media screen and (max-width: 768px) {
-  .chart-row {
-    grid-template-columns: 1fr;
-  }
+  .sidebar { transform: translateX(-100%); width: 280px; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.active { display: block; opacity: 1; }
+  .main { margin-left: 0; padding: 20px; }
+  .hamburger { display: block; }
+  .dashboard-cards { grid-template-columns: 1fr; }
+  .chart-row { grid-template-columns: 1fr; }
 }
+
+/* ─── CHECKOUT / BILLING COMPONENT ─── */
+.checkout-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+.checkout-panel { background: var(--surface); padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+@media screen and (max-width: 900px) { .checkout-grid { grid-template-columns: 1fr; } }
+.qty-btn { width: 28px; height: 28px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-color); cursor: pointer; font-weight: bold; }
+.qty-btn:hover { background: #e2e8f0; }
+
+.btn-finalize { width: 100%; padding: 15px; font-size: 1.1rem; border-radius: var(--radius-sm); margin-top: 20px; background: var(--success); color: white; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s;}
+.btn-finalize:hover { background: #219a52; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3); }
+
+/* Settings Layout */
+.settings-container { display: grid; gap: 15px; }
+hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+/* Toast animations are handled in JS, but establishing base z-index */
+#toastContainer { z-index: 10000; }

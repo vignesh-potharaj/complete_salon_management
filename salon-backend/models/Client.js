@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
 
 const clientSchema = new mongoose.Schema({
-  name:        { type: String, required: true, trim: true },
-  phone:       { type: String, required: true },
-  gender:      { type: String, enum: ['Male', 'Female', 'Other'] },
-  email:       { type: String, lowercase: true, trim: true },
-  firstVisit:  { type: Date, default: Date.now },
-  lastVisit:   { type: Date },
+  userId: { type: String, required: true },
+  name: { type: String, required: true },
+  phone: { type: String },
+  email: { type: String },
   totalVisits: { type: Number, default: 0 },
-  totalSpent:  { type: Number, default: 0 },
-  notes:       { type: String },
-  createdBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-}, { timestamps: true });
+  totalSpend: { type: Number, default: 0 },
+  lastVisit: { type: Date },
+  loyaltyPoints: { type: Number, default: 0 },
+  notes: { type: String },
+  createdAt: { type: Date, default: Date.now }
+});
 
 module.exports = mongoose.model('Client', clientSchema);
