@@ -1,8 +1,7 @@
-const CACHE_NAME = "salonpro-v3"; // Force refresh for landing page fix
+const CACHE_NAME = "salonpro-v4"; // Resetting to stable state
 const urlsToCache = [
   "./",
   "./index.html",
-  "./landing.html",
   "./style.css",
   "./script.js",
   "./icon-192.png",
