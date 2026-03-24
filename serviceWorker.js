@@ -1,4 +1,4 @@
-const CACHE_NAME = "salonpro-v4"; // Resetting to stable state
+const CACHE_NAME = "salonpro-v5"; // Resetting to stable state
 const urlsToCache = [
   "./",
   "./index.html",
@@ -10,7 +10,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener("install", (event) => {
-  self.skipWaiting(); // Force update
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(urlsToCache);
@@ -24,7 +24,6 @@ self.addEventListener("activate", (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log("Removing old cache:", cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -34,6 +33,11 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // EXCLUDE APK DOWNLOADS FROM SERVICE WORKER
+  if (event.request.url.endsWith('.apk')) {
+    return; // Pass through to browser
+  }
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);
