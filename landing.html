@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SalonPro - Professional Salon Management</title>
+    <style>
+        :root {
+            --primary: #111;
+            --secondary: #555;
+            --accent: #27ae60;
+            --bg: #fdfdfd;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--primary);
+            background: var(--bg);
+            overflow-x: hidden;
+        }
+
+        .header {
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand { font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+
+        .hero {
+            padding: 80px 5%;
+            text-align: center;
+            background: linear-gradient(to bottom, #fff, #f4f4f4);
+        }
+
+        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; letter-spacing: -2px; }
+        .hero p { font-size: 1.25rem; color: var(--secondary); max-width: 600px; margin: 0 auto 40px; }
+
+        .cta-btn {
+            background: var(--primary);
+            color: white;
+            padding: 18px 36px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: inline-block;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .cta-btn:hover { transform: translateY(-2px); background: #333; }
+
+        .features {
+            padding: 80px 5%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .f-card {
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #eee;
+            transition: box-shadow 0.3s;
+        }
+
+        .f-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .f-card h3 { margin-bottom: 15px; font-size: 1.5rem; }
+        .f-card p { color: var(--secondary); }
+
+        .install-guide {
+            padding: 80px 5%;
+            background: #111;
+            color: white;
+            text-align: center;
+        }
+
+        .install-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 900px;
+            margin: 40px auto 0;
+            text-align: left;
+        }
+
+        .i-step {
+            padding: 20px;
+            border-left: 2px solid #333;
+        }
+
+        .i-step h4 { color: var(--accent); margin-bottom: 10px; }
+
+        footer {
+            padding: 40px 5%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .install-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="brand">✂ SalonPro</div>
+    <div>
+        <a href="login.html" style="text-decoration:none; color:black; font-weight:bold; margin-right:20px;">Login</a>
+        <a href="register.html" class="cta-btn" style="padding:10px 20px; font-size:0.9rem;">Get Started</a>
+    </div>
+</header>
+
+<section class="hero">
+    <h1>Manage your Salon.<br>From anywhere.</h1>
+    <p>The all-in-one system for billing, inventory, staff management, and analytics. Designed for high-performance salons.</p>
+    <a href="login.html" class="cta-btn">Open Dashboard</a>
+</section>
+
+<section class="features">
+    <div class="f-card">
+        <h3>⚡ Fast Billing</h3>
+        <p>Generate professional bills in seconds. Automatically adjust inventory and calculate commissions on the fly.</p>
+    </div>
+    <div class="f-card">
+        <h3>📊 Smart Analytics</h3>
+        <p>Track your revenue, top performers, and inventory health with beautifully designed real-time charts.</p>
+    </div>
+    <div class="f-card">
+        <h3>📦 Inventory Pro</h3>
+        <p>Never run out of stock. Automated alerts let you know when it's time to reorder your favorite products.</p>
+    </div>
+</section>
+
+<section class="install-guide">
+    <h2>Available on All Devices</h2>
+    <p style="color:#888;">Install SalonPro as an app on your phone or tablet for the best experience.</p>
+    
+    <div class="install-grid">
+        <div class="i-step">
+            <h4>For Android & Chrome</h4>
+            <p>1. Open this link in Chrome browser.<br>2. Tap the three dots (⋮) in the corner.<br>3. Tap <strong>"Install App"</strong>.</p>
+        </div>
+        <div class="i-step">
+            <h4>For iPhone & iPad</h4>
+            <p>1. Open this link in Safari browser.<br>2. Tap the "Share" button (↑).<br>3. Scroll down and tap <strong>"Add to Home Screen"</strong>.</p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 SalonPro Management System. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

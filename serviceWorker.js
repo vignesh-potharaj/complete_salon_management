@@ -2,6 +2,7 @@ const CACHE_NAME = "salonpro-v2"; // Incremented version
 const urlsToCache = [
   "./",
   "./index.html",
+  "./landing.html",
   "./style.css",
   "./script.js",
   "./icon-192.png",
