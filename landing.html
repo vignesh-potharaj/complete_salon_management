@@ -148,7 +148,15 @@
     <p>The elite management system for high-performance salons. Billing, inventory, and analytics in one stunning workspace.</p>
     
     <div class="hero-btns">
-        <a href="#install" class="hero-btn">
+        <button id="installBtn" class="hero-btn" style="cursor:pointer; display:none;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.523 15.3414L18.89 20.4442L12 16.832L5.11 20.4442L6.477 15.3414L2.4 11.9723L7.668 11.5304L10 6.666L12.332 11.5304L17.6 11.9723L13.523 15.3414H17.523Z" fill="white"/></svg>
+            <div>
+                <span class="small">Install App</span>
+                <span class="big">One-Click Install</span>
+            </div>
+        </button>
+        <!-- This will show if the native prompt isn't available -->
+        <a id="fallbackAndroid" href="#install" class="hero-btn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.523 15.3414L18.89 20.4442L12 16.832L5.11 20.4442L6.477 15.3414L2.4 11.9723L7.668 11.5304L10 6.666L12.332 11.5304L17.6 11.9723L13.523 15.3414H17.523Z" fill="white"/></svg>
             <div>
                 <span class="small">Install for</span>
@@ -168,6 +176,42 @@
         <a href="login.html" style="color:var(--secondary); text-decoration:underline;">Already have an account? Log in</a>
     </div>
 </section>
+
+<script>
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    const fallbackAndroid = document.getElementById('fallbackAndroid');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        // Update UI notify the user they can install the PWA
+        installBtn.style.display = 'flex';
+        fallbackAndroid.style.display = 'none';
+    });
+
+    installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
+            // We've used the prompt, and can't use it again, throw it away
+            deferredPrompt = null;
+            installBtn.style.display = 'none';
+            fallbackAndroid.style.display = 'flex';
+        }
+    });
+
+    window.addEventListener('appinstalled', () => {
+        // Log install to analytics or hide button
+        console.log('PWA was installed');
+        installBtn.style.display = 'none';
+    });
+</script>
 
 <section class="features" id="features">
     <div class="f-card">
