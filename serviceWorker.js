@@ -1,4 +1,4 @@
-const CACHE_NAME = "salonpro-v2"; // Incremented version
+const CACHE_NAME = "salonpro-v3"; // Force refresh for landing page fix
 const urlsToCache = [
   "./",
   "./index.html",
