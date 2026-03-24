@@ -120,12 +120,21 @@ h3 { font-size: 1.25rem; margin-bottom: 12px; }
 
 .hamburger {
   display: none;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 1.25rem;
   cursor: pointer;
   color: var(--primary);
-  margin-bottom: 20px;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1000;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebar-overlay {
@@ -133,7 +142,7 @@ h3 { font-size: 1.25rem; margin-bottom: 12px; }
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
-  z-index: 90;
+  z-index: 1001; /* Above hamburger, but below sidebar */
   backdrop-filter: blur(3px);
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -334,8 +343,8 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
   .sidebar { transform: translateX(-100%); width: 280px; }
   .sidebar.open { transform: translateX(0); }
   .sidebar-overlay.active { display: block; opacity: 1; }
-  .main { margin-left: 0; padding: 20px; }
-  .hamburger { display: block; }
+  .main { margin-left: 0; padding: 70px 20px 20px 20px; } /* Added top padding to clear the fixed menu btn */
+  .hamburger { display: flex; }
   .dashboard-cards { grid-template-columns: 1fr; }
   .chart-row { grid-template-columns: 1fr; }
 }
