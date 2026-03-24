@@ -1,6 +1,8 @@
 // api.js - Global API Helper and Auth
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : window.location.origin + '/api';
 
 // Global API helper
 async function api(path, options = {}) {

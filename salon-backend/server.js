@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const helmet = require('helmet');
 const connectDB = require('./db');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
@@ -9,7 +10,11 @@ connectDB();
 
 const app = express();
 
-app.use(cors({ origin: '*', credentials: true })); // In production, restrict origin
+app.use(helmet());
+app.use(cors({ 
+    origin: process.env.CLIENT_URL || '*', 
+    credentials: true 
+})); 
 app.use(express.json());
 
 // Global limiters if needed
