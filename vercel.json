@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/SalonPro.apk",
+      "source": "/app.apk",
       "headers": [
         {
           "key": "Content-Type",
