@@ -11,8 +11,11 @@ connectDB();
 const app = express();
 
 app.use(helmet());
+const clientUrl = process.env.CLIENT_URL || '*';
+const allowedOrigins = clientUrl !== '*' ? [clientUrl.replace(/\/$/, ''), clientUrl] : '*';
+
 app.use(cors({ 
-    origin: process.env.CLIENT_URL || '*', 
+    origin: allowedOrigins, 
     credentials: true 
 })); 
 app.use(express.json());
