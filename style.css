@@ -253,6 +253,7 @@ th {
   position: sticky;
   top: 0;
   z-index: 10;
+  white-space: nowrap; /* Prevent header overlap on mobile */
 }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: #fafbfc; }
@@ -506,4 +507,21 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
 hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
 
 /* Toast animations are handled in JS, but establishing base z-index */
+/* Inventory specific cards */
+.inventory-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+.inv-card {
+  background: white;
+  padding: 15px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.inv-card h3 { font-size: 1.5rem; margin-bottom: 2px; color: var(--accent); }
+.inv-card p { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+
 #toastContainer { z-index: 10000; }
