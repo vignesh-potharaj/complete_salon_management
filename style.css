@@ -473,106 +473,112 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
   .sidebar { transform: translateX(-100%); width: 85%; max-width: 320px; }
   .sidebar.open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,0.5); }
   .sidebar-overlay.active { display: block; opacity: 1; }
-  .main { margin-left: 0; padding: 60px 12px 20px 12px; width: 100%; }
-  .hamburger { display: flex; }
-  .dashboard-cards { grid-template-columns: 1fr; gap: 12px; }
-  .chart-row { grid-template-columns: 1fr; gap: 12px; }
-
-  /* ─── RESPONSIVE CARD TABLES ─── */
-  .table-scroll { overflow-x: visible; }
-  .table-container { background: none; border: none; box-shadow: none; }
-  
-  table, thead, tbody, th, td, tr { display: block; }
-  thead tr { position: absolute; top: -9999px; left: -9999px; }
-  
-  tr {
-    background: white;
-    border-radius: var(--radius-md);
-    margin-bottom: 20px;
-    padding: 15px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border);
-    position: relative;
-  }
-  
-  td {
-    border: none !important;
-    position: relative;
-    padding: 10px 15px 10px 50% !important;
-    text-align: right !important;
-    min-height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    border-bottom: 1px solid #f1f5f9 !important;
-    color: var(--text-main) !important; /* Force visibility */
-  }
-  
-  td span { font-weight: 500; font-size: 0.9rem; }
-  
-  td:last-child { border-bottom: none !important; margin-top: 15px; background: #fafbfc; border-radius: 0 0 var(--radius-md) var(--radius-md); }
-  
-  td:before {
-    content: attr(data-label);
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 45%;
-    white-space: nowrap;
-    text-align: left;
-    font-weight: 700;
-    color: var(--text-muted);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-  }
-
-  .inv-action-btn { flex-shrink: 0; }
-}
-
-/* ─── CHECKOUT / BILLING COMPONENT ─── */
-.checkout-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-.checkout-panel { background: var(--surface); padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
-@media screen and (max-width: 900px) { .checkout-grid { grid-template-columns: 1fr; } }
-.qty-btn { width: 28px; height: 28px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-color); cursor: pointer; font-weight: bold; }
-.qty-btn:hover { background: #e2e8f0; }
-
-.btn-finalize { width: 100%; padding: 15px; font-size: 1.1rem; border-radius: var(--radius-sm); margin-top: 20px; background: var(--success); color: white; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s;}
-.btn-finalize:hover { background: #219a52; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3); }
-
-/* Billing area refinement */
-@media screen and (max-width: 900px) {
-  #bill-area { margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 30px; }
-}
-
-/* Fix for huge text and narrow inputs on very small devices */
-@media screen and (max-width: 400px) {
-  h2 { font-size: 1.4rem; }
-  .card-value { font-size: 1.8rem; }
-  .main { padding: 60px 15px 20px 15px; }
-  .checkout-panel { padding: 15px; }
-}
-
-/* Settings Layout */
-.settings-container { display: grid; gap: 15px; }
-hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
-
-/* Toast animations are handled in JS, but establishing base z-index */
-/* Inventory specific cards */
-.inventory-stats {
+  .main { margin-left: 0; pa/* ─── PREMIUM INVENTORY GALLERY ─── */
+.inventory-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 20px 0;
 }
-.inv-card {
-  background: white;
-  padding: 15px 20px;
+
+.product-card {
+  background: var(--surface);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+  overflow: hidden;
   box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.inv-card h3 { font-size: 1.5rem; margin-bottom: 2px; color: var(--accent); }
+
+.product-card:hover { 
+  transform: translateY(-4px); 
+  box-shadow: var(--shadow-md); 
+}
+
+.product-img-wrapper {
+  position: relative;
+  height: 200px;
+  width: 100%;
+  background: #f1f5f9;
+}
+
+.product-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stock-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.badge-low { background: #ff4d4f; color: white; }
+.badge-ok { background: #27ae60; color: white; }
+
+.product-info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+
+.product-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.product-cat { background: var(--bg-color); color: var(--text-muted); font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; font-weight: 700; }
+.product-brand { color: var(--accent); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+
+.product-name { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; line-height: 1.2; }
+.product-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; min-height: 3em; }
+
+.product-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 15px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-top: auto;
+  margin-bottom: 20px;
+}
+
+.p-stat { display: flex; flex-direction: column; gap: 2px; }
+.p-stat strong { font-size: 1.1rem; color: var(--primary); }
+.p-stat span { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+
+.product-actions-bar { display: flex; justify-content: space-between; align-items: center; }
+.stock-controls { display: flex; gap: 6px; }
+.stock-controls button { 
+  width: 36px; height: 36px; border-radius: 8px; 
+  border: 1.5px solid var(--border); background: white; 
+  font-weight: 800; display: flex; align-items: center; 
+  justify-content: center; cursor: pointer; transition: all 0.2s;
+}
+.stock-controls button:hover { border-color: var(--accent); color: var(--accent); background: var(--bg-color); }
+
+.btn-delete-link { 
+  color: #ff4d4f; font-size: 0.8rem; font-weight: 700; 
+  background: none; border: none; cursor: pointer; 
+  padding: 8px; border-radius: 4px; transition: background 0.2s;
+}
+.btn-delete-link:hover { background: #fff1f0; }
+
+@media screen and (max-width: 600px) {
+  .inventory-gallery { grid-template-columns: 1fr; }
+  .product-img-wrapper { height: 240px; }
+}
+
+#toastContainer { z-index: 10000; }
+
+/* Dashboard refinements for mobile */
+@media screen and (max-width: 480px) {
+  .main { padding-top: 85px !important; } /* Clear hamburger more safely */
+}
+ 1.5rem; margin-bottom: 2px; color: var(--accent); }
 .inv-card p { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
 
 #toastContainer { z-index: 10000; }
