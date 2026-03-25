@@ -450,9 +450,9 @@
         <!-- Bill History -->
         <div class="bill-history-section">
           <h2>Bill History</h2>
-          <div class="table-container">
-            <table>
-              <thead>
+          <div class="table-container" style="position: relative;">
+            <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+              <table id="appointmentsTable">
                 <tr><th>Date</th><th>Client</th><th>Items</th><th>Grand Total</th><th>Payment</th><th class="no-print">Actions</th></tr>
               </thead>
               <tbody id="billHistoryBody">
