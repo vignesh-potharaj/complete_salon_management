@@ -422,32 +422,66 @@ function closeStaffPanel() { document.getElementById('staffPanel').classList.rem
    ══════════════════════════════════════════════════════════ */
 
 async function loadServices() {
-    try {
-        const services = await api('/services');
-        const tbody = document.querySelector('#servicesTable tbody');
-        if (!tbody) return;
-        
-        if (services.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#999;padding:24px;">No services yet.</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = services.map(s => `
-            <tr>
-                <td>${s.name}</td>
-                <td>${s.category}</td>
-                <td>${s.durationMins} m</td>
-                <td>₹${s.defaultPrice}</td>
-                <td><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
-                <td>
-                    <button class="no-print" style="color:red" onclick="deleteServiceById('${s._id}')">Delete</button>
-                </td>
-            </tr>
-        `).join('');
-    } catch(err) { showToast('Services error', 'error'); }
+  try {
+    const services = await api('/services');
+    const tbody = document.querySelector('#servicesTable tbody');
+    if (!tbody) return;
+    if (services.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No services added yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = services.map(s => `
+      <tr>
+        <td>${s.name}</td>
+        <td>${s.category}</td>
+        <td>${s.durationMins} mins</td>
+        <td>₹${s.defaultPrice}</td>
+        <td><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
+        <td>
+          <button class="btn-secondary" style="padding:4px 8px;font-size:12px;" onclick="editService('${s._id}')">Edit</button>
+          <button class="btn-danger"    style="padding:4px 8px;font-size:12px;" onclick="deleteServiceById('${s._id}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) { showToast('Services error', 'error'); }
 }
 
-function openAddServiceModal() { document.getElementById('addServiceModal').style.display = 'block'; }
+async function saveService() {
+  const name = document.getElementById('newServiceName').value;
+  const category = document.getElementById('newServiceCategory').value;
+  const duration = document.getElementById('newServiceDuration').value;
+  const price = document.getElementById('newServicePrice').value;
+  const id = document.getElementById('editServiceId').value;
+  
+  if (!name || !price) { showToast('Name and Price are required', 'error'); return; }
+  
+  try {
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/services/${id}` : '/services';
+    await api(url, { method, body: { name, category, durationMins: duration, defaultPrice: price } });
+    showToast(id ? 'Service updated' : 'Service added');
+    closeAddServiceModal();
+    loadServices();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function deleteServiceById(id) {
+    if(!confirm('Delete this service?')) return;
+    try {
+        await api(`/services/${id}`, { method: 'DELETE' });
+        showToast('Service deleted');
+        loadServices();
+    } catch(err) { showToast(err.message, 'error'); }
+}
+
+function openAddServiceModal() { 
+    document.getElementById('editServiceId').value = '';
+    document.getElementById('newServiceName').value = '';
+    document.getElementById('newServiceCategory').value = '';
+    document.getElementById('newServiceDuration').value = '';
+    document.getElementById('newServicePrice').value = '';
+    document.getElementById('addServiceModal').style.display = 'block'; 
+}
 function closeAddServiceModal() { document.getElementById('addServiceModal').style.display = 'none'; }
 
 async function saveService() {

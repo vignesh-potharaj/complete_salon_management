@@ -30,12 +30,12 @@
   --radius-lg: 16px;
   
   /* ─── FLUID TYPOGRAPHY & SPACING ─── */
-  --font-xs: clamp(0.7rem, 0.65rem + 0.25vw, 0.8rem);
-  --font-sm: clamp(0.85rem, 0.8rem + 0.25vw, 0.95rem);
-  --font-base: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
-  --font-md: clamp(1.1rem, 1.05rem + 0.25vw, 1.25rem);
-  --font-lg: clamp(1.5rem, 1.4rem + 0.5vw, 1.8rem);
-  --font-xl: clamp(2rem, 1.8rem + 1vw, 2.5rem);
+  --font-xs: clamp(0.65rem, 0.6rem + 0.2vw, 0.75rem);
+  --font-sm: clamp(0.8rem, 0.75rem + 0.2vw, 0.9rem);
+  --font-base: clamp(0.9rem, 0.85rem + 0.2vw, 1rem);
+  --font-md: clamp(1rem, 0.95rem + 0.2vw, 1.15rem);
+  --font-lg: clamp(1.2rem, 1.15rem + 0.3vw, 1.5rem);
+  --font-xl: clamp(1.6rem, 1.5rem + 0.5vw, 2rem);
 
   --gap-xs: 8px;
   --gap-sm: clamp(12px, 10px + 0.5vw, 16px);
