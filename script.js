@@ -6,25 +6,30 @@
 /* ─── NAVIGATION ─────────────────────────────────────────── */
 
 function showSection(sectionId) {
-  document.querySelectorAll('.section').forEach(s => s.classList.add('section-hidden'));
-  const target = document.getElementById(sectionId);
-  if (target) target.classList.remove('section-hidden');
+  try {
+    document.querySelectorAll('.section').forEach(s => s.classList.add('section-hidden'));
+    const target = document.getElementById(sectionId);
+    if (target) target.classList.remove('section-hidden');
 
-  // Auto-close sidebar on link click (for mobile/tablet)
-  const sidebar = document.querySelector('.sidebar');
-  const overlay = document.querySelector('.sidebar-overlay');
-  if (sidebar) sidebar.classList.remove('open');
-  if (overlay) overlay.classList.remove('active');
+    // Auto-close sidebar on link click (for mobile/tablet)
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
 
-  if (sectionId === 'home')      loadDashboard();
-  if (sectionId === 'calendar')  loadCalendar();
-  if (sectionId === 'clients')   loadClients();
-  if (sectionId === 'staff')     loadStaff();
-  if (sectionId === 'services')  loadServices();
-  if (sectionId === 'inventory') loadInventory();
-  if (sectionId === 'checkout')  { populateProductDropdown(); populateServiceDropdown(); populateClientDropdown(); loadBillHistory(); }
-  if (sectionId === 'reports')   loadReports();
-  if (sectionId === 'settings')  loadSettings();
+    if (sectionId === 'home')      loadDashboard();
+    if (sectionId === 'calendar')  loadCalendar();
+    if (sectionId === 'clients')   loadClients();
+    if (sectionId === 'staff')     loadStaff();
+    if (sectionId === 'services')  loadServices();
+    if (sectionId === 'inventory') loadInventory();
+    if (sectionId === 'checkout')  { populateProductDropdown(); populateServiceDropdown(); populateClientDropdown(); loadBillHistory(); }
+    if (sectionId === 'reports')   loadReports();
+    if (sectionId === 'settings')  loadSettings();
+  } catch (err) {
+    console.error('Navigation error:', err);
+    showToast('Failed to load section: ' + sectionId, 'error');
+  }
 }
 
 function toggleSidebar() {

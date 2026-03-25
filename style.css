@@ -480,6 +480,19 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
 .btn-finalize { width: 100%; padding: 15px; font-size: 1.1rem; border-radius: var(--radius-sm); margin-top: 20px; background: var(--success); color: white; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s;}
 .btn-finalize:hover { background: #219a52; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3); }
 
+/* Billing area refinement */
+@media screen and (max-width: 900px) {
+  #bill-area { margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 30px; }
+}
+
+/* Fix for huge text and narrow inputs on very small devices */
+@media screen and (max-width: 400px) {
+  h2 { font-size: 1.4rem; }
+  .card-value { font-size: 1.8rem; }
+  .main { padding: 60px 15px 20px 15px; }
+  .checkout-panel { padding: 15px; }
+}
+
 /* Settings Layout */
 .settings-container { display: grid; gap: 15px; }
 hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
