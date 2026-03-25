@@ -521,45 +521,51 @@ async function deleteServiceById(id) {
 async function loadInventory() {
   try {
     const items = await api('/inventory');
+    const gallery = document.getElementById('inventoryGallery');
+    if (!gallery) return;
 
-    const lowStock   = items.filter(i => i.stock <= i.minStock).length;
-    const totalValue = items.reduce((s, i) => s + i.stock * i.costPrice, 0);
-    setEl('invTotalProducts', items.length);
-    setEl('invLowStock',      lowStock);
-    setEl('invTotalValue',    '₹' + totalValue.toLocaleString('en-IN'));
-
-    const tbody = document.querySelector('#inventoryTable tbody');
-    if (!tbody) return;
     if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:#999;padding:24px;">No products yet.</td></tr>`;
+      gallery.innerHTML = '<div class="table-empty" style="grid-column: 1/-1;">No products in inventory yet.</div>';
       return;
     }
-    tbody.innerHTML = items.map(item => {
-      const profit  = item.sellPrice - item.costPrice;
-      const val     = item.stock * item.costPrice;
-      const cls     = item.stock <= item.minStock ? 'inv-low' : 'inv-good';
+
+    const placeholder = 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=400&auto=format&fit=crop';
+
+    gallery.innerHTML = items.map(item => {
+      const isLow = item.stock <= item.minStock;
+      const profit = item.sellPrice - item.costPrice;
+      const totalVal = item.stock * item.costPrice;
+
       return `
-        <tr>
-          <td data-label="Product"><span>${item.name}</span></td>
-          <td data-label="Category"><span>${item.category}</span></td>
-          <td data-label="Stock"><span>${item.stock} ${item.unit}</span></td>
-          <td data-label="Min"><span>${item.minStock}</span></td>
-          <td data-label="Reorder"><span>Reorder ${item.stock < item.minStock ? item.minStock - item.stock : 0}</span></td>
-          <td data-label="Brand"><span>${item.brand || '—'}</span></td>
-          <td data-label="Phone"><span>—</span></td>
-          <td data-label="Purchase"><span>₹${item.costPrice}</span></td>
-          <td data-label="Selling"><span>₹${item.sellPrice}</span></td>
-          <td data-label="Profit"><span>₹${profit}</span></td>
-          <td data-label="Value"><span>₹${val.toLocaleString('en-IN')}</span></td>
-          <td data-label="Status"><span><span class="${cls}">${item.stock <= item.minStock ? 'Low' : 'Good'}</span></span></td>
-          <td data-label="Actions">
-            <div style="display:flex; gap:5px; justify-content: flex-end;">
-              <button class="inv-action-btn" onclick="changeStockById('${item._id}',1)">+</button>
-              <button class="inv-action-btn" onclick="changeStockById('${item._id}',-1)">-</button>
-              <button class="inv-action-btn" style="color:red" onclick="deleteInventoryItem('${item._id}')">Delete</button>
+        <div class="product-card ${isLow ? 'low-stock-alert' : ''}">
+          <div class="product-img-wrapper">
+            <img src="${item.imageUrl || placeholder}" alt="${item.name}" onerror="this.src='${placeholder}'">
+            ${isLow ? '<span class="stock-badge badge-low">Low Stock</span>' : '<span class="stock-badge badge-ok">In Stock</span>'}
+          </div>
+          <div class="product-info">
+            <div class="product-meta">
+              <span class="product-cat">${item.category || 'General'}</span>
+              <span class="product-brand">${item.brand || 'No Brand'}</span>
             </div>
-          </td>
-        </tr>`;
+            <h3 class="product-name">${item.name}</h3>
+            <p class="product-desc">${item.description || 'No description provided.'}</p>
+            
+            <div class="product-stats-grid">
+              <div class="p-stat"><strong>${item.stock}</strong><span>Units</span></div>
+              <div class="p-stat"><strong>₹${item.sellPrice}</strong><span>Price</span></div>
+              <div class="p-stat"><strong>₹${profit}</strong><span>Profit</span></div>
+            </div>
+
+            <div class="product-actions-bar">
+              <div class="stock-controls">
+                <button onclick="changeStockById('${item._id}', -1)" class="btn-sm">-</button>
+                <button onclick="changeStockById('${item._id}', 1)" class="btn-sm">+</button>
+              </div>
+              <button class="btn-sm btn-danger" onclick="deleteInventoryItem('${item._id}')">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
     }).join('');
   } catch (err) { showToast('Inventory error', 'error'); }
 }
@@ -568,7 +574,6 @@ function openInvModal()  { document.getElementById('inventoryModal').style.displ
 function closeInvModal() { document.getElementById('inventoryModal').style.display = 'none'; }
 
 async function addInventory() {
-  const name          = document.getElementById('invName').value.trim();
   const category      = document.getElementById('invCategory').value.trim();
   const stock         = parseInt(document.getElementById('invStock').value);
   const minStock      = parseInt(document.getElementById('invMin').value);

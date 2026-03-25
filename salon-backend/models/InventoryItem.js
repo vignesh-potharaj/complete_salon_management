@@ -5,7 +5,9 @@ const inventoryItemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   category: { type: String },
   brand: { type: String },
-  unit: { type: String, required: true }, // e.g., 'ml', 'bottles'
+  unit: { type: String, required: true },
+  description: { type: String },
+  imageUrl: { type: String },
   stock: { type: Number, default: 0 },
   minStock: { type: Number, default: 0 },
   costPrice: { type: Number, default: 0 },

@@ -320,20 +320,10 @@
           <button class="btn-secondary" onclick="exportInventory()">Export CSV</button>
         </div>
 
-        <div class="table-container">
-          <div class="table-scroll">
-            <table id="inventoryTable">
-              <thead>
-                <tr>
-                  <th>Product</th><th>Category</th><th>Stock</th><th>Min</th>
-                  <th>Reorder</th><th>Supplier</th><th>Phone</th><th>Purchase ₹</th>
-                  <th>Selling ₹</th><th>Profit/Unit</th><th>Total Value</th><th>Status</th><th>Actions</th>
-                </tr>
-              </thead>
-            <tbody>
-              <tr><td colspan="13" class="table-empty">Loading...</td></tr>
-            </tbody>
-          </table>
+        <div class="table-container" style="background:transparent; box-shadow:none; padding:0;">
+          <div id="inventoryGallery" class="inventory-gallery">
+            <!-- Dynamic Cards Load Here -->
+            <div class="loading-spinner">Loading Products...</div>
           </div>
         </div>
       </div>
@@ -351,14 +341,25 @@
           <input type="number" id="invStock"    placeholder="e.g. 10"             class="modal-input">
           <label for="invMin">Minimum Stock</label>
           <input type="number" id="invMin"      placeholder="e.g. 3"              class="modal-input">
-          <label for="invSupplier">Supplier Name</label>
-          <input type="text"   id="invSupplier" placeholder="Supplier name"       class="modal-input">
-          <label for="invPhone">Supplier Phone</label>
-          <input type="tel"    id="invPhone"    placeholder="10-digit number"     class="modal-input">
-          <label for="invPurchase">Purchase Cost (₹)</label>
-          <input type="number" id="invPurchase" placeholder="e.g. 500"            class="modal-input">
-          <label for="invSelling">Selling Price (₹)</label>
-          <input type="number" id="invSelling"  placeholder="e.g. 800"            class="modal-input">
+          <label for="invSupplier">Brand / Supplier</label>
+          <input type="text" id="invSupplier" placeholder="e.g. L'Oreal" class="modal-input">
+          
+          <label for="invDesc">Description</label>
+          <textarea id="invDesc" placeholder="Product details/benefits..." class="modal-input" style="height:80px; resize:none; padding:10px;"></textarea>
+          
+          <label for="invImg">Image URL</label>
+          <input type="text" id="invImg" placeholder="https://example.com/image.jpg" class="modal-input">
+          
+          <div class="modal-grid">
+            <div>
+              <label for="invPurchase">Purchase Price</label>
+              <input type="number" id="invPurchase" placeholder="300" class="modal-input">
+            </div>
+            <div>
+              <label for="invSelling">Selling Price</label>
+              <input type="number" id="invSelling" placeholder="450" class="modal-input">
+            </div>
+          </div>
           <button onclick="addInventory()" class="btn-black btn-full">Save Product</button>
         </div>
       </div>
