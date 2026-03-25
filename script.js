@@ -540,14 +540,19 @@ async function loadInventory() {
       const cls     = item.stock <= item.minStock ? 'inv-low' : 'inv-good';
       return `
         <tr>
-          <td>${item.name}</td><td>${item.category}</td>
-          <td>${item.stock} ${item.unit}</td><td>${item.minStock}</td>
-          <td>Reorder ${item.stock < item.minStock ? item.minStock - item.stock : 0}</td>
-          <td>${item.brand || '—'}</td><td>—</td>
-          <td>₹${item.costPrice}</td><td>₹${item.sellPrice}</td>
-          <td>₹${profit}</td><td>₹${val.toLocaleString('en-IN')}</td>
-          <td><span class="${cls}">${item.stock <= item.minStock ? 'Low' : 'Good'}</span></td>
-          <td>
+          <td data-label="Product">${item.name}</td>
+          <td data-label="Category">${item.category}</td>
+          <td data-label="Stock">${item.stock} ${item.unit}</td>
+          <td data-label="Min">${item.minStock}</td>
+          <td data-label="Reorder">Reorder ${item.stock < item.minStock ? item.minStock - item.stock : 0}</td>
+          <td data-label="Brand">${item.brand || '—'}</td>
+          <td data-label="Phone">—</td>
+          <td data-label="Purchase">₹${item.costPrice}</td>
+          <td data-label="Selling">₹${item.sellPrice}</td>
+          <td data-label="Profit">₹${profit}</td>
+          <td data-label="Value">₹${val.toLocaleString('en-IN')}</td>
+          <td data-label="Status"><span class="${cls}">${item.stock <= item.minStock ? 'Low' : 'Good'}</span></td>
+          <td data-label="Actions">
             <button class="inv-action-btn" onclick="changeStockById('${item._id}',1)">+</button>
             <button class="inv-action-btn" onclick="changeStockById('${item._id}',-1)">-</button>
             <button class="inv-action-btn" style="color:red" onclick="deleteInventoryItem('${item._id}')">Delete</button>
@@ -761,12 +766,12 @@ async function loadBillHistory() {
     }
     tbody.innerHTML = bills.map(b => `
       <tr>
-        <td>${new Date(b.date || b.createdAt).toLocaleDateString('en-IN')}</td>
-        <td>${b.clientName}</td>
-        <td>${b.lineItems.length} item(s)</td>
-        <td>₹${b.grandTotal.toLocaleString('en-IN')}</td>
-        <td><span style="padding:2px 8px;border-radius:4px;background:#eafaf1;color:#1e8449;font-size:12px;">${b.paymentMethod}</span></td>
-        <td class="no-print">
+        <td data-label="Date">${new Date(b.date || b.createdAt).toLocaleDateString('en-IN')}</td>
+        <td data-label="Client">${b.clientName}</td>
+        <td data-label="Items">${b.lineItems.length} item(s)</td>
+        <td data-label="Total">₹${b.grandTotal.toLocaleString('en-IN')}</td>
+        <td data-label="Payment"><span style="padding:2px 8px;border-radius:4px;background:#eafaf1;color:#1e8449;font-size:12px;">${b.paymentMethod}</span></td>
+        <td data-label="Actions" class="no-print">
           <button class="btn-secondary" style="padding:4px 8px;font-size:12px;" onclick="viewBill('${b._id}')">View</button>
           <button class="btn-black" style="padding:4px 8px;font-size:12px;" onclick="printPastBill('${b._id}')">Print</button>
         </td>

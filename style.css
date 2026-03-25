@@ -477,6 +477,50 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
   .hamburger { display: flex; }
   .dashboard-cards { grid-template-columns: 1fr; gap: 12px; }
   .chart-row { grid-template-columns: 1fr; gap: 12px; }
+
+  /* ─── RESPONSIVE CARD TABLES ─── */
+  .table-scroll { overflow-x: visible; }
+  .table-container { background: none; border: none; box-shadow: none; }
+  
+  table, thead, tbody, th, td, tr { display: block; }
+  thead tr { position: absolute; top: -9999px; left: -9999px; }
+  
+  tr {
+    background: white;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    padding: 15px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  
+  td {
+    border: none !important;
+    position: relative;
+    padding-left: 45% !important;
+    text-align: right !important;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    border-bottom: 1px solid #f8fafc !important;
+  }
+  
+  td:last-child { border-bottom: none !important; margin-top: 10px; }
+  
+  td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    width: 40%;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
 }
 
 /* ─── CHECKOUT / BILLING COMPONENT ─── */
