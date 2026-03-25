@@ -498,29 +498,36 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
   td {
     border: none !important;
     position: relative;
-    padding-left: 45% !important;
+    padding: 10px 15px 10px 50% !important;
     text-align: right !important;
-    min-height: 40px;
+    min-height: 45px;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    border-bottom: 1px solid #f8fafc !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: var(--text-main) !important; /* Force visibility */
   }
   
-  td:last-child { border-bottom: none !important; margin-top: 10px; }
+  td span { font-weight: 500; font-size: 0.9rem; }
+  
+  td:last-child { border-bottom: none !important; margin-top: 15px; background: #fafbfc; border-radius: 0 0 var(--radius-md) var(--radius-md); }
   
   td:before {
     content: attr(data-label);
     position: absolute;
     left: 15px;
-    width: 40%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 45%;
     white-space: nowrap;
     text-align: left;
     font-weight: 700;
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
   }
+
+  .inv-action-btn { flex-shrink: 0; }
 }
 
 /* ─── CHECKOUT / BILLING COMPONENT ─── */

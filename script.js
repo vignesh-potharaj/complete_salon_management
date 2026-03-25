@@ -540,22 +540,24 @@ async function loadInventory() {
       const cls     = item.stock <= item.minStock ? 'inv-low' : 'inv-good';
       return `
         <tr>
-          <td data-label="Product">${item.name}</td>
-          <td data-label="Category">${item.category}</td>
-          <td data-label="Stock">${item.stock} ${item.unit}</td>
-          <td data-label="Min">${item.minStock}</td>
-          <td data-label="Reorder">Reorder ${item.stock < item.minStock ? item.minStock - item.stock : 0}</td>
-          <td data-label="Brand">${item.brand || '—'}</td>
-          <td data-label="Phone">—</td>
-          <td data-label="Purchase">₹${item.costPrice}</td>
-          <td data-label="Selling">₹${item.sellPrice}</td>
-          <td data-label="Profit">₹${profit}</td>
-          <td data-label="Value">₹${val.toLocaleString('en-IN')}</td>
-          <td data-label="Status"><span class="${cls}">${item.stock <= item.minStock ? 'Low' : 'Good'}</span></td>
+          <td data-label="Product"><span>${item.name}</span></td>
+          <td data-label="Category"><span>${item.category}</span></td>
+          <td data-label="Stock"><span>${item.stock} ${item.unit}</span></td>
+          <td data-label="Min"><span>${item.minStock}</span></td>
+          <td data-label="Reorder"><span>Reorder ${item.stock < item.minStock ? item.minStock - item.stock : 0}</span></td>
+          <td data-label="Brand"><span>${item.brand || '—'}</span></td>
+          <td data-label="Phone"><span>—</span></td>
+          <td data-label="Purchase"><span>₹${item.costPrice}</span></td>
+          <td data-label="Selling"><span>₹${item.sellPrice}</span></td>
+          <td data-label="Profit"><span>₹${profit}</span></td>
+          <td data-label="Value"><span>₹${val.toLocaleString('en-IN')}</span></td>
+          <td data-label="Status"><span><span class="${cls}">${item.stock <= item.minStock ? 'Low' : 'Good'}</span></span></td>
           <td data-label="Actions">
-            <button class="inv-action-btn" onclick="changeStockById('${item._id}',1)">+</button>
-            <button class="inv-action-btn" onclick="changeStockById('${item._id}',-1)">-</button>
-            <button class="inv-action-btn" style="color:red" onclick="deleteInventoryItem('${item._id}')">Delete</button>
+            <div style="display:flex; gap:5px; justify-content: flex-end;">
+              <button class="inv-action-btn" onclick="changeStockById('${item._id}',1)">+</button>
+              <button class="inv-action-btn" onclick="changeStockById('${item._id}',-1)">-</button>
+              <button class="inv-action-btn" style="color:red" onclick="deleteInventoryItem('${item._id}')">Delete</button>
+            </div>
           </td>
         </tr>`;
     }).join('');
