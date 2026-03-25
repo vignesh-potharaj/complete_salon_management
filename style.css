@@ -469,7 +469,14 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
   .dashboard-cards { grid-template-columns: 1fr 1fr; }
 }
 
-  .main { margin-left: 0; padding: 60px 12px 20px 12px; width: 100%; }
+@media screen and (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); width: 85%; max-width: 320px; }
+  .sidebar.open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+  .sidebar-overlay.active { display: block; opacity: 1; }
+  .main { margin-left: 0; padding: 80px 15px 20px 15px; width: 100%; }
+  .hamburger { display: flex; }
+  .dashboard-cards { grid-template-columns: 1fr; gap: 12px; }
+  .chart-row { grid-template-columns: 1fr; gap: 12px; }
 }
 .inventory-gallery {
   display: grid;
