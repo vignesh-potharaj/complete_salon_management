@@ -464,10 +464,10 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
   .sidebar { transform: translateX(-100%); width: 280px; }
   .sidebar.open { transform: translateX(0); }
   .sidebar-overlay.active { display: block; opacity: 1; }
-  .main { margin-left: 0; padding: 70px 20px 20px 20px; } /* Added top padding to clear the fixed menu btn */
+  .main { margin-left: 0; padding: 60px 12px 20px 12px; } /* Slightly tighter for mobile */
   .hamburger { display: flex; }
-  .dashboard-cards { grid-template-columns: 1fr; }
-  .chart-row { grid-template-columns: 1fr; }
+  .dashboard-cards { grid-template-columns: 1fr; gap: 12px; }
+  .chart-row { grid-template-columns: 1fr; gap: 12px; }
 }
 
 /* ─── CHECKOUT / BILLING COMPONENT ─── */
