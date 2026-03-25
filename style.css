@@ -366,27 +366,30 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 /* ─── PRINT STYLES ─── */
 @media print {
-  body { background: white !important; padding: 0 !important; margin: 0 !important; color: black !important; }
-  .container, .sidebar, .hamburger, .no-print, .sidebar-overlay, .bill-history-section, h2, .mb-15:has(button) {
+  .no-print, .sidebar, .hamburger, .sidebar-overlay, .bill-history-section, h2.no-print, .toast-container {
     display: none !important;
   }
-  .main { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
-  .section:not(#checkout) { display: none !important; }
+  .container { display: block !important; }
+  .main { margin-left: 0 !important; padding: 0 !important; width: 100% !important; display: block !important; }
+  .section { display: none !important; }
+  #checkout.section { display: block !important; visibility: visible !important; }
+  
   .checkout-grid { display: block !important; }
-  .checkout-panel.no-print { display: none !important; }
+  
   #bill-area {
     display: block !important;
+    visibility: visible !important;
     width: 100% !important;
     max-width: 100% !important;
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
-    position: static !important;
   }
-  .bill-area h3 { color: black !important; border-bottom: 2px solid black !important; }
-  table { width: 100% !important; border-collapse: collapse !important; }
+  
+  body { background: white !important; color: black !important; }
   th, td { border: 1px solid #ddd !important; padding: 8px !important; color: black !important; }
+  .bill-area h3 { color: black !important; border-bottom: 2px solid black !important; }
   .bill-summary h2 { color: black !important; }
 }
 
