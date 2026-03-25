@@ -46,6 +46,12 @@
 /* ─── RESET & TYPOGRAPHY ─── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-color);
@@ -64,6 +70,8 @@ h3 { font-size: var(--font-md); margin-bottom: var(--gap-xs); }
   display: flex;
   min-height: 100vh;
   position: relative;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* ─── SIDEBAR ─── */
@@ -153,9 +161,9 @@ h3 { font-size: var(--font-md); margin-bottom: var(--gap-xs); }
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.7); /* Darker for focus */
   z-index: 1100; /* Above hamburger, but below sidebar */
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(5px);
   opacity: 0;
   transition: opacity 0.3s ease;
   cursor: pointer;
@@ -461,10 +469,10 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
 }
 
 @media screen and (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); width: 280px; }
-  .sidebar.open { transform: translateX(0); }
+  .sidebar { transform: translateX(-100%); width: 85%; max-width: 320px; }
+  .sidebar.open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,0.5); }
   .sidebar-overlay.active { display: block; opacity: 1; }
-  .main { margin-left: 0; padding: 60px 12px 20px 12px; } /* Slightly tighter for mobile */
+  .main { margin-left: 0; padding: 60px 12px 20px 12px; width: 100%; }
   .hamburger { display: flex; }
   .dashboard-cards { grid-template-columns: 1fr; gap: 12px; }
   .chart-row { grid-template-columns: 1fr; gap: 12px; }
