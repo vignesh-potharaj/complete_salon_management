@@ -66,7 +66,7 @@ h3 { font-size: 1.25rem; margin-bottom: 12px; }
   top: 0;
   bottom: 0;
   left: 0;
-  z-index: 100;
+  z-index: 1200;
   transition: transform 0.3s ease;
   box-shadow: var(--shadow-sm);
 }
@@ -142,7 +142,7 @@ h3 { font-size: 1.25rem; margin-bottom: 12px; }
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
-  z-index: 1001; /* Above hamburger, but below sidebar */
+  z-index: 1100; /* Above hamburger, but below sidebar */
   backdrop-filter: blur(3px);
   opacity: 0;
   transition: opacity 0.3s ease;
