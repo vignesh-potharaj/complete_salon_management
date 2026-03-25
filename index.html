@@ -205,8 +205,8 @@
           </table>
         </div>
 
-        <div class="pagination">
-          <button>Previous</button><span>1</span><button>Next</button>
+        <div class="pagination mt-20" style="display:flex; justify-content: center; gap: 20px; align-items:center;">
+          <button class="btn-secondary">Previous</button><span>Page 1</span><button class="btn-secondary">Next</button>
         </div>
       </div>
 
@@ -313,9 +313,9 @@
           <div class="inv-card"><h3 id="invTotalValue">₹0</h3><p>Total Inventory Value</p></div>
         </div>
 
-        <div class="inventory-actions">
-          <button onclick="openInvModal()">+ Add Product</button>
-          <button onclick="exportInventory()">Export CSV</button>
+        <div class="inventory-actions mb-15" style="display:flex; gap:10px;">
+          <button class="btn-primary" onclick="openInvModal()">+ Add Product</button>
+          <button class="btn-secondary" onclick="exportInventory()">Export CSV</button>
         </div>
 
         <div class="table-container">
@@ -404,12 +404,12 @@
               <select id="productSelect" title="Select product" class="modal-input">
                 <option value="">Loading products...</option>
               </select>
-              <button onclick="addProductToBill()" class="btn-add-item">Add</button>
+              <button onclick="addProductToBill()" class="btn-black" style="padding: 12px 24px; margin-top: 10px;">Add Product to Bill</button>
             </div>
 
             <div class="bill-card">
               <button onclick="finalizeSale()" class="btn-finalize">
-                ✓ Finalize Sale &amp; Save Bill
+                ✓ Finalize Sale &amp; Print Bill
               </button>
             </div>
 
@@ -608,7 +608,7 @@
           
           <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ff4d4f;">
           <h3 style="color: #ff4d4f;">Danger Zone</h3>
-          <button onclick="dangerDeleteAccount()" style="padding: 10px; background: #fff0f0; color: #ff4d4f; border: 1px solid #ffccba; border-radius: 6px; cursor: pointer;">Delete Entire Salon Account & Data</button>
+          <button class="btn-danger btn-full mt-20" onclick="dangerDeleteAccount()">Delete Entire Salon Account & Data</button>
         </div>
       </div>
 
