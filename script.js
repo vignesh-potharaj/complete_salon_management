@@ -61,6 +61,10 @@ function openModal(client, service, time, amount, staff, id) {
 }
 function closeModal() { document.getElementById('appointmentModal').style.display = 'none'; }
 
+function printBill() {
+  window.print();
+}
+
 
 /* ══════════════════════════════════════════════════════════
    1. DASHBOARD
