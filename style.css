@@ -364,6 +364,31 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
 .mb-15 { margin-bottom: 15px; } .mt-20 { margin-top: 20px; } .mt-30 { margin-top: 30px; }
 .text-right { text-align: right; }
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
+/* ─── PRINT STYLES ─── */
+@media print {
+  body { background: white !important; padding: 0 !important; margin: 0 !important; color: black !important; }
+  .container, .sidebar, .hamburger, .no-print, .sidebar-overlay, .bill-history-section, h2, .mb-15:has(button) {
+    display: none !important;
+  }
+  .main { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+  .section:not(#checkout) { display: none !important; }
+  .checkout-grid { display: block !important; }
+  .checkout-panel.no-print { display: none !important; }
+  #bill-area {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: static !important;
+  }
+  .bill-area h3 { color: black !important; border-bottom: 2px solid black !important; }
+  table { width: 100% !important; border-collapse: collapse !important; }
+  th, td { border: 1px solid #ddd !important; padding: 8px !important; color: black !important; }
+  .bill-summary h2 { color: black !important; }
+}
 
 /* ─── ANIMATIONS ─── */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

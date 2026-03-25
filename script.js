@@ -703,6 +703,9 @@ async function finalizeSale() {
       document.getElementById('billClient').value = '';
       showToast(`Bill saved: ₹${grandTotal}`);
       refreshRelated(['checkout', 'reports', 'dashboard', 'inventory', 'clients']);
+      
+      // Auto-Print
+      setTimeout(() => printBill(), 500);
 
   } catch(err) { showToast(err.message, 'error'); }
 }
@@ -718,13 +721,53 @@ async function loadBillHistory() {
     }
     tbody.innerHTML = bills.map(b => `
       <tr>
-        <td>${new Date(b.createdAt).toLocaleDateString('en-IN')}</td>
+        <td>${new Date(b.date || b.createdAt).toLocaleDateString('en-IN')}</td>
         <td>${b.clientName}</td>
         <td>${b.lineItems.length} item(s)</td>
         <td>₹${b.grandTotal.toLocaleString('en-IN')}</td>
         <td><span style="padding:2px 8px;border-radius:4px;background:#eafaf1;color:#1e8449;font-size:12px;">${b.paymentMethod}</span></td>
+        <td class="no-print">
+          <button class="btn-secondary" style="padding:4px 8px;font-size:12px;" onclick="viewBill('${b._id}')">View</button>
+          <button class="btn-black" style="padding:4px 8px;font-size:12px;" onclick="printPastBill('${b._id}')">Print</button>
+        </td>
       </tr>`).join('');
   } catch (err) { }
+}
+
+async function viewBill(id) {
+  try {
+    const bill = await api(`/bills/${id}`);
+    if (!bill) return;
+
+    // Populate the print area
+    document.getElementById('printClientName').innerText = bill.clientName;
+    document.getElementById('billDate').innerText = new Date(bill.date || bill.createdAt).toLocaleString('en-IN');
+    
+    const tbody = document.querySelector('#billTable tbody');
+    tbody.innerHTML = bill.lineItems.map(item => `
+      <tr>
+        <td>${item.name}</td>
+        <td>${item.type}</td>
+        <td>${item.qty}</td>
+        <td>₹${item.unitPrice}</td>
+        <td>₹${item.subtotal}</td>
+        <td class="no-print">—</td>
+      </tr>
+    `).join('');
+
+    setEl('billSubtotal', bill.subtotal.toLocaleString('en-IN'));
+    setEl('billGST', (bill.taxAmount || 0).toLocaleString('en-IN'));
+    setEl('billTotal', bill.grandTotal.toLocaleString('en-IN'));
+
+    showToast('Bill loaded');
+    // Scroll to bill area
+    document.getElementById('bill-area').scrollIntoView({ behavior: 'smooth' });
+  } catch (err) { showToast('Error loading bill', 'error'); }
+}
+
+async function printPastBill(id) {
+  await viewBill(id);
+  setTimeout(() => printBill(), 500);
 }
 
 /* ══════════════════════════════════════════════════════════
