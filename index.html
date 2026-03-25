@@ -260,14 +260,16 @@
         </div>
 
         <div class="table-container">
-          <table id="staffTable">
-            <thead>
-              <tr><th>Name</th><th>Role</th><th>Phone</th><th>Commission %</th><th>Revenue</th><th>Status</th><th>Actions</th></tr>
-            </thead>
+          <div class="table-scroll">
+            <table id="staffTable">
+              <thead>
+                <tr><th>Name</th><th>Role</th><th>Phone</th><th>Commission %</th><th>Revenue</th><th>Status</th><th>Actions</th></tr>
+              </thead>
             <tbody>
               <tr><td colspan="7" class="table-empty">Loading...</td></tr>
             </tbody>
           </table>
+          </div>
         </div>
 
         <div id="staffPanel" class="side-panel">
@@ -319,18 +321,20 @@
         </div>
 
         <div class="table-container">
-          <table id="inventoryTable">
-            <thead>
-              <tr>
-                <th>Product</th><th>Category</th><th>Stock</th><th>Min</th>
-                <th>Reorder</th><th>Supplier</th><th>Phone</th><th>Purchase ₹</th>
-                <th>Selling ₹</th><th>Profit/Unit</th><th>Total Value</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
+          <div class="table-scroll">
+            <table id="inventoryTable">
+              <thead>
+                <tr>
+                  <th>Product</th><th>Category</th><th>Stock</th><th>Min</th>
+                  <th>Reorder</th><th>Supplier</th><th>Phone</th><th>Purchase ₹</th>
+                  <th>Selling ₹</th><th>Profit/Unit</th><th>Total Value</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
             <tbody>
               <tr><td colspan="13" class="table-empty">Loading...</td></tr>
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 
@@ -428,12 +432,14 @@
             </div>
 
             <div class="table-container mb-15" style="box-shadow:none; border:none; border-top:1px dashed #ccc; border-bottom:1px dashed #ccc; border-radius:0;">
-              <table id="billTable" style="margin-top:10px; margin-bottom:10px;">
-                <thead>
-                  <tr><th>Item</th><th>Type</th><th>Qty</th><th>Price</th><th>Total</th><th class="no-print">Remove</th></tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <div class="table-scroll">
+                <table id="billTable" style="margin-top:10px; margin-bottom:10px;">
+                  <thead>
+                    <tr><th>Item</th><th>Type</th><th>Qty</th><th>Price</th><th>Total</th><th class="no-print">Remove</th></tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
 
             <div class="bill-summary" style="text-align:right;">
@@ -450,12 +456,13 @@
         <!-- Bill History -->
         <div class="bill-history-section">
           <h2>Bill History</h2>
-          <div class="table-container" style="position: relative;">
-            <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-              <table id="appointmentsTable">
-                <tr><th>Date</th><th>Client</th><th>Items</th><th>Grand Total</th><th>Payment</th><th class="no-print">Actions</th></tr>
-              </thead>
-              <tbody id="billHistoryBody">
+          <div class="table-container">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>Date</th><th>Client</th><th>Items</th><th>Grand Total</th><th>Payment</th><th class="no-print">Actions</th></tr>
+                </thead>
+                <tbody id="billHistoryBody">
                 <tr><td colspan="6" class="table-empty">Loading...</td></tr>
               </tbody>
             </table>
@@ -508,10 +515,12 @@
             <div class="chart-box chart-tall"><canvas id="attendanceChart"></canvas></div>
           </div>
           <div class="table-container mt-20">
-            <table>
-              <thead><tr><th>Name</th><th>Revenue</th><th>Commission %</th><th>Earned</th></tr></thead>
-              <tbody id="staffReportTable"></tbody>
-            </table>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Name</th><th>Revenue</th><th>Commission %</th><th>Earned</th></tr></thead>
+                <tbody id="staffReportTable"></tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -545,14 +554,16 @@
           <button class="add-btn" onclick="openAddServiceModal()">+ Add Service</button>
         </div>
         <div class="table-container">
-          <table id="servicesTable">
-            <thead>
-              <tr><th>Name</th><th>Category</th><th>Duration (Mins)</th><th>Default Price (₹)</th><th>Status</th><th>Actions</th></tr>
-            </thead>
+          <div class="table-scroll">
+            <table id="servicesTable">
+              <thead>
+                <tr><th>Name</th><th>Category</th><th>Duration (Mins)</th><th>Default Price (₹)</th><th>Status</th><th>Actions</th></tr>
+              </thead>
             <tbody>
               <tr><td colspan="6" class="table-empty">Loading...</td></tr>
             </tbody>
           </table>
+          </div>
         </div>
       </div>
       

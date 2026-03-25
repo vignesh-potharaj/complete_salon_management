@@ -207,16 +207,21 @@ h3 { font-size: var(--font-md); margin-bottom: var(--gap-xs); }
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border);
-  overflow-x: auto;
   position: relative;
+  width: 100%;
+}
+
+.table-scroll {
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  width: 100%;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  min-width: 600px; /* Force scroll on very small screens for data integrity */
+  min-width: 650px; /* Ensures data isn't crammed on mobile */
 }
 
 th { 
