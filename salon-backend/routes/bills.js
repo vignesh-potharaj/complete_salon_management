@@ -88,9 +88,9 @@ router.post('/', auth, async (req, res) => {
     // 1. Decrement inventory for every product used
     for (let item of bill.lineItems) {
         if (item.type === 'Product' && item.refId) {
-            await InventoryItem.findByIdAndUpdate(
-                item.refId,
-                { $inc: { stock: -item.qty } } // decrease stock
+            await InventoryItem.findOneAndUpdate(
+                { _id: item.refId, userId: req.user.userId },
+                { $inc: { stock: -item.qty } }
             );
         }
     }

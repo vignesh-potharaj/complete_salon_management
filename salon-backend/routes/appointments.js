@@ -47,7 +47,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!appointment) return res.status(404).json({ msg: 'Appointment not found' });
     if (appointment.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
 
-    appointment = await Appointment.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+    appointment = await Appointment.findOneAndUpdate({ _id: req.params.id, userId: req.user.userId }, { $set: req.body }, { new: true });
     res.json(appointment);
   } catch (err) {
     console.error(err.message);
@@ -79,7 +79,7 @@ router.delete('/:id', auth, async (req, res) => {
     if (!appointment) return res.status(404).json({ msg: 'Appointment not found' });
     if (appointment.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
 
-    await Appointment.findByIdAndRemove(req.params.id);
+    await Appointment.findOneAndRemove({ _id: req.params.id, userId: req.user.userId });
     res.json({ msg: 'Appointment removed' });
   } catch (err) {
     console.error(err.message);

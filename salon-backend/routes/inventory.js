@@ -50,7 +50,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!item) return res.status(404).json({ msg: 'Inventory Item not found' });
     if (item.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
 
-    item = await InventoryItem.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+    item = await InventoryItem.findOneAndUpdate({ _id: req.params.id, userId: req.user.userId }, { $set: req.body }, { new: true });
     res.json(item);
   } catch (err) {
     console.error(err.message);
@@ -65,7 +65,7 @@ router.delete('/:id', auth, async (req, res) => {
     if (!item) return res.status(404).json({ msg: 'Inventory Item not found' });
     if (item.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
 
-    await InventoryItem.findByIdAndRemove(req.params.id);
+    await InventoryItem.findOneAndRemove({ _id: req.params.id, userId: req.user.userId });
     res.json({ msg: 'Inventory Item removed' });
   } catch (err) {
     console.error(err.message);
