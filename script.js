@@ -10,10 +10,11 @@ function showSection(sectionId) {
   const target = document.getElementById(sectionId);
   if (target) target.classList.remove('section-hidden');
 
-  if (window.innerWidth <= 768) {
-    document.querySelector('.sidebar').classList.remove('open');
-    document.querySelector('.sidebar-overlay').classList.remove('active');
-  }
+  // Auto-close sidebar on link click (for mobile/tablet)
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.sidebar-overlay');
+  if (sidebar) sidebar.classList.remove('open');
+  if (overlay) overlay.classList.remove('active');
 
   if (sectionId === 'home')      loadDashboard();
   if (sectionId === 'calendar')  loadCalendar();
