@@ -846,7 +846,13 @@ async function loadSettings() {
         document.getElementById('setLoyalty').checked = s.loyaltyEnabled || false;
         document.getElementById('setPoints').value = s.pointsPerRupee || 0;
 
-        taxPctGlobal = s.taxPct || 0; // Set global
+        taxPctGlobal = s.taxPct || 0; 
+
+        // Update bill branding
+        setEl('billSalonName', s.salonName || 'SalonPro');
+        setEl('billSalonAddress', s.address || '');
+        setEl('billSalonPhone', s.phone ? 'Ph: ' + s.phone : '');
+
     } catch(err) { showToast('Settings error', 'error'); }
 }
 
