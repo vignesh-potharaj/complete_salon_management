@@ -32,6 +32,7 @@ app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/bills', require('./routes/bills'));
 app.use('/api/settings', require('./routes/settings'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'SalonPro API is running 🚀' }));

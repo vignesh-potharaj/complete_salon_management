@@ -34,8 +34,8 @@ router.get('/low-stock', auth, async (req, res, next) => {
   try {
     const items = await InventoryItem.find({ 
       userId: req.user.userId,
-      $expr: { $lte: ['$stock', '$minStock'] }
-    }).sort({ stock: 1 });
+      $expr: { $lte: ["$stock", "$minStock"] }
+    }).select('_id name stock minStock category');
     res.json(items);
   } catch (err) {
     next(err);
@@ -97,15 +97,25 @@ router.delete('/:id', auth, async (req, res, next) => {
 // POST /api/inventory/:id/adjust-stock
 router.post('/:id/adjust-stock', auth, async (req, res, next) => {
   try {
-    const { adjustment } = req.body;
+    const { adjustment, reason } = req.body;
     
     let item = await InventoryItem.findById(req.params.id);
     if (!item) return res.status(404).json({ message: 'Inventory Item not found' });
     if (item.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });
 
-    item.stock += Number(adjustment);
-    await item.save();
+    const oldStock = item.stock;
+    item.stock = Math.max(0, item.stock + Number(adjustment));
+    
+    // Log the adjustment
+    if (!item.stockLog) item.stockLog = [];
+    item.stockLog.push({
+      date: new Date(),
+      adjustment: Number(adjustment),
+      reason: reason || 'Manual adjustment',
+      newStock: item.stock
+    });
 
+    await item.save();
     res.json(item);
   } catch (err) {
     next(err);

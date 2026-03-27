@@ -82,10 +82,20 @@ router.get('/:id/history', auth, async (req, res, next) => {
     if (!client) return res.status(404).json({ message: 'Client not found' });
     if (client.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });
 
-    const appointments = await Appointment.find({ clientId: req.params.id, userId: req.user.userId }).sort({ date: -1, time: -1 });
-    const bills = await Bill.find({ clientId: req.params.id, userId: req.user.userId }).sort({ date: -1 });
+    const [appointments, bills] = await Promise.all([
+      Appointment.find({ clientId: req.params.id, userId: req.user.userId }).sort({ date: -1, time: -1 }),
+      Bill.find({ clientId: req.params.id, userId: req.user.userId, deleted: { $ne: true } }).sort({ date: -1 })
+    ]);
 
-    res.json({ appointments, bills });
+    const totalSpend = bills.reduce((acc, b) => acc + b.grandTotal, 0);
+
+    res.json({ 
+      client, 
+      appointments, 
+      bills,
+      totalSpend,
+      totalVisits: appointments.filter(a => a.status === 'Completed').length
+    });
   } catch (err) {
     next(err);
   }

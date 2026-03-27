@@ -78,41 +78,58 @@ router.delete('/:id', auth, async (req, res, next) => {
 // GET /api/staff/:id/performance
 router.get('/:id/performance', auth, async (req, res, next) => {
   try {
-    const staffId = req.params.id;
-    const staff = await Staff.findById(staffId);
-    if (!staff) return res.status(404).json({ message: 'Staff not found' });
-    if (staff.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });
+    const mongoose = require('mongoose');
+    const staffId = new mongoose.Types.ObjectId(req.params.id);
+    const userId = req.user.userId;
 
-    const startDate = new Date();
-    startDate.setDate(1); 
-    startDate.setHours(0,0,0,0);
-    
-    const bills = await Bill.find({
-      staffId: staffId,
-      userId: req.user.userId,
-      date: { $gte: startDate }
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // 1. Revenue & Commission Stats
+    const billStats = await Bill.aggregate([
+      { $match: { 
+          staffId: staffId, 
+          userId: userId, 
+          date: { $gte: startOfMonth },
+          deleted: { $ne: true }
+      } },
+      { $group: { 
+          _id: null, 
+          revenueThisMonth: { $sum: "$grandTotal" },
+          count: { $sum: 1 }
+      } }
+    ]);
+
+    const allTimeStats = await Bill.aggregate([
+      { $match: { staffId: staffId, userId: userId, deleted: { $ne: true } } },
+      { $group: { _id: null, total: { $sum: "$grandTotal" } } }
+    ]);
+
+    // 2. Appointments Stats
+    const appointmentsThisMonth = await Appointment.countDocuments({
+      staffId: req.params.id,
+      userId: userId,
+      date: { $gte: startOfMonth.toISOString().split('T')[0] }
     });
 
-    const revenueThisMonth = bills.reduce((acc, bill) => acc + bill.grandTotal, 0);
-    const commissionThisMonth = (revenueThisMonth * staff.commissionPct) / 100;
+    // 3. Top Service
+    const topServiceAgg = await Appointment.aggregate([
+      { $match: { staffId: staffId, userId: userId } },
+      { $group: { _id: "$serviceName", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 1 }
+    ]);
 
-    const startOfWeek = new Date();
-    const day = startOfWeek.getDay(), diff = startOfWeek.getDate() - day + (day === 0 ? -6:1);
-    startOfWeek.setDate(diff);
-    startOfWeek.setHours(0,0,0,0);
-    
-    const isoStartOfWeek = startOfWeek.toISOString().split('T')[0];
-
-    const appointmentsThisWeek = await Appointment.countDocuments({
-      staffId: staffId,
-      userId: req.user.userId,
-      date: { $gte: isoStartOfWeek }
-    });
+    const staff = await Staff.findById(req.params.id);
+    const revenueThisMonth = billStats[0]?.revenueThisMonth || 0;
 
     res.json({
       revenueThisMonth,
-      commissionThisMonth,
-      appointmentsThisWeek
+      revenueAllTime: allTimeStats[0]?.total || 0,
+      commissionThisMonth: (revenueThisMonth * (staff?.commissionPct || 0)) / 100,
+      appointmentsThisMonth,
+      topService: topServiceAgg[0]?._id || 'None'
     });
 
   } catch (err) {

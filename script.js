@@ -11,6 +11,13 @@ function showSection(sectionId) {
     const target = document.getElementById(sectionId);
     if (target) target.classList.remove('section-hidden');
 
+    // Update sidebar active state
+    document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+    const menuItems = document.querySelectorAll('.sidebar-menu li');
+    menuItems.forEach(li => {
+      if (li.getAttribute('onclick')?.includes(`'${sectionId}'`)) li.classList.add('active');
+    });
+
     // Auto-close sidebar on link click (for mobile/tablet)
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
@@ -69,7 +76,7 @@ function statusColor(s) {
        : '#3498db';
 }
 
-function openModal(client, service, time, amount, staff, id) {
+function openModal(client, service, time, amount, staff, id, status) {
   setEl('modalClient', client);   setEl('modalService', service);
   setEl('modalTime', time);       setEl('modalAmount', amount);
   setEl('modalStaff', staff);
@@ -80,6 +87,31 @@ function openModal(client, service, time, amount, staff, id) {
   appointmentModal.dataset.apptClient = client;
   appointmentModal.dataset.apptService = service;
   appointmentModal.dataset.apptStaff = staff;
+
+  // Add status controls dynamically (to avoid HTML changes)
+  let statusBox = document.getElementById('modalStatusBox');
+  if (!statusBox) {
+    statusBox = document.createElement('div');
+    statusBox.id = 'modalStatusBox';
+    statusBox.style.marginTop = '15px';
+    statusBox.style.paddingTop = '15px';
+    statusBox.style.borderTop = '1px solid #eee';
+    appointmentModal.querySelector('.modal-content').appendChild(statusBox);
+  }
+  
+  statusBox.innerHTML = `
+    <p style="font-size:12px;color:#666;margin-bottom:8px;">Update Status:</p>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;">
+      ${['Upcoming','Ongoing','Completed','Cancelled'].map(s => `
+        <button onclick="updateAppointmentStatus('${id}', '${s}')" 
+          style="padding:5px 10px;font-size:11px;border:none;border-radius:4px;cursor:pointer;
+          background:${s === status ? statusColor(s) : '#eee'};
+          color:${s === status ? 'white' : '#333'};">
+          ${s}
+        </button>
+      `).join('')}
+    </div>
+  `;
   
   appointmentModal.style.display = 'block';
 }
@@ -96,36 +128,27 @@ function printBill() {
 
 async function loadDashboard() {
   try {
-    const today = new Date().toISOString().split('T')[0];
-
-    const [stats, appointments, inventory, clients] = await Promise.all([
-      api('/bills/stats/today'),
-      api(`/appointments?date=${today}`), 
-      api('/inventory'),
-      api('/clients')
-    ]);
-
-    const todaysAppointments = appointments.filter(a => a.date === today);
+    const data = await api('/dashboard/summary');
+    const { todayStats, appointmentsToday, lowStockItems, totalClients } = data;
 
     // Sales today
-    setEl('dashTotalSales', '₹' + (stats.totalSales || 0).toLocaleString('en-IN'));
+    setEl('dashTotalSales', '₹' + (todayStats.totalSales || 0).toLocaleString('en-IN'));
 
     // Appointments today
-    setEl('dashApptCount', todaysAppointments.length);
-    const ongoing = todaysAppointments.filter(a => a.status === 'Ongoing').length;
+    setEl('dashApptCount', appointmentsToday.length);
+    const ongoing = appointmentsToday.filter(a => a.status === 'Ongoing').length;
     setEl('dashApptOngoing', ongoing + ' ongoing right now');
 
     // Total clients
-    setEl('dashTotalClients', clients.length);
+    setEl('dashTotalClients', totalClients);
 
     // Low stock alerts
-    const lowItems  = inventory.filter(i => i.stock <= i.minStock);
     const alertList = document.getElementById('dashLowStockList');
     if (alertList) {
-      if (lowItems.length === 0) {
+      if (lowStockItems.length === 0) {
         alertList.innerHTML = '<li style="color:#27ae60;">All stock levels OK</li>';
       } else {
-        alertList.innerHTML = lowItems
+        alertList.innerHTML = lowStockItems
           .map(i => `<li>${i.name} – ${i.stock} left</li>`)
           .join('');
       }
@@ -137,10 +160,10 @@ async function loadDashboard() {
       const rows = table.querySelectorAll('tr:not(:first-child)');
       rows.forEach(r => r.remove());
 
-      if (todaysAppointments.length === 0) {
+      if (appointmentsToday.length === 0) {
         table.innerHTML += `<tr><td colspan="4" style="text-align:center;color:#999;padding:16px;">No appointments today yet</td></tr>`;
       } else {
-        todaysAppointments.forEach(a => {
+        appointmentsToday.forEach(a => {
           table.innerHTML += `
             <tr>
               <td>${a.time}</td>
@@ -162,34 +185,37 @@ const appointmentForm = document.getElementById('appointmentForm');
 if (appointmentForm) {
   appointmentForm.addEventListener('submit', async function (e) {
     e.preventDefault();
-    const clientName = this.children[0].value.trim();
-    const serviceName    = this.children[1].value.trim();
-    const time       = this.children[2].value;
+    const clientName = document.getElementById('quickClientName').value.trim();
+    const serviceName    = document.getElementById('quickService').value.trim();
+    const time       = document.getElementById('quickTime').value;
     const date       = new Date().toISOString().split('T')[0]; // Today
     
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Adding...'; }
+
     try {
-      // Need a default client and staff ID normally. Let's create dummy ones or fetch first available.
-      // Quick add assumes some defaults if not specified
-      const clients = await api('/clients');
-      const services = await api('/services');
-      const staffList = await api('/staff');
+      const [clients, services, staffList] = await Promise.all([
+        api('/clients'),
+        api('/services'),
+        api('/staff')
+      ]);
       
-      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
-      if (!client) {
-          // Create client
-          client = await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
-      }
+      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || 
+                   await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
 
       let _staff = staffList.length > 0 ? staffList[0] : null;
-      let _service = services.find(s => s.name.toLowerCase() === serviceName.toLowerCase()) || (services.length > 0 ? services[0] : null);
+      let _service = services.find(s => s.name.toLowerCase() === serviceName.toLowerCase()) || 
+                     (services.length > 0 ? services[0] : null);
 
-      if (!_staff || !_service) throw new Error('Add at least one Staff and Service in settings first.');
+      if (!_staff || !_service) {
+        throw new Error('Please add at least one Staff and one Service first.');
+      }
 
       await api('/appointments', { 
         method: 'POST', 
         body: { 
           clientId: client._id, clientName: client.name, 
-          serviceId: _service._id, serviceName: serviceName, 
+          serviceId: _service._id, serviceName: _service.name, 
           staffId: _staff._id, staffName: _staff.name,
           date, time, duration: _service.durationMins || 30, status: 'Upcoming' 
         } 
@@ -199,6 +225,7 @@ if (appointmentForm) {
       showToast('Appointment added');
       loadDashboard();
     } catch (err) { showToast(err.message, 'error'); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = 'Add Appointment'; } }
   });
 }
 
@@ -215,11 +242,9 @@ async function loadCalendar() {
 
     const today = new Date().toISOString().split('T')[0];
     const [appointments, staff] = await Promise.all([
-      api(`/appointments`),
+      api(`/appointments?date=${today}`),
       api('/staff')
     ]);
-
-    const todaysAppointments = appointments.filter(a => a.date === today);
 
     const staffRow = document.getElementById('calendarStaffRow');
     if (staffRow) {
@@ -238,22 +263,31 @@ async function loadCalendar() {
     if (!grid) return;
     grid.innerHTML = ''; 
 
-    if (todaysAppointments.length === 0) {
+    if (appointments.length === 0) {
       grid.innerHTML = `<div style="grid-column:1/-1;grid-row:1;padding:24px;text-align:center;color:#999;font-size:14px;">No appointments today.</div>`;
     } else {
-      todaysAppointments.forEach((appt, idx) => {
+      appointments.forEach((appt, idx) => {
         const hour     = parseTimeToHour(appt.time);
         const rowIndex = Math.max(1, hour - 7); 
         const div      = document.createElement('div');
         div.className  = 'appointment';
-        div.style.cssText = `grid-column:${(idx % 5) + 1};grid-row:${rowIndex};background:${SLOT_COLORS[idx % SLOT_COLORS.length]};`;
-        div.innerHTML  = `<strong>${appt.clientName}</strong><br>${appt.serviceName}<br>${appt.time}`;
-        div.onclick    = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id);
+        div.style.cssText = `grid-column:${(idx % 5) + 1};grid-row:${rowIndex};background:${statusColor(appt.status)};`;
+        div.innerHTML  = `<strong>${appt.clientName}</strong><br>${appt.serviceName}<br>${appt.time} <br><em>${appt.status}</em>`;
+        div.onclick    = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
         grid.appendChild(div);
       });
     }
 
   } catch (err) { showToast(err.message || 'Calendar error', 'error'); }
+}
+
+async function updateAppointmentStatus(id, newStatus) {
+  try {
+    await api(`/appointments/${id}/status`, { method: 'PATCH', body: { status: newStatus } });
+    showToast('Status updated');
+    closeModal();
+    refreshRelated(['calendar', 'dashboard']);
+  } catch (err) { showToast(err.message, 'error'); }
 }
 
 function parseTimeToHour(t) {
@@ -295,7 +329,8 @@ async function saveAppointment() {
           clientId: client._id, clientName: client.name, 
           serviceId: _service._id, serviceName: _service.name, 
           staffId: _staff._id, staffName: _staff.name,
-          date: new Date().toISOString().split('T')[0], time, duration: _service.durationMins || 30, status: 'Upcoming' 
+          date: document.getElementById('calendarDateHeader').dataset.isoDate || new Date().toISOString().split('T')[0], 
+          time, duration: _service.durationMins || 30, status: 'Upcoming' 
         } 
       });
       
@@ -811,22 +846,33 @@ async function loadBillHistory() {
     const tbody = document.getElementById('billHistoryBody');
     if (!tbody) return;
     if (bills.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No bills yet.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">No bills yet.</td></tr>`;
       return;
     }
     tbody.innerHTML = bills.map(b => `
-      <tr>
+      <tr style="${b.deleted ? 'opacity:0.5;text-decoration:line-through;background:#f9f9f9;' : ''}">
         <td data-label="Date">${new Date(b.date || b.createdAt).toLocaleDateString('en-IN')}</td>
         <td data-label="Client">${b.clientName}</td>
         <td data-label="Items">${b.lineItems.length} item(s)</td>
-        <td data-label="Total">₹${b.grandTotal.toLocaleString('en-IN')}</td>
+        <td data-label="Total">₹${b.grandTotal.toLocaleString('en-IN')} ${b.deleted ? '(Void)' : ''}</td>
         <td data-label="Payment"><span style="padding:2px 8px;border-radius:4px;background:#eafaf1;color:#1e8449;font-size:12px;">${b.paymentMethod}</span></td>
         <td data-label="Actions" class="no-print">
-          <button class="btn-secondary" style="padding:4px 8px;font-size:12px;" onclick="viewBill('${b._id}')">View</button>
-          <button class="btn-black" style="padding:4px 8px;font-size:12px;" onclick="printPastBill('${b._id}')">Print</button>
+          <button class="btn-secondary" style="padding:4px 8px;font-size:12px;" onclick="viewBill('${b._id}')" ${b.deleted ? 'disabled' : ''}>View</button>
+          ${!b.deleted ? `<button class="btn-danger" style="padding:4px 8px;font-size:12px;margin-left:5px;" onclick="voidBill('${b._id}')">Void</button>` : ''}
+          <button class="btn-black" style="padding:4px 8px;font-size:12px;" onclick="printPastBill('${b._id}')" ${b.deleted ? 'disabled' : ''}>Print</button>
         </td>
       </tr>`).join('');
   } catch (err) { showToast(err.message || 'Failed to load bill history', 'error'); }
+}
+
+async function voidBill(id) {
+  confirmAction('Void this bill? This will reverse stock changes.', async () => {
+    try {
+      await api(`/bills/${id}`, { method: 'DELETE' });
+      showToast('Bill voided successfully');
+      refreshRelated(['checkout', 'inventory', 'dashboard', 'reports']);
+    } catch (err) { showToast(err.message, 'error'); }
+  });
 }
 
 async function viewBill(id) {
@@ -873,23 +919,21 @@ const _charts = {};
 
 async function loadReports() {
   try {
-    const [bills, staff, inventory, clients] = await Promise.all([
-      api('/bills/stats/range'), // Fetches all bills by default
+    const [reportData, staff, inventory] = await Promise.all([
+      api('/bills/stats/range'),
       api('/staff'),
-      api('/inventory'),
-      api('/clients')
+      api('/inventory')
     ]);
 
-    const totalRev = bills.reduce((acc, b) => acc + b.grandTotal, 0);
-    const avgBill = bills.length ? Math.round(totalRev / bills.length) : 0;
+    const { bills, totalRevenue, totalBills, revenueByMonth } = reportData;
+    const avgBill = totalBills ? Math.round(totalRevenue / totalBills) : 0;
 
-    setEl('repTotalRevenue', '₹' + totalRev.toLocaleString('en-IN'));
-    setEl('repTotalBills', bills.length);
+    setEl('repTotalRevenue', '₹' + totalRevenue.toLocaleString('en-IN'));
+    setEl('repTotalBills', totalBills);
     setEl('repAvgBill', '₹' + avgBill.toLocaleString('en-IN'));
-    setEl('repNetProfit', '₹' + Math.round(totalRev * 0.3).toLocaleString('en-IN')); // Estimation
+    setEl('repNetProfit', '₹' + Math.round(totalRevenue * 0.3).toLocaleString('en-IN')); // Estimation
     
     setEl('repTotalStaff', staff.length);
-    setEl('repTotalClientsRep', clients.length);
 
     const invValue  = inventory.reduce((s, i) => s + i.stock * i.costPrice, 0);
     const lowStock  = inventory.filter(i => i.stock <= i.minStock).length;
@@ -899,18 +943,11 @@ async function loadReports() {
     // Render Charts
     Object.values(_charts).forEach(c => { try { c.destroy(); } catch(e){} });
 
-    // Revenue chart
-    const monthMap = {};
-    bills.forEach(b => {
-        const m = new Date(b.date).toLocaleDateString('en-US', { month: 'short' });
-        monthMap[m] = (monthMap[m]||0) + b.grandTotal;
-    });
-
     _charts.exec = new Chart(document.getElementById('execRevenueChart'), {
       type: 'bar',
       data: {
-        labels: Object.keys(monthMap).length ? Object.keys(monthMap) : ['No Data'],
-        datasets: [{ label: 'Revenue (₹)', data: Object.values(monthMap).length ? Object.values(monthMap) : [0], backgroundColor: '#6c5ce7' }]
+        labels: Object.keys(revenueByMonth).length ? Object.keys(revenueByMonth) : ['No Data'],
+        datasets: [{ label: 'Revenue (₹)', data: Object.values(revenueByMonth).length ? Object.values(revenueByMonth) : [0], backgroundColor: '#6c5ce7' }]
       },
       options: { responsive: true, maintainAspectRatio: false }
     });
