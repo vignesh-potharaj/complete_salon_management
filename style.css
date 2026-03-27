@@ -1261,6 +1261,208 @@ label {
    MOBILE OPTIMIZATIONS (@media max-width: 768px)
    ══════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* ... existing mobile styles ... */
+}
+
+/* ══════════════════════════════════════════════════════════
+   PROFESSIONAL RECEIPT & PRINT STYLES
+   ══════════════════════════════════════════════════════════ */
+
+.professional-receipt {
+  background: #fff;
+  color: #333;
+  padding: 40px;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  font-family: 'Inter', system-ui, sans-serif;
+  max-width: 600px;
+  margin: 0 auto;
+  border: 1px solid #f0f0f0;
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.receipt-header h1 {
+  font-family: 'Playfair Display', serif; /* Or any serif you have */
+  font-size: 2.2rem;
+  margin-bottom: 5px;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.receipt-header p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 2px 0;
+}
+
+.receipt-divider {
+  height: 2px;
+  background: #000;
+  margin: 20px auto;
+  width: 60px;
+}
+
+.receipt-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  margin-top: 10px;
+  color: #444;
+}
+
+.receipt-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  padding: 15px 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #999;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111;
+}
+
+.receipt-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 20px 0 !important;
+  display: table !important; /* Force table layout */
+}
+
+.receipt-table th {
+  background: none !important;
+  color: #999 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  padding: 10px 0 !important;
+  border-bottom: 2px solid #333 !important;
+  text-align: left;
+}
+
+.receipt-table td {
+  padding: 12px 0 !important;
+  border-bottom: 1px solid #eee !important;
+  font-size: 0.9rem !important;
+  display: table-cell !important; /* Force table cell */
+  justify-content: unset !important;
+  text-align: left !important;
+}
+
+.receipt-table td::before {
+  display: none !important; /* Hide'data-label' */
+}
+
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+
+.receipt-summary {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.summary-line span:first-child {
+  color: #777;
+}
+
+.summary-line span:last-child {
+  font-weight: 600;
+}
+
+.grand-total {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #000;
+  font-size: 1.4rem;
+  font-weight: 900 !important;
+}
+
+.grand-total span:first-child {
+  color: #000;
+}
+
+.receipt-footer {
+  text-align: center;
+  margin-top: 50px;
+  color: #999;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* PRINT OVERRIDES */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .professional-receipt, .professional-receipt * {
+    visibility: visible;
+  }
+
+  .professional-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  @page {
+    margin: 1cm;
+  }
+
+  /* Force table layout even on mobile-resized printers */
+  .receipt-table {
+    display: table !important;
+  }
+  .receipt-table thead {
+    display: table-header-group !important;
+  }
+  .receipt-table tr {
+    display: table-row !important;
+  }
+  .receipt-table td, .receipt-table th {
+    display: table-cell !important;
+  }
+}
+
+@media (max-width: 768px) {
 
   /* Tables to Cards */
   table {
@@ -1697,4 +1899,12 @@ label {
 @media (max-width: 768px) {
   .staff-gallery { grid-template-columns: 1fr; }
   .staff-stats-row { grid-template-columns: repeat(3, 1fr); }
+}
+
+
+/* ── Print Utilities ── */
+.only-print { display: none; }
+
+@media print {
+  .only-print { display: inline-block !important; }
 }
