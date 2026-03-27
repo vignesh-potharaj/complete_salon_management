@@ -22,6 +22,7 @@ const billSchema = new mongoose.Schema({
   taxAmount: { type: Number, default: 0 },
   grandTotal: { type: Number, required: true },
   paymentMethod: { type: String, enum: ['Cash', 'Card', 'UPI', 'Split'], required: true },
+  deleted: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 

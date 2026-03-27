@@ -16,10 +16,13 @@ const appointmentValidation = [
 // GET /api/appointments
 router.get('/', auth, async (req, res, next) => {
   try {
+    const { date, staffId, status } = req.query;
     const query = { userId: req.user.userId };
-    if (req.query.date) {
-      query.date = req.query.date;
-    }
+    
+    if (date) query.date = date; // YYYY-MM-DD
+    if (staffId) query.staffId = staffId;
+    if (status) query.status = status;
+
     const appointments = await Appointment.find(query).sort({ date: 1, time: 1 });
     res.json(appointments);
   } catch (err) {
@@ -69,12 +72,18 @@ router.put('/:id', [auth, appointmentValidation], async (req, res, next) => {
 // PATCH /api/appointments/:id/status
 router.patch('/:id/status', auth, async (req, res, next) => {
   try {
+    const { status } = req.body;
     let appointment = await Appointment.findById(req.params.id);
     if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
     if (appointment.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });
 
-    appointment.status = req.body.status;
+    appointment.status = status;
     await appointment.save();
+
+    // If completed, increment client visit count
+    if (status === 'Completed') {
+      await Client.findByIdAndUpdate(appointment.clientId, { $inc: { totalVisits: 1 } });
+    }
     
     res.json(appointment);
   } catch (err) {
