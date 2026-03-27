@@ -8,31 +8,30 @@ const BASE_URL = window.location.hostname === 'localhost' || window.location.hos
 async function api(path, options = {}) {
   const token = localStorage.getItem('token');
   
-  const headers = {
-    'Content-Type': 'application/json'
-  };
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
 
-  if (token) {
-    headers['Authorization'] = 'Bearer ' + token;
+  let res;
+  try {
+    res = await fetch(BASE_URL + path, {
+      method: options.method || 'GET',
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined
+    });
+  } catch (networkErr) {
+    // This catches CORS errors and network failures
+    console.error('Network/CORS error on', path, networkErr);
+    throw new Error('Cannot reach server. Check your connection or try again.');
   }
 
-  const res = await fetch(BASE_URL + path, {
-    method: options.method || 'GET',
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined
-  });
-
-  if (res.status === 401) { 
-    logout(); 
-    return; 
-  }
+  if (res.status === 401) { logout(); return; }
   
   if (!res.ok) {
     const errText = await res.text();
     let errMsg = errText;
     try {
-        const errObj = JSON.parse(errText);
-        errMsg = errObj.msg || errObj.message || errText;
+      const errObj = JSON.parse(errText);
+      errMsg = errObj.msg || errObj.message || errText;
     } catch(e) {}
     throw new Error(errMsg);
   }
