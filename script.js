@@ -875,19 +875,27 @@ async function loadBillHistory() {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">No bills yet.</td></tr>`;
       return;
     }
-    tbody.innerHTML = bills.map(b => `
-      <tr style="${b.deleted ? 'opacity:0.5;text-decoration:line-through;background:#f9f9f9;' : ''}">
-        <td data-label="Date">${new Date(b.date || b.createdAt).toLocaleDateString('en-IN')}</td>
-        <td data-label="Client">${b.clientName}</td>
-        <td data-label="Items">${b.lineItems.length} item(s)</td>
-        <td data-label="Total">₹${b.grandTotal.toLocaleString('en-IN')} ${b.deleted ? '(Void)' : ''}</td>
-        <td data-label="Payment"><span style="padding:2px 8px;border-radius:4px;background:#eafaf1;color:#1e8449;font-size:12px;">${b.paymentMethod}</span></td>
+    const payClass = (m) => {
+      const map = { Cash: 'pay-cash', UPI: 'pay-upi', Card: 'pay-card' };
+      return map[m] || 'pay-other';
+    };
+    tbody.innerHTML = bills.map(b => {
+      const isVoid = b.deleted;
+      return `
+      <tr style="${isVoid ? 'opacity:0.45;' : ''}">
+        <td data-label="Date" style="color:var(--text-muted);font-size:0.82rem;">${new Date(b.date || b.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'2-digit' })}</td>
+        <td data-label="Client"><strong>${b.clientName}</strong></td>
+        <td data-label="Items" style="color:var(--text-muted)">${b.lineItems.length} item${b.lineItems.length !== 1 ? 's' : ''}</td>
+        <td data-label="Total"><strong>₹${b.grandTotal.toLocaleString('en-IN')}</strong>${isVoid ? ' <span style="color:#c0392b;font-size:0.75rem;font-weight:700;">VOID</span>' : ''}</td>
+        <td data-label="Payment"><span class="pay-badge ${payClass(b.paymentMethod)}">${b.paymentMethod}</span></td>
         <td data-label="Actions" class="no-print">
-          <button class="btn-secondary" style="padding:4px 8px;font-size:12px;" onclick="viewBill('${b._id}')" ${b.deleted ? 'disabled' : ''}>View</button>
-          ${!b.deleted ? `<button class="btn-danger" style="padding:4px 8px;font-size:12px;margin-left:5px;" onclick="voidBill('${b._id}')">Void</button>` : ''}
-          <button class="btn-black" style="padding:4px 8px;font-size:12px;" onclick="printPastBill('${b._id}')" ${b.deleted ? 'disabled' : ''}>Print</button>
+          <div class="action-btns">
+            <button class="btn-act-view" onclick="viewBill('${b._id}')" ${isVoid ? 'disabled' : ''}>View</button>
+            ${!isVoid ? `<button class="btn-act-void" onclick="voidBill('${b._id}')">Void</button>` : ''}
+            <button class="btn-act-print" onclick="printPastBill('${b._id}')" ${isVoid ? 'disabled' : ''}>Print</button>
+          </div>
         </td>
-      </tr>`).join('');
+      </tr>`}).join('');
   } catch (err) { showToast(err.message || 'Failed to load bill history', 'error'); }
 }
 
