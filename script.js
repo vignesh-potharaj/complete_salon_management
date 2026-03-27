@@ -869,16 +869,25 @@ function renderBill() {
   billItems.forEach((item, index) => {
     tbody.innerHTML += `
       <tr>
-        <td data-label="Item">${item.name}</td>
-        <td data-label="Type">${item.type}${item.staffName ? ' · ' + item.staffName : ''}</td>
-        <td data-label="Qty">
-          <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
-          <span style="margin:0 6px;">${item.qty}</span>
-          <button class="qty-btn" onclick="changeQty(${index},1)">+</button>
+        <td>
+          <div style="font-weight:600;">${item.name}</div>
+          ${item.staffName ? `<div style="font-size:0.75rem; color:#888;">with ${item.staffName}</div>` : ''}
         </td>
-        <td data-label="Price">₹${item.price.toLocaleString('en-IN')}</td>
-        <td data-label="Total">₹${(item.qty * item.price).toLocaleString('en-IN')}</td>
-        <td data-label="Remove"><button class="no-print" onclick="removeItem(${index})" style="background:#e74c3c;color:white;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;">✕</button></td>
+        <td class="text-center">
+          <div class="no-print" style="display:inline-flex; align-items:center; gap:8px;">
+            <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
+            <span>${item.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${index},1)">+</button>
+          </div>
+          <span class="only-print">${item.qty}</span>
+        </td>
+        <td class="text-right">₹${item.price.toLocaleString('en-IN')}</td>
+        <td class="text-right">₹${(item.qty * item.price).toLocaleString('en-IN')}</td>
+        <td class="no-print text-right">
+          <button onclick="removeItem(${index})" 
+                  style="background:none; border:none; color:#e74c3c; cursor:pointer; font-size:1.1rem;" 
+                  title="Remove">✕</button>
+        </td>
       </tr>`;
   });
   calculateTotals();
@@ -1010,12 +1019,14 @@ async function viewBill(id) {
     const tbody = document.querySelector('#billTable tbody');
     tbody.innerHTML = bill.lineItems.map(item => `
       <tr>
-        <td data-label="Item">${item.name}</td>
-        <td data-label="Type">${item.type}</td>
-        <td data-label="Qty">${item.qty}</td>
-        <td data-label="Price">₹${item.unitPrice}</td>
-        <td data-label="Total">₹${item.subtotal}</td>
-        <td data-label="Actions" class="no-print">—</td>
+        <td>
+          <div style="font-weight:600;">${item.name}</div>
+          ${item.staffName ? `<div style="font-size:0.75rem; color:#888;">with ${item.staffName}</div>` : ''}
+        </td>
+        <td class="text-center">${item.qty}</td>
+        <td class="text-right">₹${item.unitPrice.toLocaleString('en-IN')}</td>
+        <td class="text-right">₹${item.subtotal.toLocaleString('en-IN')}</td>
+        <td class="no-print"></td>
       </tr>
     `).join('');
 
@@ -1107,6 +1118,7 @@ async function loadSettings() {
         setEl('billSalonName', s.salonName || 'SalonPro');
         setEl('billSalonAddress', s.address || '');
         setEl('billSalonPhone', s.phone ? 'Ph: ' + s.phone : '');
+        setEl('footerSalonName', s.salonName || 'SalonPro');
 
     } catch(err) { showToast(err.message || 'Settings error', 'error'); }
 }

@@ -484,40 +484,65 @@
             </div>
           </div>
 
-          <!-- Print area -->
-          <div class="checkout-panel bill-area" id="bill-area" style="text-align: center;">
-            <h2 id="billSalonName" style="margin-bottom:5px; color: var(--primary);">SalonPro</h2>
-            <p id="billSalonAddress" style="font-size:0.9rem; margin-bottom:2px;"></p>
-            <p id="billSalonPhone" style="font-size:0.9rem; margin-bottom:15px;"></p>
-            <div style="border-top: 2px solid #000; margin-bottom: 20px;"></div>
-            <div style="text-align: left;">
-              <p><strong>Client:</strong> <span id="printClientName"></span></p>
-              <p style="margin-bottom:20px;"><strong>Date:</strong> <span id="billDate"></span></p>
+          <!-- Professional Receipt Area -->
+          <div class="checkout-panel bill-area professional-receipt" id="bill-area">
+            <div class="receipt-header">
+              <h1 id="billSalonName">SalonPro</h1>
+              <p id="billSalonAddress"></p>
+              <p id="billSalonPhone"></p>
+              <div class="receipt-divider"></div>
+              <h2 class="receipt-title">INVOICE</h2>
             </div>
-            <div class="table-container mb-15"
-              style="box-shadow:none; border:none; border-top:1px dashed #ccc; border-bottom:1px dashed #ccc; border-radius:0;">
-              <div class="table-scroll">
-                <table id="billTable" style="margin-top:10px; margin-bottom:10px;">
-                  <thead>
-                    <tr>
-                      <th>Item</th>
-                      <th>Type</th>
-                      <th>Qty</th>
-                      <th>Price</th>
-                      <th>Total</th>
-                      <th class="no-print">Remove</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
+
+            <div class="receipt-info">
+              <div class="info-group">
+                <span class="info-label">Client</span>
+                <span class="info-value" id="printClientName">—</span>
+              </div>
+              <div class="info-group">
+                <span class="info-label">Date</span>
+                <span class="info-value" id="billDate">—</span>
               </div>
             </div>
-            <div class="bill-summary" style="text-align:right;">
-              <p>Subtotal: ₹<span id="billSubtotal">0</span></p>
-              <p>Tax: ₹<span id="billGST">0</span></p>
-              <h2 style="margin-top:10px;">Total: ₹<span id="billTotal">0</span></h2>
+
+            <div class="receipt-table-wrapper">
+              <table id="billTable" class="receipt-table">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th class="text-center">Qty</th>
+                    <th class="text-right">Price</th>
+                    <th class="text-right">Total</th>
+                    <th class="no-print"></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
-            <button class="btn-black no-print mt-20 btn-full" onclick="printBill()">🖨 Print Bill</button>
+
+            <div class="receipt-summary">
+              <div class="summary-line">
+                <span>Subtotal</span>
+                <span id="billSubtotal">0</span>
+              </div>
+              <div class="summary-line">
+                <span>Tax</span>
+                <span id="billGST">0</span>
+              </div>
+              <div class="summary-line grand-total">
+                <span>Grand Total</span>
+                <span id="billTotal">0</span>
+              </div>
+            </div>
+
+            <div class="receipt-footer">
+              <p>Thank you for choosing <span id="footerSalonName">SalonPro</span>!</p>
+              <p>Please visit again soon.</p>
+            </div>
+
+            <button class="btn-black no-print mt-20 btn-full" onclick="printBill()">
+              🖨 Print Receipt
+            </button>
           </div>
 
         </div><!-- end .checkout-grid -->
