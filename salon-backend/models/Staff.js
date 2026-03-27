@@ -8,6 +8,14 @@ const staffSchema = new mongoose.Schema({
   commissionPct: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
   joinDate: { type: Date, default: Date.now },
+  services: [
+    {
+      name:         { type: String, required: true },
+      category:     { type: String, default: 'General' },
+      durationMins: { type: Number, default: 30 },
+      price:        { type: Number, required: true }
+    }
+  ],
   createdAt: { type: Date, default: Date.now }
 });
 

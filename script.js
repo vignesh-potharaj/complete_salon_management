@@ -28,7 +28,6 @@ function showSection(sectionId) {
     if (sectionId === 'calendar')  loadCalendar();
     if (sectionId === 'clients')   loadClients();
     if (sectionId === 'staff')     loadStaff();
-    if (sectionId === 'services')  loadServices();
     if (sectionId === 'inventory') loadInventory();
     if (sectionId === 'checkout')  { populateProductDropdown(); populateServiceDropdown(); populateClientDropdown(); loadBillHistory(); }
     if (sectionId === 'reports')   loadReports();
@@ -196,28 +195,27 @@ if (appointmentForm) {
     try {
       const [clients, services, staffList] = await Promise.all([
         api('/clients'),
-        api('/services'),
+        api('/staff/all-services'),
         api('/staff')
       ]);
       
       let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || 
                    await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
 
-      let _staff = staffList.length > 0 ? staffList[0] : null;
-      let _service = services.find(s => s.name.toLowerCase() === serviceName.toLowerCase()) || 
+      let _serviceObj = services.find(s => s.serviceName.toLowerCase() === serviceName.toLowerCase()) || 
                      (services.length > 0 ? services[0] : null);
 
-      if (!_staff || !_service) {
-        throw new Error('Please add at least one Staff and one Service first.');
+      if (!_serviceObj) {
+        throw new Error('Please add at least one Service to a Staff member first.');
       }
 
       await api('/appointments', { 
         method: 'POST', 
         body: { 
           clientId: client._id, clientName: client.name, 
-          serviceId: _service._id, serviceName: _service.name, 
-          staffId: _staff._id, staffName: _staff.name,
-          date, time, duration: _service.durationMins || 30, status: 'Upcoming' 
+          serviceId: _serviceObj.serviceId, serviceName: _serviceObj.serviceName, 
+          staffId: _serviceObj.staffId, staffName: _serviceObj.staffName,
+          date, time, duration: _serviceObj.durationMins || 30, status: 'Upcoming' 
         } 
       });
       
@@ -340,23 +338,22 @@ async function saveAppointment() {
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
       const clients = await api('/clients');
-      const services = await api('/services');
+      const services = await api('/staff/all-services');
       const staffList = await api('/staff');
       
       let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
-      let _staff = staffList.length > 0 ? staffList[0] : null;
-      let _service = services.find(s => s.name.toLowerCase() === serviceName.toLowerCase()) || (services.length > 0 ? services[0] : null);
+      let _serviceObj = services.find(s => s.serviceName.toLowerCase() === serviceName.toLowerCase()) || (services.length > 0 ? services[0] : null);
 
-      if (!_staff || !_service) throw new Error('Missing Staff or Service details.');
+      if (!_serviceObj) throw new Error('Please add at least one Service to a Staff member first.');
 
       await api('/appointments', { 
         method: 'POST', 
         body: { 
           clientId: client._id, clientName: client.name, 
-          serviceId: _service._id, serviceName: _service.name, 
-          staffId: _staff._id, staffName: _staff.name,
+          serviceId: _serviceObj.serviceId, serviceName: _serviceObj.serviceName, 
+          staffId: _serviceObj.staffId, staffName: _serviceObj.staffName,
           date: document.getElementById('calendarDateHeader').dataset.isoDate || new Date().toISOString().split('T')[0], 
-          time, duration: _service.durationMins || 30, status: 'Upcoming' 
+          time, duration: _serviceObj.durationMins || 30, status: 'Upcoming' 
         } 
       });
       
@@ -424,177 +421,253 @@ async function saveClient() {
    4. STAFF
    ══════════════════════════════════════════════════════════ */
 
+/* ─── in-memory services list while modal is open ────── */
+let _modalServices = [];
+
+/* ─────────────────────────────────────────────────────── */
 async function loadStaff() {
   try {
     const staff = await api('/staff');
-    
-    // Compute async performance for each
+
     for (let s of staff) {
-        try {
-            const perf = await api(`/staff/${s._id}/performance`);
-            s.totalRevenue = perf.revenueThisMonth;
-            s.earned = perf.commissionThisMonth;
-        } catch(e) { s.totalRevenue = 0; s.earned = 0; }
+      try {
+        const perf = await api(`/staff/${s._id}/performance`);
+        s.totalRevenue = perf.revenueThisMonth || 0;
+        s.earned       = perf.commissionThisMonth || 0;
+      } catch(e) { s.totalRevenue = 0; s.earned = 0; }
     }
 
+    /* ── KPI cards ── */
     const present  = staff.filter(s => s.active).length;
-    const totalRev = staff.reduce((s, m) => s + (m.totalRevenue || 0), 0);
-    const top      = [...staff].sort((a, b) => (b.totalRevenue || 0) - (a.totalRevenue || 0))[0];
+    const totalRev = staff.reduce((sum, s) => sum + (s.totalRevenue || 0), 0);
+    const top      = [...staff].sort((a,b) => (b.totalRevenue||0)-(a.totalRevenue||0))[0];
 
     setEl('totalStaffCount',   staff.length);
     setEl('onDutyCount',       present);
     setEl('staffTotalRevenue', '₹' + totalRev.toLocaleString('en-IN'));
     setEl('topPerformerName',  top ? top.name : '—');
 
-    const tbody = document.querySelector('#staffTable tbody');
-    if (!tbody) return;
+    /* ── Gallery ── */
+    const gallery = document.getElementById('staffGallery');
+    if (!gallery) return;
+
     if (staff.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#999;padding:24px;">No staff yet.</td></tr>`;
+      gallery.innerHTML = `
+        <div style="grid-column:1/-1; text-align:center; 
+                    padding:60px 20px; color:#999;">
+          <div style="font-size:48px; margin-bottom:16px;">👤</div>
+          <div style="font-size:18px; font-weight:700; 
+                      margin-bottom:8px;">No staff yet</div>
+          <div style="font-size:14px;">Click "+ Add Staff" to get started</div>
+        </div>`;
       return;
     }
-    tbody.innerHTML = staff.map(s => `
-      <tr onclick="openStaffProfile('${s.name}','${s.role}','${s.phone}','${s.commissionPct}','${s.totalRevenue}','${s.active}')">
-        <td data-label="Name">${s.name}</td>
-        <td data-label="Role">${s.role}</td>
-        <td data-label="Phone">${s.phone}</td>
-        <td data-label="Commission">${s.commissionPct}%</td>
-        <td data-label="Revenue">₹${(s.totalRevenue || 0).toLocaleString('en-IN')}</td>
-        <td data-label="Status"><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
-        <td data-label="Actions"><button class="no-print" style="color:red" onclick="deleteStaffById(event,'${s._id}')">Delete</button></td>
-      </tr>`).join('');
-  } catch (err) { showToast(err.message || 'Staff error', 'error'); }
+
+    gallery.innerHTML = staff.map(s => {
+      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff&size=128`;
+      const commission = Math.round((s.earned || 0));
+      const svcCount   = (s.services || []).length;
+
+      const serviceChips = svcCount === 0
+        ? `<span class="staff-no-services">No services added yet</span>`
+        : (s.services || []).map(sv =>
+            `<span class="service-chip">
+              ${sv.name}<span class="chip-price">₹${sv.price}</span>
+            </span>`
+          ).join('');
+
+      return `
+        <div class="staff-member-card">
+          <div class="staff-card-header">
+            <img class="staff-avatar" 
+                 src="${avatarUrl}" 
+                 alt="${s.name}"
+                 onerror="this.src='https://ui-avatars.com/api/?name=S&background=555&color=fff'">
+            <div class="staff-header-info">
+              <div class="staff-card-name">${s.name}</div>
+              <div class="staff-card-role">${s.role}</div>
+            </div>
+            <span class="staff-status-badge ${s.active ? 'badge-active' : 'badge-inactive'}">
+              ${s.active ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+
+          <div class="staff-card-body">
+            <div class="staff-card-phone">📞 ${s.phone}</div>
+
+            <div class="staff-stats-row">
+              <div class="staff-stat">
+                <strong>₹${(s.totalRevenue||0).toLocaleString('en-IN')}</strong>
+                <span>Revenue</span>
+              </div>
+              <div class="staff-stat">
+                <strong>₹${commission.toLocaleString('en-IN')}</strong>
+                <span>Commission</span>
+              </div>
+              <div class="staff-stat">
+                <strong>${svcCount}</strong>
+                <span>Services</span>
+              </div>
+            </div>
+
+            <div class="staff-services-list">${serviceChips}</div>
+
+            <div class="staff-card-actions">
+              <button class="btn-edit-staff" 
+                      onclick="openEditStaffModal('${s._id}')">
+                ✏ Edit
+              </button>
+              <button class="btn-delete-staff" 
+                      onclick="deleteStaffById(event,'${s._id}')">
+                🗑 Delete
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+  } catch(err) { showToast(err.message || 'Staff error', 'error'); }
 }
 
-function openStaffModal()  { document.getElementById('addStaffModal').style.display = 'block'; }
-function closeStaffModal() { document.getElementById('addStaffModal').style.display = 'none'; }
+/* ── Open modal for NEW staff ────────────────────────── */
+function openStaffModal() {
+  document.getElementById('staffModalTitle').innerText = 'Add Staff Member';
+  document.getElementById('editingStaffId').value = '';
+  ['newStaffName','newStaffRole','newStaffPhone','newStaffCommission']
+    .forEach(id => document.getElementById(id).value = '');
+  _modalServices = [];
+  renderModalServices();
+  document.getElementById('addStaffModal').style.display = 'block';
+}
 
-async function addStaff() {
+/* ── Open modal for EDIT staff ───────────────────────── */
+async function openEditStaffModal(id) {
+  try {
+    const s = await api(`/staff/${id}`);
+    document.getElementById('staffModalTitle').innerText = 'Edit Staff Member';
+    document.getElementById('editingStaffId').value = s._id;
+    document.getElementById('newStaffName').value       = s.name;
+    document.getElementById('newStaffRole').value       = s.role;
+    document.getElementById('newStaffPhone').value      = s.phone;
+    document.getElementById('newStaffCommission').value = s.commissionPct;
+    _modalServices = (s.services || []).map(sv => ({
+      name: sv.name, price: sv.price,
+      durationMins: sv.durationMins, category: sv.category || 'General'
+    }));
+    renderModalServices();
+    document.getElementById('addStaffModal').style.display = 'block';
+  } catch(err) { showToast(err.message, 'error'); }
+}
+
+function closeStaffModal() {
+  document.getElementById('addStaffModal').style.display = 'none';
+  _modalServices = [];
+}
+
+/* ── Inline add service to modal list ───────────────── */
+function addServiceToModal() {
+  const name     = document.getElementById('inlineSvcName').value.trim();
+  const price    = parseFloat(document.getElementById('inlineSvcPrice').value);
+  const duration = parseInt(document.getElementById('inlineSvcDuration').value) || 30;
+
+  if (!name)       { showToast('Service name is required', 'error'); return; }
+  if (isNaN(price) || price <= 0) { showToast('Enter a valid price', 'error'); return; }
+
+  _modalServices.push({ name, price, durationMins: duration, category: 'General' });
+  renderModalServices();
+
+  document.getElementById('inlineSvcName').value     = '';
+  document.getElementById('inlineSvcPrice').value    = '';
+  document.getElementById('inlineSvcDuration').value = '';
+  document.getElementById('inlineSvcName').focus();
+}
+
+/* ── Render the services list inside the modal ───────── */
+function renderModalServices() {
+  const container = document.getElementById('modalServicesList');
+  if (!container) return;
+
+  if (_modalServices.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:12px; color:#bbb; 
+                  font-size:13px; border:1.5px dashed #e0e0e0; 
+                  border-radius:8px;">
+        No services added yet — use the form below
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = _modalServices.map((s, i) => `
+    <div class="modal-service-row">
+      <div class="svc-info">
+        <strong>${s.name}</strong>
+        <span>₹${s.price}</span>
+        <span>· ${s.durationMins} mins</span>
+      </div>
+      <button onclick="_modalServices.splice(${i},1); renderModalServices();" 
+              title="Remove">✕</button>
+    </div>`).join('');
+}
+
+/* ── Save staff (handles both add and edit) ──────────── */
+async function saveStaff() {
+  const id         = document.getElementById('editingStaffId').value;
   const name       = document.getElementById('newStaffName').value.trim();
   const role       = document.getElementById('newStaffRole').value.trim();
   const phone      = document.getElementById('newStaffPhone').value.trim();
   const commission = document.getElementById('newStaffCommission').value;
-  if (!name || !role || !phone || !commission) { showToast('Please fill all fields', 'error'); return; }
+  const btn        = document.querySelector('#addStaffModal .btn-full');
 
-  const btn = document.querySelector('button[onclick="addStaff()"]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  if (!name)       { showToast('Name is required', 'error');       return; }
+  if (!role)       { showToast('Role is required', 'error');       return; }
+  if (!phone)      { showToast('Phone is required', 'error');      return; }
+  if (!commission) { showToast('Commission is required', 'error'); return; }
+
+  btn.disabled    = true;
+  btn.textContent = 'Saving...';
+
+  const payload = {
+    name, role, phone,
+    commissionPct: Number(commission),
+    services: _modalServices
+  };
 
   try {
-    await api('/staff', { method: 'POST', body: { name, role, phone, commissionPct: Number(commission) } });
+    if (id) {
+      await api(`/staff/${id}`, { method: 'PUT', body: payload });
+      showToast('Staff updated');
+    } else {
+      await api('/staff', { method: 'POST', body: payload });
+      showToast('Staff added');
+    }
     closeStaffModal();
-    ['newStaffName','newStaffRole','newStaffPhone','newStaffCommission'].forEach(id => document.getElementById(id).value = '');
-    showToast('Staff added');
-    refreshRelated(['staff']);
-  } catch (err) { showToast(err.message, 'error'); }
-  finally { if (btn) { btn.disabled = false; btn.textContent = 'Save'; } }
+    refreshRelated(['staff', 'checkout']);
+  } catch(err) { showToast(err.message, 'error'); }
+  finally {
+    btn.disabled    = false;
+    btn.textContent = 'Save Staff Member';
+  }
 }
 
 async function deleteStaffById(event, id) {
   event.stopPropagation();
-  confirmAction('Remove this staff member?', async () => {
-    try { 
-      await api(`/staff/${id}`, { method: 'DELETE' }); 
-      closeStaffPanel(); 
-      showToast('Staff deleted'); 
-      refreshRelated(['staff']); 
-    } catch (err) { showToast(err.message, 'error'); }
-  });
-}
-
-function openStaffProfile(name, role, phone, commission, revenue, active) {
-  setEl('staffName',        name);
-  setEl('staffRole',        role);
-  setEl('staffPhone',       phone);
-  setEl('staffCommission',  commission);
-  setEl('staffRevenue',     Number(revenue).toLocaleString('en-IN'));
-  setEl('commissionEarned', '₹' + Math.round(Number(revenue) * Number(commission) / 100).toLocaleString('en-IN'));
-  document.getElementById('staffPanel').classList.add('active');
-}
-function closeStaffPanel() { document.getElementById('staffPanel').classList.remove('active'); }
-
-/* ══════════════════════════════════════════════════════════
-   5. SERVICES CATALOG
-   ══════════════════════════════════════════════════════════ */
-
-async function loadServices() {
+  if (!confirm('Delete this staff member? This cannot be undone.')) return;
   try {
-    const services = await api('/services');
-    const tbody = document.querySelector('#servicesTable tbody');
-    if (!tbody) return;
-    if (services.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No services added yet.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = services.map(s => `
-      <tr>
-        <td data-label="Service">${s.name}</td>
-        <td data-label="Category">${s.category}</td>
-        <td data-label="Duration">${s.durationMins} mins</td>
-        <td data-label="Price">₹${s.defaultPrice}</td>
-        <td data-label="Status"><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
-        <td data-label="Actions">
-          <button class="btn-secondary" style="padding:4px 8px;font-size:12px;" onclick="editService('${s._id}')">Edit</button>
-          <button class="btn-danger"    style="padding:4px 8px;font-size:12px;" onclick="deleteServiceById('${s._id}')">Delete</button>
-        </td>
-      </tr>
-    `).join('');
-  } catch (err) { showToast(err.message || 'Services error', 'error'); }
+    await api(`/staff/${id}`, { method: 'DELETE' });
+    showToast('Staff deleted');
+    refreshRelated(['staff', 'checkout']);
+  } catch(err) { showToast(err.message, 'error'); }
 }
 
-function openAddServiceModal() { 
-    document.getElementById('editServiceId').value = '';
-    document.getElementById('newServiceName').value = '';
-    document.getElementById('newServiceCategory').value = '';
-    document.getElementById('newServiceDuration').value = '';
-    document.getElementById('newServicePrice').value = '';
-    document.getElementById('addServiceModal').style.display = 'block'; 
-}
-function closeAddServiceModal() { document.getElementById('addServiceModal').style.display = 'none'; }
-
-async function editService(id) {
-    try {
-        const s = await api(`/services/${id}`);
-        document.getElementById('editServiceId').value = s._id;
-        document.getElementById('newServiceName').value = s.name;
-        document.getElementById('newServiceCategory').value = s.category;
-        document.getElementById('newServiceDuration').value = s.durationMins;
-        document.getElementById('newServicePrice').value = s.defaultPrice;
-        document.getElementById('addServiceModal').style.display = 'block';
-    } catch(err) { showToast(err.message, 'error'); }
-}
-
-async function saveService() {
-  const name = document.getElementById('newServiceName').value.trim();
-  const category = document.getElementById('newServiceCategory').value.trim();
-  const duration = document.getElementById('newServiceDuration').value;
-  const price = document.getElementById('newServicePrice').value;
-  const id = document.getElementById('editServiceId').value;
-  
-  if (!name || !category || !duration || !price) { showToast('Fill all fields', 'error'); return; }
-  
-  const btn = document.querySelector('button[onclick="saveService()"]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
-
-  try {
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/services/${id}` : '/services';
-    await api(url, { method, body: { name, category, durationMins: Number(duration), defaultPrice: Number(price) } });
-    showToast(id ? 'Service updated' : 'Service added');
-    closeAddServiceModal();
-    ['newServiceName','newServiceCategory','newServiceDuration','newServicePrice'].forEach(id => document.getElementById(id).value = '');
-    loadServices();
-  } catch (err) { showToast(err.message, 'error'); }
-  finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Service'; } }
-}
-
-async function deleteServiceById(id) {
-    confirmAction('Delete this service?', async () => {
-        try {
-            await api(`/services/${id}`, { method: 'DELETE' });
-            showToast('Service deleted');
-            loadServices();
-        } catch(err) { showToast(err.message, 'error'); }
+/* ── Also allow Enter key in inline service form ─────── */
+document.addEventListener('DOMContentLoaded', () => {
+  const inlineSvcPrice = document.getElementById('inlineSvcPrice');
+  if (inlineSvcPrice) {
+    inlineSvcPrice.addEventListener('keydown', e => {
+      if (e.key === 'Enter') addServiceToModal();
     });
-}
+  }
+});
 
 
 
@@ -730,12 +803,24 @@ async function populateProductDropdown() {
 
 async function populateServiceDropdown() {
   try {
-    const services  = await api('/services');
+    const items  = await api('/staff/all-services');
     const select = document.getElementById('serviceSelect');
     if (!select) return;
-    select.innerHTML = '<option value="">Select Service...</option>' +
-      services.map(s => `<option value="${s._id}|${s.name}|${s.defaultPrice}">${s.name} — ₹${s.defaultPrice}</option>`).join('');
-  } catch(err) { showToast(err.message || 'Failed to load services', 'error'); }
+
+    if (!items || items.length === 0) {
+      select.innerHTML = 
+        '<option value="">No services — add via Staff section</option>';
+      return;
+    }
+
+    select.innerHTML = 
+      '<option value="">Select Service & Staff...</option>' +
+      items.map(i =>
+        `<option value="${i.staffId}|${i.serviceId}|${i.serviceName}|${i.price}|${i.staffName}">
+          ${i.serviceName} — ${i.staffName} (₹${i.price})
+        </option>`
+      ).join('');
+  } catch(err) { showToast(err.message, 'error'); }
 }
 
 async function populateClientDropdown() {
@@ -757,8 +842,8 @@ async function populateClientDropdown() {
 function addServiceToBill() {
   const val = document.getElementById('serviceSelect').value;
   if (!val) return;
-  const [id, name, price] = val.split('|');
-  addToBill(name, 'Service', parseInt(price), id);
+  const [staffId, serviceId, name, price, staffName] = val.split('|');
+  addToBill(name, 'Service', parseInt(price), serviceId, staffId, staffName);
   document.getElementById('serviceSelect').value = '';
 }
 
@@ -770,9 +855,10 @@ function addProductToBill() {
   document.getElementById('productSelect').value = '';
 }
 
-function addToBill(name, type, price, refId = null) {
-  const existing = billItems.find(i => i.name === name);
-  if (existing) { existing.qty++; } else { billItems.push({ name, type, price, qty: 1, refId }); }
+function addToBill(name, type, price, refId=null, staffId=null, staffName=null) {
+  const existing = billItems.find(i => i.name === name && i.staffId === staffId);
+  if (existing) { existing.qty++; }
+  else { billItems.push({ name, type, price, qty:1, refId, staffId, staffName }); }
   renderBill();
 }
 
@@ -784,7 +870,7 @@ function renderBill() {
     tbody.innerHTML += `
       <tr>
         <td data-label="Item">${item.name}</td>
-        <td data-label="Type">${item.type}</td>
+        <td data-label="Type">${item.type}${item.staffName ? ' · ' + item.staffName : ''}</td>
         <td data-label="Qty">
           <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
           <span style="margin:0 6px;">${item.qty}</span>
@@ -833,21 +919,24 @@ async function finalizeSale() {
           client = await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
       }
 
-      // Need staff ID. Default to first staff.
+      // Get staff from the first Service line item in the bill
+      const serviceItem = billItems.find(i => i.type === 'Service' && i.staffId);
       const staffList = await api('/staff');
-      let _staff = staffList[0];
-      if (!_staff) throw new Error('No staff found. Please add a staff member in the Staff section first.');
+      const staffId   = serviceItem ? serviceItem.staffId   : (staffList[0] ? staffList[0]._id : null);
+      const staffName = serviceItem ? serviceItem.staffName : (staffList[0] ? staffList[0].name : 'Unassigned');
+      
+      if (!staffId) throw new Error('No staff found. Please add a staff member in the Staff section first.');
 
       const subtotal   = billItems.reduce((s, i) => s + i.qty * i.price, 0);
       const gst        = Math.round(subtotal * (taxPctGlobal / 100));
       const grandTotal = subtotal + gst;
-      const items      = billItems.map(i => ({ name: i.name, type: i.type, qty: i.qty, unitPrice: i.price, subtotal: i.qty * i.price, refId: i.refId }));
+      const items      = billItems.map(i => ({ name: i.name, type: i.type, qty: i.qty, unitPrice: i.price, subtotal: i.qty * i.price, refId: i.refId, staffId: i.staffId, staffName: i.staffName }));
 
       await api('/bills', { 
           method: 'POST', 
           body: { 
               clientId: client._id, clientName: client.name,
-              staffId: _staff._id, staffName: _staff.name,
+              staffId: staffId, staffName: staffName,
               lineItems: items,
               subtotal, taxPct: taxPctGlobal, taxAmount: gst, grandTotal, paymentMethod 
           } 

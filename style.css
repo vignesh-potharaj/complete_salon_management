@@ -1486,3 +1486,215 @@ label {
     max-width: 100% !important;
   }
 }
+
+/* ── Staff Gallery ─────────────────────────────────────── */
+.staff-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  padding: 20px 0;
+}
+
+/* Staff card — same quality as .product-card */
+.staff-member-card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.staff-member-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Card header — colored gradient band with avatar */
+.staff-card-header {
+  position: relative;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 28px 20px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.staff-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255,255,255,0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+}
+
+.staff-header-info { flex: 1; }
+
+.staff-card-name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.staff-card-role {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Active/Inactive badge — same style as inventory stock badge */
+.staff-status-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-active   { background: #27ae60; color: white; }
+.badge-inactive { background: #888;    color: white; }
+
+/* Card body */
+.staff-card-body {
+  padding: 18px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Phone row */
+.staff-card-phone {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Stats row — 3 numbers like product-stats-grid */
+.staff-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.staff-stat { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+.staff-stat strong { font-size: 1rem; color: var(--primary); font-weight: 800; }
+.staff-stat span   { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; 
+                     font-weight: 600; letter-spacing: 0.4px; text-align: center; }
+
+/* Services chips */
+.staff-services-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.service-chip {
+  background: #f4f4f4;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #333;
+  white-space: nowrap;
+}
+
+.service-chip .chip-price {
+  color: var(--accent);
+  margin-left: 4px;
+}
+
+.staff-no-services {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Card action bar */
+.staff-card-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+  margin-top: auto;
+}
+
+.staff-card-actions button {
+  flex: 1;
+  padding: 9px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  transition: all 0.2s;
+}
+
+.btn-edit-staff {
+  background: white;
+  color: var(--primary);
+}
+
+.btn-edit-staff:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.btn-delete-staff {
+  background: white;
+  color: #ff4d4f;
+  border-color: #ffcdd2;
+}
+
+.btn-delete-staff:hover {
+  background: #ff4d4f;
+  color: white;
+  border-color: #ff4d4f;
+}
+
+/* Modal services list rows */
+.modal-service-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.modal-service-row .svc-info strong { font-size: 14px; color: #111; }
+.modal-service-row .svc-info span   { color: #888; font-size: 12px; margin-left: 6px; }
+
+.modal-service-row button {
+  background: none;
+  border: none;
+  color: #ff4d4f;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .staff-gallery { grid-template-columns: 1fr; }
+  .staff-stats-row { grid-template-columns: repeat(3, 1fr); }
+}
