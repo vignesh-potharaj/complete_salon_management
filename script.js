@@ -166,10 +166,10 @@ async function loadDashboard() {
         appointmentsToday.forEach(a => {
           table.innerHTML += `
             <tr>
-              <td>${a.time}</td>
-              <td>${a.clientName}</td>
-              <td>${a.serviceName}</td>
-              <td><span style="padding:3px 8px;border-radius:4px;font-size:12px;background:${statusColor(a.status)};color:white;">${a.status}</span></td>
+              <td data-label="Time">${a.time}</td>
+              <td data-label="Client">${a.clientName}</td>
+              <td data-label="Service">${a.serviceName}</td>
+              <td data-label="Status"><span style="padding:3px 8px;border-radius:4px;font-size:12px;background:${statusColor(a.status)};color:white;">${a.status}</span></td>
             </tr>`;
         });
       }
@@ -265,7 +265,33 @@ async function loadCalendar() {
 
     if (appointments.length === 0) {
       grid.innerHTML = `<div style="grid-column:1/-1;grid-row:1;padding:24px;text-align:center;color:#999;font-size:14px;">No appointments today.</div>`;
+    } else if (window.innerWidth <= 768) {
+      // Mobile List View
+      grid.style.display = 'flex';
+      grid.style.flexDirection = 'column';
+      grid.style.gap = '12px';
+      appointments.forEach(appt => {
+        const card = document.createElement('div');
+        card.className = 'appointment-card-mobile';
+        card.style.cssText = `background:white;border:1px solid #eee;border-radius:12px;
+          padding:16px;display:flex;justify-content:space-between;align-items:center;
+          box-shadow:0 2px 8px rgba(0,0,0,0.05);`;
+        card.innerHTML = `
+          <div>
+            <strong style="font-size:16px;color:#2c3e50;">${appt.clientName}</strong>
+            <div style="color:#7f8c8d;font-size:13px;margin-top:4px;">${appt.serviceName} • ${appt.staffName}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:14px;font-weight:700;color:#34495e;margin-bottom:6px;">${appt.time}</div>
+            <span style="padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;
+              background:${statusColor(appt.status)};color:white;">${appt.status.toUpperCase()}</span>
+          </div>`;
+        card.onclick = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
+        grid.appendChild(card);
+      });
     } else {
+      // Desktop Grid View
+      grid.style.display = 'grid'; // Ensure grid display
       appointments.forEach((appt, idx) => {
         const hour     = parseTimeToHour(appt.time);
         const rowIndex = Math.max(1, hour - 7); 
@@ -361,12 +387,12 @@ async function loadClients() {
     }
     tbody.innerHTML = clients.map(c => `
       <tr>
-        <td>${c.name}</td>
-        <td>${c.phone}</td>
-        <td>${new Date(c.createdAt).toLocaleDateString()}</td>
-        <td>${c.totalVisits || 0}</td>
-        <td>${c.lastVisit  ? new Date(c.lastVisit).toLocaleDateString()  : '—'}</td>
-        <td>₹${(c.totalSpend || 0).toLocaleString('en-IN')}</td>
+        <td data-label="Name">${c.name}</td>
+        <td data-label="Contact">${c.phone}</td>
+        <td data-label="First Visit">${new Date(c.createdAt).toLocaleDateString()}</td>
+        <td data-label="Total Visits">${c.totalVisits || 0}</td>
+        <td data-label="Last Visit">${c.lastVisit  ? new Date(c.lastVisit).toLocaleDateString()  : '—'}</td>
+        <td data-label="Total Spent">₹${(c.totalSpend || 0).toLocaleString('en-IN')}</td>
       </tr>`).join('');
   } catch (err) { showToast(err.message || 'Clients error', 'error'); }
 }
@@ -428,13 +454,13 @@ async function loadStaff() {
     }
     tbody.innerHTML = staff.map(s => `
       <tr onclick="openStaffProfile('${s.name}','${s.role}','${s.phone}','${s.commissionPct}','${s.totalRevenue}','${s.active}')">
-        <td>${s.name}</td>
-        <td>${s.role}</td>
-        <td>${s.phone}</td>
-        <td>${s.commissionPct}%</td>
-        <td>₹${(s.totalRevenue || 0).toLocaleString('en-IN')}</td>
-        <td><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
-        <td><button class="no-print" style="color:red" onclick="deleteStaffById(event,'${s._id}')">Delete</button></td>
+        <td data-label="Name">${s.name}</td>
+        <td data-label="Role">${s.role}</td>
+        <td data-label="Phone">${s.phone}</td>
+        <td data-label="Commission">${s.commissionPct}%</td>
+        <td data-label="Revenue">₹${(s.totalRevenue || 0).toLocaleString('en-IN')}</td>
+        <td data-label="Status"><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
+        <td data-label="Actions"><button class="no-print" style="color:red" onclick="deleteStaffById(event,'${s._id}')">Delete</button></td>
       </tr>`).join('');
   } catch (err) { showToast(err.message || 'Staff error', 'error'); }
 }
@@ -500,12 +526,12 @@ async function loadServices() {
     }
     tbody.innerHTML = services.map(s => `
       <tr>
-        <td>${s.name}</td>
-        <td>${s.category}</td>
-        <td>${s.durationMins} mins</td>
-        <td>₹${s.defaultPrice}</td>
-        <td><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
-        <td>
+        <td data-label="Service">${s.name}</td>
+        <td data-label="Category">${s.category}</td>
+        <td data-label="Duration">${s.durationMins} mins</td>
+        <td data-label="Price">₹${s.defaultPrice}</td>
+        <td data-label="Status"><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
+        <td data-label="Actions">
           <button class="btn-secondary" style="padding:4px 8px;font-size:12px;" onclick="editService('${s._id}')">Edit</button>
           <button class="btn-danger"    style="padding:4px 8px;font-size:12px;" onclick="deleteServiceById('${s._id}')">Delete</button>
         </td>
@@ -757,16 +783,16 @@ function renderBill() {
   billItems.forEach((item, index) => {
     tbody.innerHTML += `
       <tr>
-        <td>${item.name}</td>
-        <td>${item.type}</td>
-        <td>
+        <td data-label="Item">${item.name}</td>
+        <td data-label="Type">${item.type}</td>
+        <td data-label="Qty">
           <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
           <span style="margin:0 6px;">${item.qty}</span>
           <button class="qty-btn" onclick="changeQty(${index},1)">+</button>
         </td>
-        <td>₹${item.price.toLocaleString('en-IN')}</td>
-        <td>₹${(item.qty * item.price).toLocaleString('en-IN')}</td>
-        <td><button class="no-print" onclick="removeItem(${index})" style="background:#e74c3c;color:white;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;">✕</button></td>
+        <td data-label="Price">₹${item.price.toLocaleString('en-IN')}</td>
+        <td data-label="Total">₹${(item.qty * item.price).toLocaleString('en-IN')}</td>
+        <td data-label="Remove"><button class="no-print" onclick="removeItem(${index})" style="background:#e74c3c;color:white;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;">✕</button></td>
       </tr>`;
   });
   calculateTotals();
@@ -887,12 +913,12 @@ async function viewBill(id) {
     const tbody = document.querySelector('#billTable tbody');
     tbody.innerHTML = bill.lineItems.map(item => `
       <tr>
-        <td>${item.name}</td>
-        <td>${item.type}</td>
-        <td>${item.qty}</td>
-        <td>₹${item.unitPrice}</td>
-        <td>₹${item.subtotal}</td>
-        <td class="no-print">—</td>
+        <td data-label="Item">${item.name}</td>
+        <td data-label="Type">${item.type}</td>
+        <td data-label="Qty">${item.qty}</td>
+        <td data-label="Price">₹${item.unitPrice}</td>
+        <td data-label="Total">₹${item.subtotal}</td>
+        <td data-label="Actions" class="no-print">—</td>
       </tr>
     `).join('');
 
