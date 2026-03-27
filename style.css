@@ -571,18 +571,137 @@ label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px
 }
 .btn-delete-link:hover { background: #fff1f0; }
 
-@media screen and (max-width: 600px) {
-  .inventory-gallery { grid-template-columns: 1fr; }
-  .product-img-wrapper { height: 240px; }
-}
-
 #toastContainer { z-index: 10000; }
 
-/* Dashboard refinements for mobile */
-@media screen and (max-width: 480px) {
-  .main { padding-top: 85px !important; } /* Clear hamburger more safely */
-}
- 1.5rem; margin-bottom: 2px; color: var(--accent); }
 .inv-card p { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
 
-#toastContainer { z-index: 10000; }
+/* ══════════════════════════════════════════════════════════
+   MOBILE OPTIMIZATIONS (@media max-width: 768px)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Tables to Cards */
+  table { display: block; width: 100%; border: none; }
+  thead { display: none; }
+  tbody, tr, td { display: block; width: 100%; }
+  tbody tr { 
+    margin-bottom: 16px; 
+    border: 1px solid var(--border); 
+    border-radius: 12px; 
+    padding: 12px; 
+    background: white; 
+    box-shadow: var(--shadow-sm);
+  }
+  td { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 8px 0; 
+    border: none; 
+    font-size: 14px; 
+    text-align: right;
+  }
+  td::before { 
+    content: attr(data-label); 
+    font-weight: 700; 
+    color: var(--text-muted); 
+    font-size: 11px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    text-align: left;
+    margin-right: 15px;
+  }
+  td:last-child { border-bottom: none; }
+
+  /* Modals - Bottom Sheet Style */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 90vh;
+    border-radius: 20px 20px 0 0;
+    margin: 0;
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 20px));
+    overflow-y: auto;
+    animation: slideUp 0.3s ease-out;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* Calendar Grid Scroll */
+  .calendar-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .calendar-grid { min-width: 600px; }
+
+  /* Inventory Gallery */
+  .inventory-gallery, #inventoryGallery {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+  .product-card {
+    flex-direction: row !important;
+    align-items: center;
+    padding: 12px;
+  }
+  .product-img-wrapper {
+    width: 90px !important;
+    min-width: 90px !important;
+    height: 90px !important;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .product-img-wrapper img { height: 100%; }
+  .product-info { padding: 0 0 0 16px !important; }
+  .product-name { font-size: 1.1rem; margin-bottom: 4px; }
+  .product-desc { display: none; }
+  .product-stats-grid { 
+    margin: 8px 0; 
+    padding: 8px 0; 
+    display: flex; 
+    gap: 15px; 
+    border: none; 
+  }
+  .p-stat strong { font-size: 0.9rem; }
+
+  /* Checkout builders */
+  .qty-btn { width: 32px; height: 32px; font-size: 18px; border-radius: 6px; }
+  #billTable td { font-size: 13px; padding: 10px 4px; }
+  .btn-finalize { 
+    position: sticky; 
+    bottom: calc(0px + env(safe-area-inset-bottom, 0px)); 
+    border-radius: 0; 
+    margin: 20px -20px -24px -20px; 
+    width: calc(100% + 40px); 
+    padding: 18px;
+    z-index: 1001;
+  }
+
+  /* Dashboard Adjustments */
+  .stats-container { grid-template-columns: 1fr !important; gap: 12px; }
+  .card .big { font-size: 26px; }
+  .quick-add form { flex-direction: column; gap: 10px; }
+  .quick-add form input, .quick-add form button { width: 100% !important; height: 45px; }
+
+  /* Safe Areas & Spacing */
+  .main { 
+    padding-top: 85px !important;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 20px)) !important; 
+  }
+  .sidebar { padding-bottom: env(safe-area-inset-bottom, 20px); }
+
+  /* Touch Feedback */
+  tr[onclick], .product-card, .appointment, .btn, button {
+    -webkit-tap-highlight-color: rgba(0,0,0,0.05);
+    cursor: pointer;
+  }
+  tr[onclick]:active, .product-card:active {
+    background: #f8f8f8 !important;
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+
+  /* Reports charts */
+  .chart-row { grid-template-columns: 1fr !important; gap: 20px; }
+  .chart-tall { height: 240px !important; }
+  canvas { max-width: 100% !important; }
+}
