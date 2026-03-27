@@ -39,6 +39,24 @@ function toggleSidebar() {
 
 /* ─── DOM HELPERS ────────────────────────────────────────── */
 
+function confirmAction(message, onConfirm) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.style.cssText = `padding:14px 18px;background:white;border:1px solid #ddd;border-radius:10px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.15);display:flex;flex-direction:column;gap:10px;min-width:220px;`;
+  toast.innerHTML = `
+    <span style="font-size:14px;color:#333;">${message}</span>
+    <div style="display:flex;gap:8px;">
+      <button id="confirmYes" style="flex:1;padding:8px;background:#e74c3c;color:white;border:none;
+        border-radius:6px;cursor:pointer;font-size:13px;">Yes, Delete</button>
+      <button id="confirmNo" style="flex:1;padding:8px;background:#eee;color:#333;border:none;
+        border-radius:6px;cursor:pointer;font-size:13px;">Cancel</button>
+    </div>`;
+  container.appendChild(toast);
+  toast.querySelector('#confirmYes').onclick = () => { toast.remove(); onConfirm(); };
+  toast.querySelector('#confirmNo').onclick  = () => toast.remove();
+}
+
 function setEl(id, value) {
   const el = document.getElementById(id);
   if (el) el.innerText = value;
@@ -82,7 +100,7 @@ async function loadDashboard() {
 
     const [stats, appointments, inventory, clients] = await Promise.all([
       api('/bills/stats/today'),
-      api(`/appointments`), // Fetch all then filter locally for simplicity, or API could filter
+      api(`/appointments?date=${today}`), 
       api('/inventory'),
       api('/clients')
     ]);
@@ -135,7 +153,7 @@ async function loadDashboard() {
     }
 
   } catch (err) {
-    showToast('Dashboard error', 'error');
+    showToast(err.message || 'Dashboard error', 'error');
   }
 }
 
@@ -235,7 +253,7 @@ async function loadCalendar() {
       });
     }
 
-  } catch (err) { showToast('Calendar error', 'error'); }
+  } catch (err) { showToast(err.message || 'Calendar error', 'error'); }
 }
 
 function parseTimeToHour(t) {
@@ -315,7 +333,7 @@ async function loadClients() {
         <td>${c.lastVisit  ? new Date(c.lastVisit).toLocaleDateString()  : '—'}</td>
         <td>₹${(c.totalSpend || 0).toLocaleString('en-IN')}</td>
       </tr>`).join('');
-  } catch (err) { showToast('Clients error', 'error'); }
+  } catch (err) { showToast(err.message || 'Clients error', 'error'); }
 }
 
 function openAddClientModal()  { document.getElementById('addClientModal').style.display = 'block'; }
@@ -327,6 +345,10 @@ async function saveClient() {
   const email  = document.getElementById('newClientEmail').value.trim();
   
   if (!name || !phone) { showToast('Name and phone are required', 'error'); return; }
+  
+  const btn = document.querySelector('button[onclick="saveClient()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  
   try {
     await api('/clients', { method: 'POST', body: { name, phone, email } });
     closeAddClientModal();
@@ -334,6 +356,7 @@ async function saveClient() {
     showToast('Client added');
     refreshRelated(['clients', 'dashboard']);
   } catch (err) { showToast(err.message, 'error'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Client'; } }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -378,7 +401,7 @@ async function loadStaff() {
         <td><span class="status ${s.active ? 'present' : 'absent'}">${s.active ? 'Active' : 'Inactive'}</span></td>
         <td><button class="no-print" style="color:red" onclick="deleteStaffById(event,'${s._id}')">Delete</button></td>
       </tr>`).join('');
-  } catch (err) { showToast('Staff error', 'error'); }
+  } catch (err) { showToast(err.message || 'Staff error', 'error'); }
 }
 
 function openStaffModal()  { document.getElementById('addStaffModal').style.display = 'block'; }
@@ -390,6 +413,10 @@ async function addStaff() {
   const phone      = document.getElementById('newStaffPhone').value.trim();
   const commission = document.getElementById('newStaffCommission').value;
   if (!name || !role || !phone || !commission) { showToast('Please fill all fields', 'error'); return; }
+
+  const btn = document.querySelector('button[onclick="addStaff()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
   try {
     await api('/staff', { method: 'POST', body: { name, role, phone, commissionPct: Number(commission) } });
     closeStaffModal();
@@ -397,13 +424,19 @@ async function addStaff() {
     showToast('Staff added');
     refreshRelated(['staff']);
   } catch (err) { showToast(err.message, 'error'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Save'; } }
 }
 
 async function deleteStaffById(event, id) {
   event.stopPropagation();
-  if (!confirm('Remove this staff member?')) return;
-  try { await api(`/staff/${id}`, { method: 'DELETE' }); closeStaffPanel(); showToast('Staff deleted'); refreshRelated(['staff']); }
-  catch (err) { showToast(err.message, 'error'); }
+  confirmAction('Remove this staff member?', async () => {
+    try { 
+      await api(`/staff/${id}`, { method: 'DELETE' }); 
+      closeStaffPanel(); 
+      showToast('Staff deleted'); 
+      refreshRelated(['staff']); 
+    } catch (err) { showToast(err.message, 'error'); }
+  });
 }
 
 function openStaffProfile(name, role, phone, commission, revenue, active) {
@@ -443,35 +476,7 @@ async function loadServices() {
         </td>
       </tr>
     `).join('');
-  } catch (err) { showToast('Services error', 'error'); }
-}
-
-async function saveService() {
-  const name = document.getElementById('newServiceName').value;
-  const category = document.getElementById('newServiceCategory').value;
-  const duration = document.getElementById('newServiceDuration').value;
-  const price = document.getElementById('newServicePrice').value;
-  const id = document.getElementById('editServiceId').value;
-  
-  if (!name || !price) { showToast('Name and Price are required', 'error'); return; }
-  
-  try {
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/services/${id}` : '/services';
-    await api(url, { method, body: { name, category, durationMins: duration, defaultPrice: price } });
-    showToast(id ? 'Service updated' : 'Service added');
-    closeAddServiceModal();
-    loadServices();
-  } catch (err) { showToast(err.message, 'error'); }
-}
-
-async function deleteServiceById(id) {
-    if(!confirm('Delete this service?')) return;
-    try {
-        await api(`/services/${id}`, { method: 'DELETE' });
-        showToast('Service deleted');
-        loadServices();
-    } catch(err) { showToast(err.message, 'error'); }
+  } catch (err) { showToast(err.message || 'Services error', 'error'); }
 }
 
 function openAddServiceModal() { 
@@ -484,34 +489,52 @@ function openAddServiceModal() {
 }
 function closeAddServiceModal() { document.getElementById('addServiceModal').style.display = 'none'; }
 
-async function saveService() {
-    const name = document.getElementById('newServiceName').value.trim();
-    const category = document.getElementById('newServiceCategory').value.trim();
-    const duration = document.getElementById('newServiceDuration').value;
-    const price = document.getElementById('newServicePrice').value;
-
-    if(!name || !category || !duration || !price) { showToast('Fill all fields', 'error'); return; }
-
+async function editService(id) {
     try {
-        await api('/services', {
-            method: 'POST',
-            body: { name, category, durationMins: Number(duration), defaultPrice: Number(price) }
-        });
-        closeAddServiceModal();
-        ['newServiceName','newServiceCategory','newServiceDuration','newServicePrice'].forEach(id => document.getElementById(id).value = '');
-        showToast('Service saved');
-        refreshRelated(['services']);
+        const s = await api(`/services/${id}`);
+        document.getElementById('editServiceId').value = s._id;
+        document.getElementById('newServiceName').value = s.name;
+        document.getElementById('newServiceCategory').value = s.category;
+        document.getElementById('newServiceDuration').value = s.durationMins;
+        document.getElementById('newServicePrice').value = s.defaultPrice;
+        document.getElementById('addServiceModal').style.display = 'block';
     } catch(err) { showToast(err.message, 'error'); }
 }
 
-async function deleteServiceById(id) {
-    if(!confirm('Delete service?')) return;
-    try {
-        await api(`/services/${id}`, { method: 'DELETE' });
-        showToast('Service deleted');
-        refreshRelated(['services']);
-    } catch(err) { showToast(err.message, 'error')}
+async function saveService() {
+  const name = document.getElementById('newServiceName').value.trim();
+  const category = document.getElementById('newServiceCategory').value.trim();
+  const duration = document.getElementById('newServiceDuration').value;
+  const price = document.getElementById('newServicePrice').value;
+  const id = document.getElementById('editServiceId').value;
+  
+  if (!name || !category || !duration || !price) { showToast('Fill all fields', 'error'); return; }
+  
+  const btn = document.querySelector('button[onclick="saveService()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  try {
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/services/${id}` : '/services';
+    await api(url, { method, body: { name, category, durationMins: Number(duration), defaultPrice: Number(price) } });
+    showToast(id ? 'Service updated' : 'Service added');
+    closeAddServiceModal();
+    ['newServiceName','newServiceCategory','newServiceDuration','newServicePrice'].forEach(id => document.getElementById(id).value = '');
+    loadServices();
+  } catch (err) { showToast(err.message, 'error'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Service'; } }
 }
+
+async function deleteServiceById(id) {
+    confirmAction('Delete this service?', async () => {
+        try {
+            await api(`/services/${id}`, { method: 'DELETE' });
+            showToast('Service deleted');
+            loadServices();
+        } catch(err) { showToast(err.message, 'error'); }
+    });
+}
+
 
 
 /* ══════════════════════════════════════════════════════════
@@ -574,6 +597,7 @@ function openInvModal()  { document.getElementById('inventoryModal').style.displ
 function closeInvModal() { document.getElementById('inventoryModal').style.display = 'none'; }
 
 async function addInventory() {
+  const name          = document.getElementById('invName').value.trim();
   const category      = document.getElementById('invCategory').value.trim();
   const stock         = parseInt(document.getElementById('invStock').value);
   const minStock      = parseInt(document.getElementById('invMin').value);
@@ -587,13 +611,21 @@ async function addInventory() {
   if (sellingPrice <= purchasePrice) {
     showToast('Selling price must be greater than purchase price', 'error'); return;
   }
+
+  const btn = document.querySelector('button[onclick="addInventory()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
   try {
     await api('/inventory', { method: 'POST', body: { name, category, stock, minStock, brand, unit: 'pcs', costPrice: purchasePrice, sellPrice: sellingPrice } });
-    ['invName','invCategory','invStock','invMin','invSupplier','invPhone','invPurchase','invSelling'].forEach(id => document.getElementById(id).value = '');
+    ['invName', 'invCategory', 'invStock', 'invMin', 'invSupplier', 'invDesc', 'invImg', 'invPurchase', 'invSelling'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
     closeInvModal();
     showToast('Product saved');
     refreshRelated(['inventory', 'dashboard', 'checkout']);
   } catch (err) { showToast(err.message, 'error'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Product'; } }
 }
 
 async function changeStockById(id, delta) {
@@ -604,9 +636,13 @@ async function changeStockById(id, delta) {
 }
 
 async function deleteInventoryItem(id) {
-  if (!confirm('Delete this product?')) return;
-  try { await api(`/inventory/${id}`, { method: 'DELETE' }); refreshRelated(['inventory']); }
-  catch (err) { showToast(err.message, 'error'); }
+  confirmAction('Delete this product?', async () => {
+    try { 
+      await api(`/inventory/${id}`, { method: 'DELETE' }); 
+      showToast('Product deleted');
+      refreshRelated(['inventory']); 
+    } catch (err) { showToast(err.message, 'error'); }
+  });
 }
 
 
@@ -628,7 +664,7 @@ async function populateProductDropdown() {
     }
     select.innerHTML = '<option value="">Select Product...</option>' +
       available.map(i => `<option value="${i._id}|${i.name}|${i.sellPrice}">${i.name} — ₹${i.sellPrice} (${i.stock} in stock)</option>`).join('');
-  } catch (err) {}
+  } catch (err) { showToast(err.message || 'Failed to load products', 'error'); }
 }
 
 async function populateServiceDropdown() {
@@ -638,7 +674,7 @@ async function populateServiceDropdown() {
     if (!select) return;
     select.innerHTML = '<option value="">Select Service...</option>' +
       services.map(s => `<option value="${s._id}|${s.name}|${s.defaultPrice}">${s.name} — ₹${s.defaultPrice}</option>`).join('');
-  } catch(err) {}
+  } catch(err) { showToast(err.message || 'Failed to load services', 'error'); }
 }
 
 async function populateClientDropdown() {
@@ -725,15 +761,21 @@ async function finalizeSale() {
   const paymentMethod = document.getElementById('paymentMethod').value;
   if (!clientName) { showToast('Please enter client name', 'error'); return; }
 
+  const btn = document.querySelector('.btn-finalize');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
   try {
       // Create or find client
       const clients = await api('/clients');
-      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
+      if (!client) {
+          client = await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+      }
 
       // Need staff ID. Default to first staff.
       const staffList = await api('/staff');
       let _staff = staffList[0];
-      if (!_staff) throw new Error('Create Staff first to link a bill');
+      if (!_staff) throw new Error('No staff found. Please add a staff member in the Staff section first.');
 
       const subtotal   = billItems.reduce((s, i) => s + i.qty * i.price, 0);
       const gst        = Math.round(subtotal * (taxPctGlobal / 100));
@@ -760,6 +802,7 @@ async function finalizeSale() {
       setTimeout(() => printBill(), 500);
 
   } catch(err) { showToast(err.message, 'error'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = '✓ Finalize Sale & Print Bill'; } }
 }
 
 async function loadBillHistory() {
@@ -783,7 +826,7 @@ async function loadBillHistory() {
           <button class="btn-black" style="padding:4px 8px;font-size:12px;" onclick="printPastBill('${b._id}')">Print</button>
         </td>
       </tr>`).join('');
-  } catch (err) { }
+  } catch (err) { showToast(err.message || 'Failed to load bill history', 'error'); }
 }
 
 async function viewBill(id) {
@@ -814,7 +857,7 @@ async function viewBill(id) {
     showToast('Bill loaded');
     // Scroll to bill area
     document.getElementById('bill-area').scrollIntoView({ behavior: 'smooth' });
-  } catch (err) { showToast('Error loading bill', 'error'); }
+  } catch (err) { showToast(err.message || 'Error loading bill', 'error'); }
 }
 
 async function printPastBill(id) {
@@ -872,7 +915,7 @@ async function loadReports() {
       options: { responsive: true, maintainAspectRatio: false }
     });
 
-  } catch (err) { showToast('Reports error', 'error'); }
+  } catch (err) { showToast(err.message || 'Reports error', 'error'); }
 }
 
 function switchReportTab(tab, btn) {
@@ -905,10 +948,13 @@ async function loadSettings() {
         setEl('billSalonAddress', s.address || '');
         setEl('billSalonPhone', s.phone ? 'Ph: ' + s.phone : '');
 
-    } catch(err) { showToast('Settings error', 'error'); }
+    } catch(err) { showToast(err.message || 'Settings error', 'error'); }
 }
 
 async function saveSettings() {
+    const btn = document.querySelector('button[onclick="saveSettings()"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
     try {
         const payload = {
             salonName: document.getElementById('setSalonName').value,
@@ -925,6 +971,7 @@ async function saveSettings() {
         showToast('Settings saved successfully');
         loadSettings(); // update globals
     } catch(err) { showToast(err.message, 'error'); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Settings'; } }
 }
 
 async function dangerDeleteAccount() {
