@@ -1,22 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { body, validationResult } = require('express-validator');
 const Appointment = require('../models/Appointment');
 const Client = require('../models/Client');
 
+// Validation
+const appointmentValidation = [
+  body('clientId').notEmpty().withMessage('Client is required'),
+  body('staffId').notEmpty().withMessage('Staff member is required'),
+  body('date').notEmpty().withMessage('Date is required'),
+  body('time').notEmpty().withMessage('Time is required')
+];
+
 // GET /api/appointments
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, async (req, res, next) => {
   try {
-    const appointments = await Appointment.find({ userId: req.user.userId }).sort({ date: 1, time: 1 });
+    const query = { userId: req.user.userId };
+    if (req.query.date) {
+      query.date = req.query.date;
+    }
+    const appointments = await Appointment.find(query).sort({ date: 1, time: 1 });
     res.json(appointments);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 
 // POST /api/appointments
-router.post('/', auth, async (req, res) => {
+router.post('/', [auth, appointmentValidation], async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array()[0].msg });
+  }
+
   try {
     const newAppointment = new Appointment({
       ...req.body,
@@ -24,66 +41,58 @@ router.post('/', auth, async (req, res) => {
     });
 
     const appointment = await newAppointment.save();
-
-    // Auto-create client if they don't exist? (The requirements state "Booking an appointment auto-creates the client if they don't exist". 
-    // Usually the frontend will pass an existing clientId or create the client first. 
-    // Let's assume frontend passes a valid clientId. Let's increment their appointment count if so.)
-    if (appointment.clientId) {
-      // Actually, requirements say "Appointment count on the client profile increments".
-      // There isn't an explicit "appointment count" field, but we have "totalVisits". Wait, "total visits" increments when a bill is created usually, or when an appointment completes. We will just leave Client.totalVisits for the Bill finalize, since they didn't officially visit yet.
-    }
-
     res.json(appointment);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 
 // PUT /api/appointments/:id
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', [auth, appointmentValidation], async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array()[0].msg });
+  }
+
   try {
     let appointment = await Appointment.findById(req.params.id);
-    if (!appointment) return res.status(404).json({ msg: 'Appointment not found' });
-    if (appointment.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    if (appointment.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });
 
     appointment = await Appointment.findOneAndUpdate({ _id: req.params.id, userId: req.user.userId }, { $set: req.body }, { new: true });
     res.json(appointment);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 
 // PATCH /api/appointments/:id/status
-router.patch('/:id/status', auth, async (req, res) => {
+router.patch('/:id/status', auth, async (req, res, next) => {
   try {
     let appointment = await Appointment.findById(req.params.id);
-    if (!appointment) return res.status(404).json({ msg: 'Appointment not found' });
-    if (appointment.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    if (appointment.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });
 
     appointment.status = req.body.status;
     await appointment.save();
     
     res.json(appointment);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 
 // DELETE /api/appointments/:id
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, async (req, res, next) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
-    if (!appointment) return res.status(404).json({ msg: 'Appointment not found' });
-    if (appointment.userId !== req.user.userId) return res.status(401).json({ msg: 'Not authorized' });
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    if (appointment.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });
 
-    await Appointment.findOneAndRemove({ _id: req.params.id, userId: req.user.userId });
-    res.json({ msg: 'Appointment removed' });
+    await Appointment.deleteOne({ _id: req.params.id, userId: req.user.userId });
+    res.json({ message: 'Appointment removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 
