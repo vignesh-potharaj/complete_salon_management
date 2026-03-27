@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -10,18 +11,21 @@
   <title>SalonPro</title>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) { registration.update(); }
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) { registration.update(); }
       });
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  
+
   <!-- Toast Notification Container -->
-  <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+  <div id="toastContainer"
+    style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;">
+  </div>
 
   <div class="container">
 
@@ -41,7 +45,8 @@
         <li onclick="showSection('checkout')">Check-Out</li>
         <li onclick="showSection('reports')">Reports</li>
         <li onclick="showSection('settings')">Settings</li>
-        <li onclick="logout()" style="color: #ff4d4f; border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px;">Logout</li>
+        <li onclick="logout()"
+          style="color: #ff4d4f; border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px;">Logout</li>
       </ul>
     </div>
 
@@ -94,7 +99,12 @@
           <div class="appointments-list">
             <h2>Today's Appointments</h2>
             <table id="dashApptTable">
-              <tr><th data-label='Time'>Time</th><th data-label='Client'>Client</th><th data-label='Service'>Service</th><th data-label='Status'>Status</th></tr>
+              <tr>
+                <th>Time</th>
+                <th>Client</th>
+                <th>Service</th>
+                <th>Status</th>
+              </tr>
             </table>
           </div>
         </div>
@@ -117,10 +127,17 @@
 
           <div class="calendar-grid-container">
             <div class="time-slots">
-              <div>8:00 AM</div><div>9:00 AM</div><div>10:00 AM</div>
-              <div>11:00 AM</div><div>12:00 PM</div><div>1:00 PM</div>
-              <div>2:00 PM</div><div>3:00 PM</div><div>4:00 PM</div>
-              <div>5:00 PM</div><div>6:00 PM</div>
+              <div>8:00 AM</div>
+              <div>9:00 AM</div>
+              <div>10:00 AM</div>
+              <div>11:00 AM</div>
+              <div>12:00 PM</div>
+              <div>1:00 PM</div>
+              <div>2:00 PM</div>
+              <div>3:00 PM</div>
+              <div>4:00 PM</div>
+              <div>5:00 PM</div>
+              <div>6:00 PM</div>
             </div>
             <div class="grid-content" id="calendarGrid"></div>
           </div>
@@ -147,11 +164,11 @@
         <div class="modal-content">
           <span class="close" onclick="closeModal()" aria-label="Close">&times;</span>
           <h3 id="apptDetailTitle">Appointment Details</h3>
-          <p><strong>Client:</strong>  <span id="modalClient"></span></p>
+          <p><strong>Client:</strong> <span id="modalClient"></span></p>
           <p><strong>Service:</strong> <span id="modalService"></span></p>
-          <p><strong>Time:</strong>    <span id="modalTime"></span></p>
-          <p><strong>Amount:</strong>  <span id="modalAmount"></span></p>
-          <p><strong>Staff:</strong>   <span id="modalStaff"></span></p>
+          <p><strong>Time:</strong> <span id="modalTime"></span></p>
+          <p><strong>Amount:</strong> <span id="modalAmount"></span></p>
+          <p><strong>Staff:</strong> <span id="modalStaff"></span></p>
         </div>
       </div>
 
@@ -197,16 +214,27 @@
         <div class="table-container">
           <table>
             <thead>
-              <tr><th>Name</th><th>Contact</th><th>First Visit</th><th>Total Visits</th><th>Last Visit</th><th>Total Spent</th></tr>
+              <tr>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>First Visit</th>
+                <th>Total Visits</th>
+                <th>Last Visit</th>
+                <th>Total Spent</th>
+              </tr>
             </thead>
             <tbody id="clientsTableBody">
-              <tr><td colspan="6" class="table-empty">Loading...</td></tr>
+              <tr>
+                <td colspan="6" class="table-empty">Loading...</td>
+              </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="pagination mt-20" style="display:flex; justify-content: center; gap: 20px; align-items:center;">
-          <button class="btn-secondary">Previous</button><span>Page 1</span><button class="btn-secondary">Next</button>
+        <div class="pagination mt-20" style="display:flex; justify-content:center; gap:20px; align-items:center;">
+          <button class="btn-secondary">Previous</button>
+          <span>Page 1</span>
+          <button class="btn-secondary">Next</button>
         </div>
       </div>
 
@@ -216,9 +244,9 @@
           <span class="close" onclick="closeAddClientModal()" aria-label="Close">&times;</span>
           <h3 id="addClientTitle">Add Client</h3>
           <label for="newClientName">Full Name</label>
-          <input type="text"  id="newClientName"  placeholder="e.g. Priya Sharma" class="modal-input">
+          <input type="text" id="newClientName" placeholder="e.g. Priya Sharma" class="modal-input">
           <label for="newClientPhone">Phone Number</label>
-          <input type="tel"   id="newClientPhone" placeholder="10-digit number"   class="modal-input">
+          <input type="tel" id="newClientPhone" placeholder="10-digit number" class="modal-input">
           <label for="newClientEmail">Email (optional)</label>
           <input type="email" id="newClientEmail" placeholder="email@example.com" class="modal-input">
           <label for="newClientGender">Gender</label>
@@ -251,7 +279,8 @@
           </div>
           <div class="card">
             <div class="card-title">Top Performer</div>
-            <div class="card-value" id="topPerformerName" style="font-size:1.5rem; display:flex; align-items:center; height:100%;">—</div>
+            <div class="card-value" id="topPerformerName"
+              style="font-size:1.5rem; display:flex; align-items:center; height:100%;">—</div>
           </div>
         </div>
 
@@ -263,12 +292,22 @@
           <div class="table-scroll">
             <table id="staffTable">
               <thead>
-                <tr><th>Name</th><th>Role</th><th>Phone</th><th>Commission %</th><th>Revenue</th><th>Status</th><th>Actions</th></tr>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Phone</th>
+                  <th>Commission %</th>
+                  <th>Revenue</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
               </thead>
-            <tbody>
-              <tr><td colspan="7" class="table-empty">Loading...</td></tr>
-            </tbody>
-          </table>
+              <tbody>
+                <tr>
+                  <td colspan="7" class="table-empty">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -276,8 +315,8 @@
           <div class="side-panel-content">
             <span class="close" onclick="closeStaffPanel()" aria-label="Close">&times;</span>
             <h3 id="staffName"></h3>
-            <p><strong>Role:</strong>       <span id="staffRole"></span></p>
-            <p><strong>Phone:</strong>      <span id="staffPhone"></span></p>
+            <p><strong>Role:</strong> <span id="staffRole"></span></p>
+            <p><strong>Phone:</strong> <span id="staffPhone"></span></p>
             <p><strong>Commission:</strong> <span id="staffCommission"></span>%</p>
             <p><strong>Total Revenue:</strong> ₹<span id="staffRevenue"></span></p>
             <h4>Commission Earned</h4>
@@ -294,14 +333,61 @@
           <span class="close" onclick="closeStaffModal()" aria-label="Close">&times;</span>
           <h3 id="addStaffTitle">Add Staff</h3>
           <label for="newStaffName">Name</label>
-          <input type="text"   id="newStaffName"       placeholder="Full name"     class="modal-input">
+          <input type="text" id="newStaffName" placeholder="Full name" class="modal-input">
           <label for="newStaffRole">Role</label>
-          <input type="text"   id="newStaffRole"       placeholder="e.g. Stylist"  class="modal-input">
+          <input type="text" id="newStaffRole" placeholder="e.g. Stylist" class="modal-input">
           <label for="newStaffPhone">Phone</label>
-          <input type="tel"    id="newStaffPhone"      placeholder="10-digit number" class="modal-input">
+          <input type="tel" id="newStaffPhone" placeholder="10-digit number" class="modal-input">
           <label for="newStaffCommission">Commission %</label>
-          <input type="number" id="newStaffCommission" placeholder="e.g. 20"       class="modal-input">
+          <input type="number" id="newStaffCommission" placeholder="e.g. 20" class="modal-input">
           <button onclick="addStaff()" class="btn-black btn-full">Save</button>
+        </div>
+      </div>
+
+      <!-- ═══ SERVICES CATALOG ═══ -->
+      <div id="services" class="section section-hidden">
+        <h2>Services Catalog</h2>
+        <div class="mb-15">
+          <button class="add-btn" onclick="openAddServiceModal()">+ Add Service</button>
+        </div>
+        <div class="table-container">
+          <div class="table-scroll">
+            <table id="servicesTable">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Duration (Mins)</th>
+                  <th>Default Price (₹)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" class="table-empty">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Service Modal -->
+      <div id="addServiceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addServiceTitle">
+        <div class="modal-content">
+          <span class="close" onclick="closeAddServiceModal()" aria-label="Close">&times;</span>
+          <h3 id="addServiceTitle">Add Service</h3>
+          <input type="hidden" id="editServiceId">
+          <label for="newServiceName">Name</label>
+          <input type="text" id="newServiceName" placeholder="e.g. Haircut" class="modal-input">
+          <label for="newServiceCategory">Category</label>
+          <input type="text" id="newServiceCategory" placeholder="e.g. Hair" class="modal-input">
+          <label for="newServiceDuration">Duration (Mins)</label>
+          <input type="number" id="newServiceDuration" placeholder="e.g. 30" class="modal-input">
+          <label for="newServicePrice">Default Price (₹)</label>
+          <input type="number" id="newServicePrice" placeholder="e.g. 500" class="modal-input">
+          <button onclick="saveService()" class="btn-black btn-full">Save Service</button>
         </div>
       </div>
 
@@ -310,9 +396,18 @@
         <h2>Inventory Management</h2>
 
         <div class="inventory-stats">
-          <div class="inv-card"><h3 id="invTotalProducts">0</h3><p>Total Products</p></div>
-          <div class="inv-card"><h3 id="invLowStock">0</h3><p>Low Stock Items</p></div>
-          <div class="inv-card"><h3 id="invTotalValue">₹0</h3><p>Total Inventory Value</p></div>
+          <div class="inv-card">
+            <h3 id="invTotalProducts">0</h3>
+            <p>Total Products</p>
+          </div>
+          <div class="inv-card">
+            <h3 id="invLowStock">0</h3>
+            <p>Low Stock Items</p>
+          </div>
+          <div class="inv-card">
+            <h3 id="invTotalValue">₹0</h3>
+            <p>Total Inventory Value</p>
+          </div>
         </div>
 
         <div class="inventory-actions mb-15" style="display:flex; gap:10px;">
@@ -322,7 +417,6 @@
 
         <div class="table-container" style="background:transparent; box-shadow:none; padding:0;">
           <div id="inventoryGallery" class="inventory-gallery">
-            <!-- Dynamic Cards Load Here -->
             <div class="loading-spinner">Loading Products...</div>
           </div>
         </div>
@@ -334,22 +428,20 @@
           <span class="close" onclick="closeInvModal()" aria-label="Close">&times;</span>
           <h3 id="addProductTitle">Add Product</h3>
           <label for="invName">Product Name</label>
-          <input type="text"   id="invName"     placeholder="e.g. Keratin Serum"  class="modal-input">
+          <input type="text" id="invName" placeholder="e.g. Keratin Serum" class="modal-input">
           <label for="invCategory">Category</label>
-          <input type="text"   id="invCategory" placeholder="e.g. Hair Treatment" class="modal-input">
+          <input type="text" id="invCategory" placeholder="e.g. Hair Treatment" class="modal-input">
           <label for="invStock">Stock Quantity</label>
-          <input type="number" id="invStock"    placeholder="e.g. 10"             class="modal-input">
+          <input type="number" id="invStock" placeholder="e.g. 10" class="modal-input">
           <label for="invMin">Minimum Stock</label>
-          <input type="number" id="invMin"      placeholder="e.g. 3"              class="modal-input">
+          <input type="number" id="invMin" placeholder="e.g. 3" class="modal-input">
           <label for="invSupplier">Brand / Supplier</label>
           <input type="text" id="invSupplier" placeholder="e.g. L'Oreal" class="modal-input">
-          
           <label for="invDesc">Description</label>
-          <textarea id="invDesc" placeholder="Product details/benefits..." class="modal-input" style="height:80px; resize:none; padding:10px;"></textarea>
-          
+          <textarea id="invDesc" placeholder="Product details/benefits..." class="modal-input"
+            style="height:80px; resize:none; padding:10px;"></textarea>
           <label for="invImg">Image URL</label>
           <input type="text" id="invImg" placeholder="https://example.com/image.jpg" class="modal-input">
-          
           <div class="modal-grid">
             <div>
               <label for="invPurchase">Purchase Price</label>
@@ -380,12 +472,10 @@
         <div class="checkout-grid">
 
           <div class="checkout-panel no-print">
-
             <div class="bill-card mb-15">
               <label for="billClient">Client Name</label>
               <input type="text" id="billClient" placeholder="Enter client name" class="modal-input">
             </div>
-
             <div class="bill-card mb-15">
               <label for="paymentMethod">Payment Method</label>
               <select id="paymentMethod" title="Select payment method" class="bill-input">
@@ -395,7 +485,6 @@
                 <option value="Other">Other</option>
               </select>
             </div>
-
             <div class="bill-card mb-15">
               <label for="serviceSelect">Add Service</label>
               <select id="serviceSelect" title="Select service" class="modal-input">
@@ -403,21 +492,19 @@
               </select>
               <button onclick="addServiceToBill()" class="btn-black">Add Service</button>
             </div>
-
             <div class="bill-card mb-15">
               <label for="productSelect">Add Product</label>
               <select id="productSelect" title="Select product" class="modal-input">
                 <option value="">Loading products...</option>
               </select>
-              <button onclick="addProductToBill()" class="btn-black" style="padding: 12px 24px; margin-top: 10px;">Add Product to Bill</button>
+              <button onclick="addProductToBill()" class="btn-black" style="padding: 12px 24px; margin-top: 10px;">Add
+                Product to Bill</button>
             </div>
-
             <div class="bill-card">
               <button onclick="finalizeSale()" class="btn-finalize">
                 ✓ Finalize Sale &amp; Print Bill
               </button>
             </div>
-
           </div>
 
           <!-- Print area -->
@@ -426,33 +513,37 @@
             <p id="billSalonAddress" style="font-size:0.9rem; margin-bottom:2px;"></p>
             <p id="billSalonPhone" style="font-size:0.9rem; margin-bottom:15px;"></p>
             <div style="border-top: 2px solid #000; margin-bottom: 20px;"></div>
-            
             <div style="text-align: left;">
               <p><strong>Client:</strong> <span id="printClientName"></span></p>
               <p style="margin-bottom:20px;"><strong>Date:</strong> <span id="billDate"></span></p>
             </div>
-
-            <div class="table-container mb-15" style="box-shadow:none; border:none; border-top:1px dashed #ccc; border-bottom:1px dashed #ccc; border-radius:0;">
+            <div class="table-container mb-15"
+              style="box-shadow:none; border:none; border-top:1px dashed #ccc; border-bottom:1px dashed #ccc; border-radius:0;">
               <div class="table-scroll">
                 <table id="billTable" style="margin-top:10px; margin-bottom:10px;">
                   <thead>
-                    <tr><th>Item</th><th>Type</th><th>Qty</th><th>Price</th><th>Total</th><th class="no-print">Remove</th></tr>
+                    <tr>
+                      <th>Item</th>
+                      <th>Type</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Total</th>
+                      <th class="no-print">Remove</th>
+                    </tr>
                   </thead>
                   <tbody></tbody>
                 </table>
               </div>
             </div>
-
             <div class="bill-summary" style="text-align:right;">
               <p>Subtotal: ₹<span id="billSubtotal">0</span></p>
               <p>Tax: ₹<span id="billGST">0</span></p>
               <h2 style="margin-top:10px;">Total: ₹<span id="billTotal">0</span></h2>
             </div>
-            
             <button class="btn-black no-print mt-20 btn-full" onclick="printBill()">🖨 Print Bill</button>
           </div>
 
-        </div>
+        </div><!-- end .checkout-grid -->
 
         <!-- Bill History -->
         <div class="bill-history-section">
@@ -461,16 +552,26 @@
             <div class="table-scroll">
               <table>
                 <thead>
-                  <tr><th>Date</th><th>Client</th><th>Items</th><th>Grand Total</th><th>Payment</th><th class="no-print">Actions</th></tr>
+                  <tr>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Items</th>
+                    <th>Grand Total</th>
+                    <th>Payment</th>
+                    <th class="no-print">Actions</th>
+                  </tr>
                 </thead>
                 <tbody id="billHistoryBody">
-                <tr><td colspan="6" class="table-empty">Loading...</td></tr>
-              </tbody>
-            </table>
+                  <tr>
+                    <td colspan="6" class="table-empty">Loading...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </div><!-- end .bill-history-section -->
 
-      </div>
+      </div><!-- end #checkout ← THIS WAS THE MISSING TAG -->
 
       <!-- ═══ REPORTS ═══ -->
       <div id="reports" class="section section-hidden">
@@ -478,23 +579,47 @@
 
         <div class="report-tabs">
           <button class="tab-btn active" onclick="switchReportTab('executive',this)">Executive</button>
-          <button class="tab-btn"        onclick="switchReportTab('sales',this)">Sales</button>
-          <button class="tab-btn"        onclick="switchReportTab('staff',this)">Staff</button>
-          <button class="tab-btn"        onclick="switchReportTab('clients',this)">Clients</button>
-          <button class="tab-btn"        onclick="switchReportTab('inventory',this)">Inventory</button>
+          <button class="tab-btn" onclick="switchReportTab('sales',this)">Sales</button>
+          <button class="tab-btn" onclick="switchReportTab('staff',this)">Staff</button>
+          <button class="tab-btn" onclick="switchReportTab('clients',this)">Clients</button>
+          <button class="tab-btn" onclick="switchReportTab('inventory',this)">Inventory</button>
         </div>
 
         <!-- Executive -->
         <div id="report-executive" class="report-content">
           <div class="dashboard-cards">
-            <div class="card"><div class="card-title">Total Revenue</div><div class="card-value" id="repTotalRevenue">₹0</div></div>
-            <div class="card"><div class="card-title">Est. Net Profit</div><div class="card-value" id="repNetProfit">₹0</div></div>
-            <div class="card"><div class="card-title">Total Bills</div><div class="card-value" id="repTotalBills">0</div></div>
-            <div class="card"><div class="card-title">Avg Bill Value</div><div class="card-value" id="repAvgBill">₹0</div></div>
-            <div class="card"><div class="card-title">Total Staff</div><div class="card-value" id="repTotalStaff">0</div></div>
-            <div class="card"><div class="card-title">Total Clients</div><div class="card-value" id="repTotalClientsRep">0</div></div>
-            <div class="card"><div class="card-title" style="color:var(--danger)">Low Stock Items</div><div class="card-value" id="repLowStock">0</div></div>
-            <div class="card"><div class="card-title">Inventory Value</div><div class="card-value" id="repInvValue">₹0</div></div>
+            <div class="card">
+              <div class="card-title">Total Revenue</div>
+              <div class="card-value" id="repTotalRevenue">₹0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Est. Net Profit</div>
+              <div class="card-value" id="repNetProfit">₹0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Total Bills</div>
+              <div class="card-value" id="repTotalBills">0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Avg Bill Value</div>
+              <div class="card-value" id="repAvgBill">₹0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Total Staff</div>
+              <div class="card-value" id="repTotalStaff">0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Total Clients</div>
+              <div class="card-value" id="repTotalClientsRep">0</div>
+            </div>
+            <div class="card">
+              <div class="card-title" style="color:var(--danger)">Low Stock Items</div>
+              <div class="card-value" id="repLowStock">0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Inventory Value</div>
+              <div class="card-value" id="repInvValue">₹0</div>
+            </div>
           </div>
           <div class="chart-box chart-tall">
             <canvas id="execRevenueChart"></canvas>
@@ -518,7 +643,14 @@
           <div class="table-container mt-20">
             <div class="table-scroll">
               <table>
-                <thead><tr><th>Name</th><th>Revenue</th><th>Commission %</th><th>Earned</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Revenue</th>
+                    <th>Commission %</th>
+                    <th>Earned</th>
+                  </tr>
+                </thead>
                 <tbody id="staffReportTable"></tbody>
               </table>
             </div>
@@ -536,99 +668,77 @@
         <!-- Inventory -->
         <div id="report-inventory" class="report-content section-hidden">
           <div class="dashboard-cards">
-            <div class="card"><div class="card-title">Total Stock Value</div><div class="card-value" id="repInvValue2">₹0</div></div>
-            <div class="card"><div class="card-title">Low Stock Items</div><div class="card-value" id="repLowStockCount">0</div></div>
-            <div class="card"><div class="card-title">Total Products</div><div class="card-value" id="repTotalProducts">0</div></div>
-            <div class="card"><div class="card-title">Low Stock Value</div><div class="card-value" id="repLowStockValue">₹0</div></div>
+            <div class="card">
+              <div class="card-title">Total Stock Value</div>
+              <div class="card-value" id="repInvValue2">₹0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Low Stock Items</div>
+              <div class="card-value" id="repLowStockCount">0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Total Products</div>
+              <div class="card-value" id="repTotalProducts">0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Low Stock Value</div>
+              <div class="card-value" id="repLowStockValue">₹0</div>
+            </div>
           </div>
           <div class="chart-box chart-tall mt-20">
             <canvas id="inventoryMarginChart"></canvas>
           </div>
         </div>
 
-      </div>
-
-      <!-- ═══ SERVICES CATALOG ═══ -->
-      <div id="services" class="section section-hidden">
-        <h2>Services Catalog</h2>
-        <div class="mb-15">
-          <button class="add-btn" onclick="openAddServiceModal()">+ Add Service</button>
-        </div>
-        <div class="table-container">
-          <div class="table-scroll">
-            <table id="servicesTable">
-              <thead>
-                <tr><th>Name</th><th>Category</th><th>Duration (Mins)</th><th>Default Price (₹)</th><th>Status</th><th>Actions</th></tr>
-              </thead>
-            <tbody>
-              <tr><td colspan="6" class="table-empty">Loading...</td></tr>
-            </tbody>
-          </table>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Add Service Modal -->
-      <div id="addServiceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addServiceTitle">
-        <div class="modal-content">
-          <span class="close" onclick="closeAddServiceModal()" aria-label="Close">&times;</span>
-          <h3 id="addServiceTitle">Add Service</h3>
-          <input type="hidden" id="editServiceId">
-          <label for="newServiceName">Name</label>
-          <input type="text" id="newServiceName" placeholder="e.g. Haircut" class="modal-input">
-          <label for="newServiceCategory">Category</label>
-          <input type="text" id="newServiceCategory" placeholder="e.g. Hair" class="modal-input">
-          <label for="newServiceDuration">Duration (Mins)</label>
-          <input type="number" id="newServiceDuration" placeholder="e.g. 30" class="modal-input">
-          <label for="newServicePrice">Default Price (₹)</label>
-          <input type="number" id="newServicePrice" placeholder="e.g. 500" class="modal-input">
-          <button onclick="saveService()" class="btn-black btn-full">Save Service</button>
-        </div>
-      </div>
+      </div><!-- end #reports -->
 
       <!-- ═══ SETTINGS ═══ -->
       <div id="settings" class="section section-hidden">
         <h2>Salon Settings</h2>
-        
+
         <div class="settings-container" style="max-width: 600px; background: white; padding: 20px; border-radius: 8px;">
           <h3>General Settings</h3>
           <label for="setSalonName">Salon Name</label>
           <input type="text" id="setSalonName" class="modal-input">
-          
+
           <label for="setAddress">Address</label>
           <input type="text" id="setAddress" class="modal-input">
-          
+
           <label for="setPhone">Phone Number</label>
           <input type="text" id="setPhone" class="modal-input">
-          
+
           <label for="setCurrency">Currency Symbol</label>
           <input type="text" id="setCurrency" class="modal-input" placeholder="e.g. ₹ or $">
-          
+
           <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-          
+
           <h3>Billing & Taxes</h3>
           <label for="setTax">Default Tax % (e.g. GST)</label>
           <input type="number" id="setTax" class="modal-input" placeholder="e.g. 18">
-          
+
           <label for="setDefaultCommission">Default Staff Commission %</label>
           <input type="number" id="setDefaultCommission" class="modal-input" placeholder="e.g. 20">
-          
+
           <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-          
+
           <h3>Loyalty Program</h3>
           <div style="margin-bottom: 12px;">
-            <label style="display:inline;"><input type="checkbox" id="setLoyalty"> Enable Loyalty Points</label>
+            <label style="display:inline;">
+              <input type="checkbox" id="setLoyalty"> Enable Loyalty Points
+            </label>
           </div>
-          <label for="setPoints">Points per spent unit (e.g. 1 point per 100 spent -> put 0.01)</label>
+          <label for="setPoints">Points per spent unit (e.g. 1 point per ₹100 → put 0.01)</label>
           <input type="number" id="setPoints" class="modal-input" step="0.01">
-          
+
           <button onclick="saveSettings()" class="btn-black mt-20" style="padding: 12px 24px;">Save Settings</button>
-          
+
           <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ff4d4f;">
           <h3 style="color: #ff4d4f;">Danger Zone</h3>
-          <button class="btn-danger btn-full mt-20" onclick="dangerDeleteAccount()">Delete Entire Salon Account & Data</button>
+          <button class="btn-danger btn-full mt-20" onclick="dangerDeleteAccount()">
+            Delete Entire Salon Account & Data
+          </button>
         </div>
-      </div>
+      </div><!-- end #settings -->
 
     </div><!-- end .main -->
   </div><!-- end .container -->
@@ -645,4 +755,5 @@
     }
   </script>
 </body>
+
 </html>
