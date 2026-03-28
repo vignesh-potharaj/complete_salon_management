@@ -2,7 +2,7 @@
 
 const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
-  : 'https://salonpro-backend-javg.onrender.com';
+  : 'https://salonpro-backend-javg.onrender.com/api';
 
 // Global API helper
 async function api(path, options = {}) {
