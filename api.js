@@ -2,12 +2,12 @@
 
 const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
-  : 'https://complete-salon-management-backend.vercel.app/api';
+  : 'https://salonpro-backend-javg.onrender.com';
 
 // Global API helper
 async function api(path, options = {}) {
   const token = localStorage.getItem('token');
-  
+
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = 'Bearer ' + token;
 
@@ -25,17 +25,17 @@ async function api(path, options = {}) {
   }
 
   if (res.status === 401) { logout(); return; }
-  
+
   if (!res.ok) {
     const errText = await res.text();
     let errMsg = errText;
     try {
       const errObj = JSON.parse(errText);
       errMsg = errObj.msg || errObj.message || errText;
-    } catch(e) {}
+    } catch (e) { }
     throw new Error(errMsg);
   }
-  
+
   return res.json();
 }
 
@@ -78,26 +78,26 @@ function refreshRelated(modules) {
   // If the currently visible section is in the modules array, reload it.
   const activeSection = document.querySelector('.section:not(.section-hidden)');
   if (activeSection) {
-      const activeId = activeSection.id; // e.g., 'home', 'inventory'
-      
-      // Map div IDs to load functions
-      const reloadMap = {
-          'home': loadDashboard,
-          'calendar': loadCalendar,
-          'clients': loadClients,
-          'staff': loadStaff,
-          'services': loadServices,
-          'inventory': loadInventory,
-          'checkout': () => { populateProductDropdown(); populateServiceDropdown(); loadBillHistory(); },
-          'reports': loadReports,
-          'settings': loadSettings
-      };
+    const activeId = activeSection.id; // e.g., 'home', 'inventory'
 
-      // Check if the current active tab needs a reload
-      // 'dashboard' in modules -> reload 'home'
-      if (modules.includes('dashboard') && activeId === 'home') reloadMap['home']();
-      if (modules.includes(activeId) && reloadMap[activeId]) {
-          reloadMap[activeId]();
-      }
+    // Map div IDs to load functions
+    const reloadMap = {
+      'home': loadDashboard,
+      'calendar': loadCalendar,
+      'clients': loadClients,
+      'staff': loadStaff,
+      'services': loadServices,
+      'inventory': loadInventory,
+      'checkout': () => { populateProductDropdown(); populateServiceDropdown(); loadBillHistory(); },
+      'reports': loadReports,
+      'settings': loadSettings
+    };
+
+    // Check if the current active tab needs a reload
+    // 'dashboard' in modules -> reload 'home'
+    if (modules.includes('dashboard') && activeId === 'home') reloadMap['home']();
+    if (modules.includes(activeId) && reloadMap[activeId]) {
+      reloadMap[activeId]();
+    }
   }
 }
