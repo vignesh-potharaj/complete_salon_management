@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SalonPro – Register</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: Arial, sans-serif;
@@ -21,7 +26,7 @@
       background: white;
       padding: 40px;
       border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 420px;
     }
@@ -33,10 +38,20 @@
       letter-spacing: -0.5px;
     }
 
-    .auth-card h1 { font-size: 22px; margin-bottom: 4px; }
-    .auth-card .subtitle { color: #888; margin-bottom: 28px; font-size: 14px; }
+    .auth-card h1 {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
 
-    .form-group { margin-bottom: 18px; }
+    .auth-card .subtitle {
+      color: #888;
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
 
     label {
       display: block;
@@ -46,7 +61,10 @@
       color: #333;
     }
 
-    .required { color: #e74c3c; margin-left: 2px; }
+    .required {
+      color: #e74c3c;
+      margin-left: 2px;
+    }
 
     input {
       width: 100%;
@@ -58,7 +76,9 @@
       transition: border 0.2s;
     }
 
-    input:focus { border-color: #111; }
+    input:focus {
+      border-color: #111;
+    }
 
     .hint {
       font-size: 12px;
@@ -75,7 +95,9 @@
       transition: border 0.2s;
     }
 
-    .userid-wrap:focus-within { border-color: #111; }
+    .userid-wrap:focus-within {
+      border-color: #111;
+    }
 
     .userid-prefix {
       background: #f5f5f5;
@@ -92,7 +114,9 @@
       flex: 1;
     }
 
-    .userid-wrap input:focus { border: none; }
+    .userid-wrap input:focus {
+      border: none;
+    }
 
     .btn {
       width: 100%;
@@ -107,8 +131,14 @@
       transition: background 0.2s;
     }
 
-    .btn:hover    { background: #333; }
-    .btn:disabled { background: #999; cursor: not-allowed; }
+    .btn:hover {
+      background: #333;
+    }
+
+    .btn:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
 
     .error-msg {
       background: #fdecea;
@@ -150,142 +180,144 @@
     }
   </style>
 </head>
+
 <body>
 
-<div class="auth-card">
+  <div class="auth-card">
 
-  <div class="brand">✂ SalonPro</div>
-  <h1>Create your account</h1>
-  <p class="subtitle">Set up your salon in under a minute</p>
+    <div class="brand">✂ SalonPro</div>
+    <h1>Create your account</h1>
+    <p class="subtitle">Set up your salon in under a minute</p>
 
-  <div class="error-msg"   id="errorMsg"></div>
-  <div class="success-msg" id="successMsg"></div>
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="success-msg" id="successMsg"></div>
 
-  <!-- Salon Name -->
-  <div class="form-group">
-    <label>Salon Name <span class="required">*</span></label>
-    <input type="text" id="salonName" placeholder="e.g. GlowUp Studio">
-    <p class="hint">This will appear on your dashboard and bills</p>
-  </div>
-
-  <!-- Owner Name -->
-  <div class="form-group">
-    <label>Your Name <span class="required">*</span></label>
-    <input type="text" id="name" placeholder="e.g. Rahul Sharma">
-  </div>
-
-  <hr class="divider">
-
-  <!-- User ID -->
-  <div class="form-group">
-    <label>User ID <span class="required">*</span></label>
-    <div class="userid-wrap">
-      <span class="userid-prefix">@</span>
-      <input type="text" id="userId" placeholder="e.g. rahul.salon" autocomplete="username">
+    <!-- Salon Name -->
+    <div class="form-group">
+      <label>Salon Name <span class="required">*</span></label>
+      <input type="text" id="salonName" placeholder="e.g. GlowUp Studio">
+      <p class="hint">This will appear on your dashboard and bills</p>
     </div>
-    <p class="hint">Only letters, numbers, dots (.) and underscores (_). Used to log in.</p>
+
+    <!-- Owner Name -->
+    <div class="form-group">
+      <label>Your Name <span class="required">*</span></label>
+      <input type="text" id="name" placeholder="e.g. Rahul Sharma">
+    </div>
+
+    <hr class="divider">
+
+    <!-- User ID -->
+    <div class="form-group">
+      <label>User ID <span class="required">*</span></label>
+      <div class="userid-wrap">
+        <span class="userid-prefix">@</span>
+        <input type="text" id="userId" placeholder="e.g. rahul.salon" autocomplete="username">
+      </div>
+      <p class="hint">Only letters, numbers, dots (.) and underscores (_). Used to log in.</p>
+    </div>
+
+    <!-- Password -->
+    <div class="form-group">
+      <label>Password <span class="required">*</span></label>
+      <input type="password" id="password" placeholder="Minimum 6 characters" autocomplete="new-password">
+    </div>
+
+    <!-- Confirm Password -->
+    <div class="form-group">
+      <label>Confirm Password <span class="required">*</span></label>
+      <input type="password" id="confirmPassword" placeholder="Re-enter password" autocomplete="new-password">
+    </div>
+
+    <button class="btn" id="registerBtn" onclick="register()">Create Account</button>
+
+    <div class="switch-link">
+      Already have an account? <a href="login.html">Log in</a>
+    </div>
+
   </div>
 
-  <!-- Password -->
-  <div class="form-group">
-    <label>Password <span class="required">*</span></label>
-    <input type="password" id="password" placeholder="Minimum 6 characters" autocomplete="new-password">
-  </div>
+  <script>
+    const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://localhost:5000/api'
+      : 'https://salonpro-backend-javg.onrender.com/api';
 
-  <!-- Confirm Password -->
-  <div class="form-group">
-    <label>Confirm Password <span class="required">*</span></label>
-    <input type="password" id="confirmPassword" placeholder="Re-enter password" autocomplete="new-password">
-  </div>
-
-  <button class="btn" id="registerBtn" onclick="register()">Create Account</button>
-
-  <div class="switch-link">
-    Already have an account? <a href="login.html">Log in</a>
-  </div>
-
-</div>
-
-<script>
-  const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://complete-salon-management-backend.vercel.app/api';
-
-  if (localStorage.getItem('token')) {
-    window.location.href = 'index.html';
-  }
-
-  async function register() {
-    const salonName       = document.getElementById('salonName').value.trim();
-    const name            = document.getElementById('name').value.trim();
-    const userId          = document.getElementById('userId').value.trim();
-    const password        = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const btn             = document.getElementById('registerBtn');
-
-    hideMessages();
-
-    if (!salonName)       return showError('Salon name is required.');
-    if (!name)            return showError('Your name is required.');
-    if (!userId)          return showError('User ID is required.');
-    if (!/^[a-zA-Z0-9._]+$/.test(userId)) return showError('User ID can only contain letters, numbers, dots and underscores.');
-    if (!password)        return showError('Password is required.');
-    if (password.length < 6) return showError('Password must be at least 6 characters.');
-    if (password !== confirmPassword) return showError('Passwords do not match.');
-
-    btn.disabled    = true;
-    btn.textContent = 'Creating account...';
-
-    try {
-      const res  = await fetch(`${API}/auth/register`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ userId, name, salonName, password })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) return showError(data.message || 'Registration failed');
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify({
-        userId:    data.userId,
-        name:      data.name,
-        salonName: data.salonName
-      }));
-
-      showSuccess('Account created! Redirecting to your dashboard...');
-      setTimeout(() => window.location.href = 'index.html', 1200);
-
-    } catch (err) {
-      showError('Cannot connect to server. Make sure the backend is running.');
-    } finally {
-      btn.disabled    = false;
-      btn.textContent = 'Create Account';
+    if (localStorage.getItem('token')) {
+      window.location.href = 'index.html';
     }
-  }
 
-  function showError(msg) {
-    const el = document.getElementById('errorMsg');
-    el.textContent   = msg;
-    el.style.display = 'block';
-    document.getElementById('successMsg').style.display = 'none';
-  }
+    async function register() {
+      const salonName = document.getElementById('salonName').value.trim();
+      const name = document.getElementById('name').value.trim();
+      const userId = document.getElementById('userId').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const btn = document.getElementById('registerBtn');
 
-  function showSuccess(msg) {
-    const el = document.getElementById('successMsg');
-    el.textContent   = msg;
-    el.style.display = 'block';
-    document.getElementById('errorMsg').style.display = 'none';
-  }
+      hideMessages();
 
-  function hideMessages() {
-    document.getElementById('errorMsg').style.display   = 'none';
-    document.getElementById('successMsg').style.display = 'none';
-  }
+      if (!salonName) return showError('Salon name is required.');
+      if (!name) return showError('Your name is required.');
+      if (!userId) return showError('User ID is required.');
+      if (!/^[a-zA-Z0-9._]+$/.test(userId)) return showError('User ID can only contain letters, numbers, dots and underscores.');
+      if (!password) return showError('Password is required.');
+      if (password.length < 6) return showError('Password must be at least 6 characters.');
+      if (password !== confirmPassword) return showError('Passwords do not match.');
 
-  document.addEventListener('keydown', e => { if (e.key === 'Enter') register(); });
-</script>
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        const res = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, name, salonName, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) return showError(data.message || 'Registration failed');
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify({
+          userId: data.userId,
+          name: data.name,
+          salonName: data.salonName
+        }));
+
+        showSuccess('Account created! Redirecting to your dashboard...');
+        setTimeout(() => window.location.href = 'index.html', 1200);
+
+      } catch (err) {
+        showError('Cannot connect to server. Make sure the backend is running.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('successMsg').style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('successMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('errorMsg').style.display = 'none';
+    }
+
+    function hideMessages() {
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'none';
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') register(); });
+  </script>
 
 </body>
+
 </html>
