@@ -873,19 +873,19 @@ function renderBill() {
           <div style="font-weight:600;">${item.name}</div>
           ${item.staffName ? `<div style="font-size:0.75rem; color:#888;">with ${item.staffName}</div>` : ''}
         </td>
-        <td class="text-center">
-          <div class="no-print" style="display:inline-flex; align-items:center; gap:8px;">
+        <td class="text-center" style="white-space:nowrap;">
+          <span class="no-print" style="display:inline-flex; align-items:center; gap:6px;">
             <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
             <span>${item.qty}</span>
             <button class="qty-btn" onclick="changeQty(${index},1)">+</button>
-          </div>
-          <span class="only-print">${item.qty}</span>
+          </span>
+          <span class="print-qty">${item.qty}</span>
         </td>
         <td class="text-right">₹${item.price.toLocaleString('en-IN')}</td>
         <td class="text-right">₹${(item.qty * item.price).toLocaleString('en-IN')}</td>
-        <td class="no-print text-right">
+        <td class="no-print" style="width:32px; text-align:center;">
           <button onclick="removeItem(${index})" 
-                  style="background:none; border:none; color:#e74c3c; cursor:pointer; font-size:1.1rem;" 
+                  style="background:none; border:none; color:#e74c3c; cursor:pointer; font-size:1.1rem; line-height:1;" 
                   title="Remove">✕</button>
         </td>
       </tr>`;
@@ -906,9 +906,9 @@ function calculateTotals() {
   const subtotal = billItems.reduce((s, i) => s + i.qty * i.price, 0);
   const gst      = Math.round(subtotal * (taxPctGlobal / 100));
   const total    = subtotal + gst;
-  setEl('billSubtotal', subtotal.toLocaleString('en-IN'));
-  setEl('billGST',      gst.toLocaleString('en-IN'));
-  setEl('billTotal',    total.toLocaleString('en-IN'));
+  setEl('billSubtotal', '₹' + subtotal.toLocaleString('en-IN'));
+  setEl('billGST',      '₹' + gst.toLocaleString('en-IN'));
+  setEl('billTotal',    '₹' + total.toLocaleString('en-IN'));
 }
 
 async function finalizeSale() {

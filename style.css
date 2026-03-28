@@ -1417,50 +1417,8 @@ label {
   font-style: italic;
 }
 
-/* PRINT OVERRIDES */
-@media print {
-  body * {
-    visibility: hidden;
-  }
+/* Print rules are consolidated at the bottom of this file → see @media print block */
 
-  .professional-receipt, .professional-receipt * {
-    visibility: visible;
-  }
-
-  .professional-receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    padding: 0;
-    box-shadow: none;
-    border: none;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  @page {
-    margin: 1cm;
-  }
-
-  /* Force table layout even on mobile-resized printers */
-  .receipt-table {
-    display: table !important;
-  }
-  .receipt-table thead {
-    display: table-header-group !important;
-  }
-  .receipt-table tr {
-    display: table-row !important;
-  }
-  .receipt-table td, .receipt-table th {
-    display: table-cell !important;
-  }
-}
 
 @media (max-width: 768px) {
 
@@ -1901,10 +1859,57 @@ label {
   .staff-stats-row { grid-template-columns: repeat(3, 1fr); }
 }
 
-
 /* ── Print Utilities ── */
-.only-print { display: none; }
+.only-print  { display: none; }
+.print-qty   { display: none; } /* hidden on screen, shown on print */
 
 @media print {
-  .only-print { display: inline-block !important; }
+  /* Hide everything except the receipt */
+  body > *                 { visibility: hidden; }
+  #bill-area, #bill-area * { visibility: visible; }
+
+  #bill-area {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    padding: 40px 60px;
+    margin: 0;
+    box-shadow: none;
+    border: none;
+    background: #fff;
+    color: #000;
+  }
+
+  /* Hide interactive UI */
+  .no-print  { display: none !important; }
+  .only-print { display: inline !important; }
+  .print-qty  { display: inline !important; }
+
+  /* Force proper table rendering */
+  .receipt-table,
+  .receipt-table thead,
+  .receipt-table tbody,
+  .receipt-table tr,
+  .receipt-table td,
+  .receipt-table th {
+    display: revert !important;
+    visibility: visible !important;
+  }
+
+  /* Clean up print layout */
+  .receipt-table td,
+  .receipt-table th {
+    padding: 10px 8px !important;
+    border-bottom: 1px solid #ddd !important;
+  }
+
+  /* Align amounts to right */
+  .text-right { text-align: right !important; }
+  .text-center { text-align: center !important; }
+
+  /* Suppress browser chrome (URL, page number) */
+  @page {
+    margin: 1.5cm 1.5cm;
+    size: A4;
+  }
 }
