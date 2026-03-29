@@ -196,17 +196,18 @@
           </div>
         </div>
 
-        <div class="mb-15" style="display:flex; gap:10px; align-items:center;">
+        <div class="mb-15" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input type="tel" id="clientPhoneSearch" placeholder="Search Mobile No..." style="width:150px;">
           <label for="clientGenderFilter" class="sr-only">Filter by gender</label>
-          <select id="clientGenderFilter" title="Filter by gender" style="width:150px;">
-            <option value="">All Clients</option>
+          <select id="clientGenderFilter" title="Filter by gender" style="width:130px;">
+            <option value="">All Genders</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
           </select>
           <label for="clientDateFrom" class="sr-only">From date</label>
-          <input type="date" id="clientDateFrom" title="From date" style="width:150px;">
+          <input type="date" id="clientDateFrom" title="From date" style="width:130px;">
           <label for="clientDateTo" class="sr-only">To date</label>
-          <input type="date" id="clientDateTo" title="To date" style="width:150px;">
+          <input type="date" id="clientDateTo" title="To date" style="width:130px;">
           <button class="btn-primary" onclick="loadClients()">Search</button>
           <button class="btn-black" onclick="exportClients()">Export</button>
           <button class="btn-primary" onclick="openAddClientModal()">+ Add Client</button>
@@ -572,12 +573,9 @@
             <button class="btn-black no-print mt-20 btn-full" onclick="printBill()">
               🖨 Print Receipt
             </button>
-            <button id="btnWhatsApp" class="btn-whatsapp no-print mt-10 btn-full" onclick="sendWhatsAppBill()" disabled title="Lookup client first">
+            <button id="btnSharePDF" class="btn-whatsapp no-print mt-10 btn-full" onclick="shareBillAsPDF()" disabled title="Lookup client first">
               <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" style="width:18px; height:18px; filter:brightness(0) invert(1);"> 
-              Send Bill Message
-            </button>
-            <button id="btnSharePDF" class="btn-black no-print mt-10 btn-full" onclick="shareBillAsPDF()" disabled>
-              📄 Share Bill as PDF
+              Send Receipt via WhatsApp
             </button>
           </div>
 

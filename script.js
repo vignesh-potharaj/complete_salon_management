@@ -380,16 +380,32 @@ async function saveAppointment() {
 
 async function loadClients() {
   try {
-    const clients = await api('/clients');
-    setEl('totalClientsCount', clients.length);
+    const allClients = await api('/clients');
+    
+    // Filtering logic
+    const phoneFilter = document.getElementById('clientPhoneSearch')?.value.trim();
+    const genderFilter = document.getElementById('clientGenderFilter')?.value;
+    const dateFrom = document.getElementById('clientDateFrom')?.value;
+    const dateTo = document.getElementById('clientDateTo')?.value;
+
+    let filtered = allClients.filter(c => {
+      let matches = true;
+      if (phoneFilter && !c.phone.includes(phoneFilter)) matches = false;
+      if (genderFilter && c.gender !== genderFilter) matches = false;
+      if (dateFrom && new Date(c.createdAt) < new Date(dateFrom)) matches = false;
+      if (dateTo && new Date(c.createdAt) > new Date(dateTo).setHours(23,59,59)) matches = false;
+      return matches;
+    });
+
+    setEl('totalClientsCount', allClients.length);
 
     const tbody = document.getElementById('clientsTableBody');
     if (!tbody) return;
-    if (clients.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#999;padding:24px;">No clients yet.</td></tr>`;
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#999;padding:24px;">No clients found matching filters.</td></tr>`;
       return;
     }
-    tbody.innerHTML = clients.map(c => `
+    tbody.innerHTML = filtered.map(c => `
       <tr>
         <td data-label="Name">${esc(c.name)}</td>
         <td data-label="Contact">${esc(c.phone)}</td>
@@ -864,7 +880,7 @@ async function lookupClientByPhone() {
   msgArea.innerHTML = '';
   currentClient = null;
   document.getElementById('billClient').value = '';
-  document.getElementById('btnWhatsApp').disabled = true;
+  document.getElementById('btnSharePDF').disabled = true;
 
   try {
     const clients = await api('/clients');
@@ -876,7 +892,6 @@ async function lookupClientByPhone() {
       document.getElementById('printClientName').innerText = client.name;
       document.getElementById('billDate').innerText = new Date().toLocaleString('en-IN');
       msgArea.innerHTML = `<span style="color:var(--success); font-weight:600;">✓ Client Found: ${esc(client.name)}</span>`;
-      document.getElementById('btnWhatsApp').disabled = false;
       document.getElementById('btnSharePDF').disabled = false;
       showToast('Client found');
     } else {
@@ -987,44 +1002,7 @@ function calculateTotals() {
   setEl('billTotal', '₹' + total.toLocaleString('en-IN'));
 }
 
-async function sendWhatsAppBill() {
-  if (!currentClient || !currentClient.phone) {
-    showToast('Please lookup a client first', 'error');
-    return;
-  }
-  if (billItems.length === 0) {
-    showToast('Add items to the bill', 'error');
-    return;
-  }
-
-  const salonName = document.getElementById('billSalonName').innerText;
-  const clientName = currentClient.name;
-  const dateStr = new Date().toLocaleString('en-IN');
-
-  let itemText = billItems.map(i => `${i.name} (x${i.qty}) - ₹${(i.qty * i.price).toLocaleString('en-IN')}`).join('\n');
-
-  const subtotal = billItems.reduce((s, i) => s + i.qty * i.price, 0);
-  const gst = Math.round(subtotal * (taxPctGlobal / 100));
-  const discountPct = parseFloat(document.getElementById('billDiscountPct').value) || 0;
-  const discountFlat = parseFloat(document.getElementById('billDiscountFlat').value) || 0;
-  const discountTotal = Math.round(subtotal * (discountPct / 100)) + discountFlat;
-  const grandTotal = Math.max(0, subtotal + gst - discountTotal);
-
-  let message = `*INVOICE: ${salonName}*\n\n`;
-  message += `*Date:* ${dateStr}\n`;
-  message += `*Client:* ${clientName}\n`;
-  message += `--------------------------\n`;
-  message += `*Items:*\n${itemText}\n`;
-  message += `--------------------------\n`;
-  message += `*Subtotal:* ₹${subtotal.toLocaleString('en-IN')}\n`;
-  if (gst > 0) message += `*Tax (${taxPctGlobal}%):* ₹${gst.toLocaleString('en-IN')}\n`;
-  if (discountTotal > 0) message += `*Discount:* -₹${discountTotal.toLocaleString('en-IN')}\n`;
-  message += `*GRAND TOTAL: ₹${grandTotal.toLocaleString('en-IN')}*\n\n`;
-  message += `Thank you for choosing ${salonName}!\nVisit again soon.`;
-
-  const url = `https://wa.me/91${currentClient.phone}?text=${encodeURIComponent(message)}`;
-  window.open(url, '_blank');
-}
+// sendWhatsAppBill removed in favor of PDF sharing
 
 async function shareBillAsPDF() {
   const element = document.getElementById('bill-area');
@@ -1128,7 +1106,6 @@ async function finalizeSale() {
     setEl('billDate', '—');
     document.getElementById('billDiscountPct').value = '';
     document.getElementById('billDiscountFlat').value = '';
-    document.getElementById('btnWhatsApp').disabled = true;
     document.getElementById('btnSharePDF').disabled = true;
     showToast(`Bill saved: ₹${grandTotal}`);
     refreshRelated(['checkout', 'reports', 'dashboard', 'inventory', 'clients']);
@@ -1221,7 +1198,6 @@ async function viewBill(id) {
           document.getElementById('billDate').innerText = new Date(bill.date || bill.createdAt).toLocaleString('en-IN');
           document.getElementById('billClientLookup').value = currentClient.phone || '';
           document.getElementById('lookupMessage').innerHTML = `<span ...>✓ Client Loaded: ${esc(currentClient.name)}</span>`;
-          document.getElementById('btnWhatsApp').disabled = false;
           document.getElementById('btnSharePDF').disabled = false;
         }
       } catch (e) { console.error('Error loading client for bill', e); }
