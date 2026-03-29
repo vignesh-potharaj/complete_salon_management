@@ -21,6 +21,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="reports.css">
 </head>
 
 <body>
@@ -688,86 +689,109 @@
               </table>
             </div>
           </div>
-        </div><!-- end .bill-history-section -->
-
-      </div><!-- end #checkout ← THIS WAS THE MISSING TAG -->
-
-      <!-- ═══ REPORTS ═══ -->
+        </div><!-- end .bill      <!-- ═══ REPORTS (Stripe-Level Overhaul) ═══ -->
       <div id="reports" class="section section-hidden">
-        <h2>Reports & Analytics</h2>
-
-        <div class="report-tabs">
-          <button class="tab-btn active" onclick="switchReportTab('executive',this)">Executive</button>
-          <button class="tab-btn" onclick="switchReportTab('sales',this)">Sales</button>
-          <button class="tab-btn" onclick="switchReportTab('staff',this)">Staff</button>
-          <button class="tab-btn" onclick="switchReportTab('clients',this)">Clients</button>
-          <button class="tab-btn" onclick="switchReportTab('inventory',this)">Inventory</button>
+        <div class="dashboard-header no-print">
+          <div>
+            <h1>Analytics Command</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Data-driven insights for salon growth.</p>
+          </div>
+          <div id="reportDateRange" class="date-chip" style="background: var(--surface); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600;">
+            All Time
+          </div>
         </div>
 
-        <!-- Executive -->
+        <!-- Smart Insights -->
+        <div id="smartInsights" class="smart-insights no-print">
+          <div class="insight-icon">💡</div>
+          <div class="insight-text">
+            <h3>Manager's Assistant</h3>
+            <p id="insightDescription">Preparing your executive intelligence report...</p>
+          </div>
+        </div>
+
+        <div class="report-tabs no-print">
+          <button class="tab-btn active" onclick="switchReportTab('executive',this)">Overview</button>
+          <button class="tab-btn" onclick="switchReportTab('sales',this)">Revenue</button>
+          <button class="tab-btn" onclick="switchReportTab('staff',this)">Performance</button>
+          <button class="tab-btn" onclick="switchReportTab('clients',this)">Retention</button>
+          <button class="tab-btn" onclick="switchReportTab('inventory',this)">Assets</button>
+        </div>
+
+        <!-- Overview -->
         <div id="report-executive" class="report-content">
-          <div class="dashboard-cards">
-            <div class="card">
-              <div class="card-title">Total Revenue</div>
-              <div class="card-value" id="repTotalRevenue">₹0</div>
-            </div>
-            <div class="card">
-              <div class="card-title">Est. Net Profit</div>
+          <div class="reports-grid">
+            <div class="glass-card">
+              <span class="card-title">Estimated Net Profit</span>
               <div class="card-value" id="repNetProfit">₹0</div>
+              <div class="kpi-trend trend-up">↑ Real-time tracking</div>
             </div>
-            <div class="card">
-              <div class="card-title">Total Bills</div>
-              <div class="card-value" id="repTotalBills">0</div>
+            <div class="glass-card">
+              <span class="card-title">Staff Utilization</span>
+              <div class="card-value" id="repStaffUtil">0%</div>
+              <div class="kpi-trend" id="repUtilDetail">Target: 70%+</div>
             </div>
-            <div class="card">
-              <div class="card-title">Avg Bill Value</div>
-              <div class="card-value" id="repAvgBill">₹0</div>
+            <div class="glass-card">
+              <span class="card-title">Rebooking Rate</span>
+              <div class="card-value" id="repRebooking">0%</div>
+              <div class="kpi-trend" id="repRebookDetail">Growth driver</div>
             </div>
-            <div class="card">
-              <div class="card-title">Total Staff</div>
-              <div class="card-value" id="repTotalStaff">0</div>
-            </div>
-            <div class="card">
-              <div class="card-title">Total Clients</div>
-              <div class="card-value" id="repTotalClientsRep">0</div>
-            </div>
-            <div class="card">
-              <div class="card-title" style="color:var(--danger)">Low Stock Items</div>
-              <div class="card-value" id="repLowStock">0</div>
-            </div>
-            <div class="card">
-              <div class="card-title">Inventory Value</div>
-              <div class="card-value" id="repInvValue">₹0</div>
+            <div class="glass-card">
+              <span class="card-title">Avg Ticket Size</span>
+              <div class="card-value" id="repAvgTicket">₹0</div>
+              <div class="kpi-trend trend-up">Total Revenue / Total Bills</div>
             </div>
           </div>
-          <div class="chart-box chart-tall">
-            <canvas id="execRevenueChart"></canvas>
+
+          <div class="chart-container-premium">
+            <div class="chart-header">
+              <h3>Revenue Velocity (Last 30 Days)</h3>
+              <div style="font-size:0.8rem; color:var(--text-muted);">Cumulative Sales Trend</div>
+            </div>
+            <div style="height: 350px;">
+              <canvas id="execRevenueChart"></canvas>
+            </div>
           </div>
         </div>
 
         <!-- Sales -->
         <div id="report-sales" class="report-content section-hidden">
-          <div class="chart-row">
-            <div class="chart-box chart-tall"><canvas id="salesPieChart"></canvas></div>
-            <div class="chart-box chart-tall"><canvas id="topServiceChart"></canvas></div>
+          <div class="reports-grid">
+            <div class="glass-card">
+              <span class="card-title">Service Revenue</span>
+              <div class="card-value" id="repTotalRevenue">₹0</div>
+            </div>
+            <div class="glass-card">
+              <span class="card-title">Retail Revenue</span>
+              <div class="card-value" id="repRetailRevenue">₹0</div>
+            </div>
+            <div class="glass-card">
+              <span class="card-title">Retail-to-Service Ratio</span>
+              <div class="card-value" id="repRetailRatio">0%</div>
+            </div>
+          </div>
+          <div class="chart-container-premium">
+            <div class="chart-header"><h3>Category Contribution</h3></div>
+            <div style="height: 300px;"><canvas id="salesPieChart"></canvas></div>
           </div>
         </div>
 
         <!-- Staff -->
         <div id="report-staff" class="report-content section-hidden">
-          <div class="chart-row">
-            <div class="chart-box chart-tall"><canvas id="staffRevenueChart"></canvas></div>
-            <div class="chart-box chart-tall"><canvas id="attendanceChart"></canvas></div>
+          <div class="chart-container-premium">
+            <div class="chart-header"><h3>Staff Revenue Attribution</h3></div>
+            <div style="height: 300px;"><canvas id="staffRevenueChart"></canvas></div>
           </div>
           <div class="table-container mt-20">
             <div class="table-scroll">
               <table>
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Revenue</th>
-                    <th>Commission %</th>
-                    <th>Earned</th>
+                    <th>Professional</th>
+                    <th>Gross Revenue</th>
+                    <th>Utilization</th>
+                    <th>Clients</th>
+                    <th>Commission Earned</th>
                   </tr>
                 </thead>
                 <tbody id="staffReportTable"></tbody>
@@ -778,33 +802,31 @@
 
         <!-- Clients -->
         <div id="report-clients" class="report-content section-hidden">
-          <div class="chart-row">
-            <div class="chart-box chart-tall"><canvas id="clientGrowthChart"></canvas></div>
-            <div class="chart-box chart-tall"><canvas id="recurringClientChart"></canvas></div>
+          <div class="chart-container-premium">
+            <div class="chart-header"><h3>Client Growth & Retention</h3></div>
+            <div style="height: 300px;"><canvas id="recurringClientChart"></canvas></div>
           </div>
         </div>
 
-        <!-- Inventory -->
+        <!-- Assets -->
         <div id="report-inventory" class="report-content section-hidden">
-          <div class="dashboard-cards">
-            <div class="card">
-              <div class="card-title">Total Stock Value</div>
-              <div class="card-value" id="repInvValue2">₹0</div>
+          <div class="reports-grid">
+            <div class="glass-card">
+              <span class="card-title">Total Inventory Value</span>
+              <div class="card-value" id="repInvValue">₹0</div>
             </div>
-            <div class="card">
-              <div class="card-title">Low Stock Items</div>
-              <div class="card-value" id="repLowStockCount">0</div>
-            </div>
-            <div class="card">
-              <div class="card-title">Total Products</div>
-              <div class="card-value" id="repTotalProducts">0</div>
-            </div>
-            <div class="card">
-              <div class="card-title">Low Stock Value</div>
-              <div class="card-value" id="repLowStockValue">₹0</div>
+            <div class="glass-card" style="border-left: 4px solid var(--danger) !important;">
+              <span class="card-title" style="color:var(--danger)">Stock Alerts</span>
+              <div class="card-value" id="repLowStock">0</div>
             </div>
           </div>
-          <div class="chart-box chart-tall mt-20">
+          <div class="chart-container-premium">
+            <div class="chart-header"><h3>Top Depletion Products</h3></div>
+            <div style="height: 300px;"><canvas id="inventoryMarginChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+<div class="chart-box chart-tall mt-20">
             <canvas id="inventoryMarginChart"></canvas>
           </div>
         </div>
