@@ -29,7 +29,14 @@ function showSection(sectionId) {
     if (sectionId === 'clients')   loadClients();
     if (sectionId === 'staff')     loadStaff();
     if (sectionId === 'inventory') loadInventory();
-    if (sectionId === 'checkout')  { populateProductDropdown(); populateServiceDropdown(); populateClientDropdown(); loadBillHistory(); }
+    if (sectionId === 'checkout')  { 
+      populateProductDropdown(); 
+      populateServiceDropdown(); 
+      populateClientDropdown(); 
+      loadBillHistory(); 
+      setEl('billDate', new Date().toLocaleString('en-IN'));
+      setEl('printClientName', document.getElementById('billClient').value || '—');
+    }
     if (sectionId === 'reports')   loadReports();
     if (sectionId === 'settings')  loadSettings();
   } catch (err) {
@@ -866,6 +873,8 @@ async function lookupClientByPhone() {
     if (client) {
       currentClient = client;
       document.getElementById('billClient').value = client.name;
+      document.getElementById('printClientName').innerText = client.name;
+      document.getElementById('billDate').innerText = new Date().toLocaleString('en-IN');
       msgArea.innerHTML = `<span style="color:var(--success); font-weight:600;">✓ Client Found: ${client.name}</span>`;
       document.getElementById('btnWhatsApp').disabled = false;
       document.getElementById('btnSharePDF').disabled = false;
@@ -1115,6 +1124,8 @@ async function finalizeSale() {
       document.getElementById('billClient').value = '';
       document.getElementById('billClientLookup').value = '';
       document.getElementById('lookupMessage').innerHTML = '';
+      setEl('printClientName', '—');
+      setEl('billDate', '—');
       document.getElementById('billDiscountPct').value = '';
       document.getElementById('billDiscountFlat').value = '';
       document.getElementById('btnWhatsApp').disabled = true;
@@ -1206,6 +1217,8 @@ async function viewBill(id) {
         currentClient = clients.find(c => c._id === bill.clientId);
         if (currentClient) {
           document.getElementById('billClient').value = currentClient.name;
+          document.getElementById('printClientName').innerText = currentClient.name;
+          document.getElementById('billDate').innerText = new Date(bill.date || bill.createdAt).toLocaleString('en-IN');
           document.getElementById('billClientLookup').value = currentClient.phone || '';
           document.getElementById('lookupMessage').innerHTML = `<span style="color:var(--success); font-weight:600;">✓ Client Loaded: ${currentClient.name}</span>`;
           document.getElementById('btnWhatsApp').disabled = false;
