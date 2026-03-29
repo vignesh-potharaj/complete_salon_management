@@ -17,6 +17,7 @@
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -571,9 +572,12 @@
             <button class="btn-black no-print mt-20 btn-full" onclick="printBill()">
               🖨 Print Receipt
             </button>
-            <button id="btnWhatsApp" class="btn-whatsapp no-print mt-10 btn-full" onclick="sendWhatsAppBill()" disabled>
+            <button id="btnWhatsApp" class="btn-whatsapp no-print mt-10 btn-full" onclick="sendWhatsAppBill()" disabled title="Lookup client first">
               <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" style="width:18px; height:18px; filter:brightness(0) invert(1);"> 
-              Send Bill via WhatsApp
+              Send Bill Message
+            </button>
+            <button id="btnSharePDF" class="btn-black no-print mt-10 btn-full" onclick="shareBillAsPDF()" disabled>
+              📄 Share Bill as PDF
             </button>
           </div>
 

@@ -868,6 +868,7 @@ async function lookupClientByPhone() {
       document.getElementById('billClient').value = client.name;
       msgArea.innerHTML = `<span style="color:var(--success); font-weight:600;">✓ Client Found: ${client.name}</span>`;
       document.getElementById('btnWhatsApp').disabled = false;
+      document.getElementById('btnSharePDF').disabled = false;
       showToast('Client found');
     } else {
       msgArea.innerHTML = `
@@ -1016,6 +1017,52 @@ async function sendWhatsAppBill() {
   window.open(url, '_blank');
 }
 
+async function shareBillAsPDF() {
+  const element = document.getElementById('bill-area');
+  const clientName = currentClient ? currentClient.name : 'Client';
+  const opt = {
+    margin: 0.2,
+    filename: `Bill_${clientName.replace(/\s+/g, '_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+
+  const btn = document.getElementById('btnSharePDF');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⌛ Generating...';
+
+  try {
+    // Generate PDF blob
+    const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+    const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'Salon Receipt',
+        text: `Here is your receipt from ${document.getElementById('billSalonName').innerText}`
+      });
+      showToast('Share sheet opened');
+    } else {
+      // Fallback to download
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = opt.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('PDF downloaded (Sharing not supported on this browser)');
+    }
+  } catch (err) {
+    showToast('Failed to generate PDF: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+}
+
 async function finalizeSale() {
   if (billItems.length === 0) { showToast('Add items to bill', 'error'); return; }
   const clientName    = document.getElementById('billClient').value.trim();
@@ -1071,6 +1118,7 @@ async function finalizeSale() {
       document.getElementById('billDiscountPct').value = '';
       document.getElementById('billDiscountFlat').value = '';
       document.getElementById('btnWhatsApp').disabled = true;
+      document.getElementById('btnSharePDF').disabled = true;
       showToast(`Bill saved: ₹${grandTotal}`);
       refreshRelated(['checkout', 'reports', 'dashboard', 'inventory', 'clients']);
       
@@ -1150,6 +1198,21 @@ async function viewBill(id) {
     setEl('billSubtotal', bill.subtotal.toLocaleString('en-IN'));
     setEl('billGST', (bill.taxAmount || 0).toLocaleString('en-IN'));
     setEl('billTotal', bill.grandTotal.toLocaleString('en-IN'));
+
+    // Fix: Load client info to enable WhatsApp/PDF share
+    if (bill.clientId) {
+      try {
+        const clients = await api('/clients');
+        currentClient = clients.find(c => c._id === bill.clientId);
+        if (currentClient) {
+          document.getElementById('billClient').value = currentClient.name;
+          document.getElementById('billClientLookup').value = currentClient.phone || '';
+          document.getElementById('lookupMessage').innerHTML = `<span style="color:var(--success); font-weight:600;">✓ Client Loaded: ${currentClient.name}</span>`;
+          document.getElementById('btnWhatsApp').disabled = false;
+          document.getElementById('btnSharePDF').disabled = false;
+        }
+      } catch (e) { console.error('Error loading client for bill', e); }
+    }
 
     showToast('Bill loaded');
     // Scroll to bill area
