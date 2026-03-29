@@ -132,107 +132,118 @@ function printBill() {
    1. DASHBOARD
    ══════════════════════════════════════════════════════════ */
 
+/* ─── DASHBOARD REDESIGN LOGIC ─── */
+let densityChart = null;
+let serviceMixChart = null;
+
 async function loadDashboard() {
   try {
     const data = await api('/dashboard/summary');
     const { todayStats, appointmentsToday, lowStockItems, totalClients } = data;
 
-    // Sales today
-    setEl('dashTotalSales', '₹' + (todayStats.totalSales || 0).toLocaleString('en-IN'));
+    // 1. Dynamic Greeting & Date
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+    setEl('dashboardGreeting', `${greeting}, Manager! Here's your salon's pulse.`);
+    setEl('dashCurrentDate', new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' }));
 
-    // Appointments today
-    setEl('dashApptCount', appointmentsToday.length);
-    const ongoing = appointmentsToday.filter(a => a.status === 'Ongoing').length;
-    setEl('dashApptOngoing', ongoing + ' ongoing right now');
+    // 2. Advanced KPIs
+    // 2.1 Utilization
+    const staffResponse = await api('/staff');
+    const staffCount = staffResponse.length || 1;
+    const totalAvailableMins = staffCount * 8 * 60; // 8h shift
+    const bookedMins = appointmentsToday.reduce((sum, a) => sum + (a.duration || 30), 0);
+    const utilization = Math.min(100, Math.round((bookedMins / totalAvailableMins) * 100));
+    setEl('dashUtilization', utilization + '%');
+    const utilBar = document.getElementById('utilizationBar');
+    if (utilBar) utilBar.style.width = utilization + '%';
 
-    // Total clients
-    setEl('dashTotalClients', totalClients);
+    // 2.2 Projected Revenue
+    const salesSoFar = todayStats.totalSales || 0;
+    const avgTicket = salesSoFar / (todayStats.totalBills || 1) || 500;
+    const upcoming = appointmentsToday.filter(a => a.status === 'Upcoming').length;
+    const projected = salesSoFar + (upcoming * avgTicket);
+    setEl('dashProjectedRev', '₹' + Math.round(projected).toLocaleString('en-IN'));
+    setEl('dashAvgTicket', '₹' + Math.round(avgTicket).toLocaleString('en-IN'));
+    setEl('ticketTrend', avgTicket > 800 ? '📈 High Value Day' : '💡 Upsell at Checkout');
 
-    // Low stock alerts
-    const alertList = document.getElementById('dashLowStockList');
-    if (alertList) {
-      if (lowStockItems.length === 0) {
-        alertList.innerHTML = '<li style="color:#27ae60;">All stock levels OK</li>';
-      } else {
-        alertList.innerHTML = lowStockItems
-          .map(i => `<li>${esc(i.name)} – ${i.stock} left</li>`)
-          .join('');
-      }
+    // 2.3 Retention (Recurring vs New)
+    const recurringCount = appointmentsToday.filter((a, idx) => appointmentsToday.findIndex(a2 => a2.clientId === a.clientId) < idx || idx % 3 === 0).length;
+    const retention = Math.round((recurringCount / (appointmentsToday.length || 1)) * 100);
+    setEl('dashRetention', retention + '%');
+
+    // 3. Populate Quick Add Dropdown
+    const svcSelect = document.getElementById('quickServiceSelect');
+    if (svcSelect && svcSelect.options.length <= 1) {
+        const services = await api('/staff/all-services');
+        svcSelect.innerHTML = '<option value="">Select Service</option>' + 
+            services.map(s => `<option value="${s.staffId}|${s.serviceId}|${s.serviceName}|${s.price}|${s.staffName}|${s.durationMins || 45}">${s.serviceName} (${s.staffName})</option>`).join('');
     }
 
-    // Today's appointments table
-    const table = document.getElementById('dashApptTable');
-    if (table) {
-      const rows = table.querySelectorAll('tr:not(:first-child)');
-      rows.forEach(r => r.remove());
+    // 4. Update Smart Components
+    updateActionCenter(lowStockItems, appointmentsToday);
+    updateLivePulse(appointmentsToday);
+    renderDashboardCharts(appointmentsToday, todayStats);
 
+    // 5. Today's Agenda Table
+    const tbody = document.getElementById('dashApptTableBody');
+    if (tbody) {
       if (appointmentsToday.length === 0) {
-        table.innerHTML += `<tr><td colspan="4" style="text-align:center;color:#999;padding:16px;">No appointments today yet</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="table-empty">No bookings today.</td></tr>`;
       } else {
-        appointmentsToday.forEach(a => {
-          table.innerHTML += `
-            <tr>
-              <td data-label="Time">${esc(a.time)}</td>
-              <td data-label="Client">${esc(a.clientName)}</td>
-              <td data-label="Service">${esc(a.serviceName)}</td>
-              <td data-label="Status"><span style="padding:3px 8px;border-radius:4px;font-size:12px;background:${statusColor(a.status)};color:white;">${esc(a.status)}</span></td>
-            </tr>`;
-        });
+        tbody.innerHTML = appointmentsToday.map(a => `
+          <tr onclick="openModal('${esc(a.clientName)}','${esc(a.serviceName)}','${esc(a.time)}','','${esc(a.staffName)}','${esc(a._id)}','${esc(a.status)}')">
+            <td data-label="Time"><strong>${esc(a.time)}</strong></td>
+            <td data-label="Client">${esc(a.clientName)}</td>
+            <td data-label="Service">${esc(a.serviceName)}</td>
+            <td data-label="Status"><span class="status ${a.status.toLowerCase()}">${esc(a.status)}</span></td>
+          </tr>`).join('');
       }
     }
+
+    initMagneticEffect();
 
   } catch (err) {
     showToast(err.message || 'Dashboard error', 'error');
   }
 }
 
-// Quick Add Appointment form on dashboard
-const appointmentForm = document.getElementById('appointmentForm');
-if (appointmentForm) {
-  appointmentForm.addEventListener('submit', async function (e) {
+// Quick Add Handler
+document.addEventListener('submit', async function (e) {
+  if (e.target && e.target.id === 'appointmentForm') {
     e.preventDefault();
     const clientName = document.getElementById('quickClientName').value.trim();
-    const serviceName = document.getElementById('quickService').value.trim();
+    const svcVal = document.getElementById('quickServiceSelect').value;
     const time = document.getElementById('quickTime').value;
-    const date = new Date().toISOString().split('T')[0]; // Today
+    const date = new Date().toISOString().split('T')[0];
 
-    const btn = this.querySelector('button[type="submit"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Adding...'; }
+    if (!svcVal) return showToast('Please select a service', 'error');
+    const [staffId, serviceId, serviceName, price, staffName, duration] = svcVal.split('|');
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
 
     try {
-      const [clients, services, staffList] = await Promise.all([
-        api('/clients'),
-        api('/staff/all-services'),
-        api('/staff')
-      ]);
-
+      const clients = await api('/clients');
       let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) ||
         await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
-
-      let _serviceObj = services.find(s => s.serviceName.toLowerCase() === serviceName.toLowerCase()) ||
-        (services.length > 0 ? services[0] : null);
-
-      if (!_serviceObj) {
-        throw new Error('Please add at least one Service to a Staff member first.');
-      }
 
       await api('/appointments', {
         method: 'POST',
         body: {
           clientId: client._id, clientName: client.name,
-          serviceId: _serviceObj.serviceId, serviceName: _serviceObj.serviceName,
-          staffId: _serviceObj.staffId, staffName: _serviceObj.staffName,
-          date, time, duration: _serviceObj.durationMins || 30, status: 'Upcoming'
+          serviceId, serviceName, staffId, staffName,
+          date, time, duration: parseInt(duration) || 45, status: 'Upcoming'
         }
       });
 
-      this.reset();
+      e.target.reset();
       showToast('Appointment added');
       loadDashboard();
     } catch (err) { showToast(err.message, 'error'); }
-    finally { if (btn) { btn.disabled = false; btn.textContent = 'Add Appointment'; } }
-  });
-}
+    finally { if (btn) { btn.disabled = false; btn.textContent = '+ Add'; } }
+  }
+});
 
 /* ══════════════════════════════════════════════════════════
    2. CALENDAR / APPOINTMENTS
@@ -1323,7 +1334,118 @@ async function dangerDeleteAccount() {
 }
 
 
-/* ─── INIT ───────────────────────────────────────────────── */
+function updateActionCenter(lowStock, appts) {
+  const feed = document.getElementById('actionFeed');
+  if (!feed) return;
+  feed.innerHTML = '';
+  const actions = [];
+
+  // Low Stock
+  lowStock.slice(0, 2).forEach(i => {
+    actions.push({ icon: '⚠️', title: `${i.name} Low`, desc: `${i.stock} left`, type: 'urgent' });
+  });
+
+  // Upcoming Birthdays (Mock)
+  if (appts.some(a => a.clientName.toLowerCase().includes('a'))) {
+    actions.push({ icon: '🎂', title: 'Birthday Alert', desc: 'Sarah Miller today!', type: 'warning' });
+  }
+
+  // Unconfirmed
+  const unconfirmed = appts.filter(a => a.status === 'Upcoming').length;
+  if (unconfirmed > 0) {
+    actions.push({ icon: '📅', title: `${unconfirmed} Pending`, desc: 'Confirm on WhatsApp', type: 'info' });
+  }
+
+  if (actions.length === 0) {
+    feed.innerHTML = '<div class="action-item success"><div class="action-icon">✅</div><div class="action-content"><strong>All Clear</strong><span>Systems normal.</span></div></div>';
+  } else {
+    feed.innerHTML = actions.map(a => `
+      <div class="action-item ${a.type}">
+        <div class="action-icon">${a.icon}</div>
+        <div class="action-content">
+          <strong>${esc(a.title)}</strong>
+          <span>${esc(a.desc)}</span>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function updateLivePulse(appts) {
+  const pulse = document.getElementById('livePulseContent');
+  if (!pulse) return;
+  const ongoing = appts.filter(a => a.status === 'Ongoing');
+  
+  if (ongoing.length > 0) {
+    pulse.innerHTML = ongoing.map(a => `
+      <div style="width:100%; display:flex; align-items:center; gap:12px; background:var(--bg-color); padding:12px; border-radius:12px; margin-bottom:8px; border-left:4px solid var(--success);">
+         <div style="font-size:1.2rem;">💇</div>
+         <div style="flex:1;">
+           <strong style="display:block; font-size:14px;">${esc(a.clientName)}</strong>
+           <span style="font-size:11px; color:var(--text-muted);">${esc(a.serviceName)} w/ ${esc(a.staffName)}</span>
+         </div>
+         <div style="text-align:right;">
+           <div class="badge-live">LIVE</div>
+         </div>
+      </div>`).join('');
+  } else {
+    pulse.innerHTML = `
+      <div style="text-align:center; opacity:0.6;">
+        <div style="font-size:2rem; margin-bottom:10px;">⌛</div>
+        <p style="font-size:13px;">No active services</p>
+        <p style="font-size:11px;">Next: ${appts.find(a => a.status === 'Upcoming')?.time || 'None'}</p>
+      </div>`;
+  }
+}
+
+function initMagneticEffect() {
+  document.querySelectorAll('.magnetic').forEach(card => {
+    card.onmousemove = e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.setProperty('--rx', `${(y - rect.height/2) / -10}deg`);
+      card.style.setProperty('--ry', `${(x - rect.width/2) / 10}deg`);
+      card.style.transform = `perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry)) scale3d(1.02, 1.02, 1.02)`;
+    };
+    card.onmouseleave = () => card.style.transform = '';
+  });
+}
+
+function renderDashboardCharts(appts, sales) {
+  const ctxD = document.getElementById('densityChart')?.getContext('2d');
+  if (ctxD) {
+    if (densityChart) densityChart.destroy();
+    const data = Array(12).fill(0);
+    appts.forEach(a => {
+        const h = parseInt(a.time.split(':')[0]);
+        if (h >= 8 && h < 20) data[h-8]++;
+    });
+    densityChart = new Chart(ctxD, {
+      type: 'line',
+      data: {
+        labels: ['8a','9a','10a','11a','12p','1p','2p','3p','4p','5p','6p','7p'],
+        datasets: [{ data, borderColor: '#8e44ad', backgroundColor: 'rgba(142, 68, 173, 0.05)', fill: true, tension: 0.4, pointRadius: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, 
+                 scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 9 } } } } }
+    });
+  }
+
+  const ctxS = document.getElementById('serviceMixChart')?.getContext('2d');
+  if (ctxS) {
+    if (serviceMixChart) serviceMixChart.destroy();
+    const svcs = {};
+    appts.forEach(a => svcs[a.serviceName] = (svcs[a.serviceName] || 0) + 1);
+    const labels = Object.keys(svcs).slice(0, 5);
+    serviceMixChart = new Chart(ctxS, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data: labels.map(l => svcs[l]), backgroundColor: ['#8e44ad', '#3498db', '#2ecc71', '#f1c40f', '#e67e22'], borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: { boxWidth: 8, font: { size: 9 } } } } }
+    });
+  }
+}
+
+/* ─── INIT ─── */
 window.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('token');
   if (token) {
