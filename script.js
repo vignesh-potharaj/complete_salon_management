@@ -24,21 +24,21 @@ function showSection(sectionId) {
     if (sidebar) sidebar.classList.remove('open');
     if (overlay) overlay.classList.remove('active');
 
-    if (sectionId === 'home')      loadDashboard();
-    if (sectionId === 'calendar')  loadCalendar();
-    if (sectionId === 'clients')   loadClients();
-    if (sectionId === 'staff')     loadStaff();
+    if (sectionId === 'home') loadDashboard();
+    if (sectionId === 'calendar') loadCalendar();
+    if (sectionId === 'clients') loadClients();
+    if (sectionId === 'staff') loadStaff();
     if (sectionId === 'inventory') loadInventory();
-    if (sectionId === 'checkout')  { 
-      populateProductDropdown(); 
-      populateServiceDropdown(); 
-      populateClientDropdown(); 
-      loadBillHistory(); 
+    if (sectionId === 'checkout') {
+      populateProductDropdown();
+      populateServiceDropdown();
+      populateClientDropdown();
+      loadBillHistory();
       setEl('billDate', new Date().toLocaleString('en-IN'));
       setEl('printClientName', document.getElementById('billClient').value || '—');
     }
-    if (sectionId === 'reports')   loadReports();
-    if (sectionId === 'settings')  loadSettings();
+    if (sectionId === 'reports') loadReports();
+    if (sectionId === 'settings') loadSettings();
   } catch (err) {
     console.error('Navigation error:', err);
     showToast('Failed to load section: ' + sectionId, 'error');
@@ -67,7 +67,7 @@ function confirmAction(message, onConfirm) {
     </div>`;
   container.appendChild(toast);
   toast.querySelector('#confirmYes').onclick = () => { toast.remove(); onConfirm(); };
-  toast.querySelector('#confirmNo').onclick  = () => toast.remove();
+  toast.querySelector('#confirmNo').onclick = () => toast.remove();
 }
 
 function setEl(id, value) {
@@ -77,16 +77,16 @@ function setEl(id, value) {
 
 function statusColor(s) {
   return s === 'Completed' ? '#27ae60'
-       : s === 'Ongoing'   ? '#e67e22'
-       : s === 'Cancelled' ? '#e74c3c'
-       : '#3498db';
+    : s === 'Ongoing' ? '#e67e22'
+      : s === 'Cancelled' ? '#e74c3c'
+        : '#3498db';
 }
 
 function openModal(client, service, time, amount, staff, id, status) {
-  setEl('modalClient', client);   setEl('modalService', service);
-  setEl('modalTime', time);       setEl('modalAmount', amount);
+  setEl('modalClient', client); setEl('modalService', service);
+  setEl('modalTime', time); setEl('modalAmount', amount);
   setEl('modalStaff', staff);
-  
+
   // Attach appointment ID for converting to bill
   const appointmentModal = document.getElementById('appointmentModal');
   appointmentModal.dataset.apptId = id;
@@ -104,11 +104,11 @@ function openModal(client, service, time, amount, staff, id, status) {
     statusBox.style.borderTop = '1px solid #eee';
     appointmentModal.querySelector('.modal-content').appendChild(statusBox);
   }
-  
+
   statusBox.innerHTML = `
     <p style="font-size:12px;color:#666;margin-bottom:8px;">Update Status:</p>
     <div style="display:flex;gap:5px;flex-wrap:wrap;">
-      ${['Upcoming','Ongoing','Completed','Cancelled'].map(s => `
+      ${['Upcoming', 'Ongoing', 'Completed', 'Cancelled'].map(s => `
         <button onclick="updateAppointmentStatus('${esc(id)}', '${esc(s)}')" 
           style="padding:5px 10px;font-size:11px;border:none;border-radius:4px;cursor:pointer;
           background:${s === status ? statusColor(s) : '#eee'};
@@ -118,7 +118,7 @@ function openModal(client, service, time, amount, staff, id, status) {
       `).join('')}
     </div>
   `;
-  
+
   appointmentModal.style.display = 'block';
 }
 function closeModal() { document.getElementById('appointmentModal').style.display = 'none'; }
@@ -192,10 +192,10 @@ if (appointmentForm) {
   appointmentForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     const clientName = document.getElementById('quickClientName').value.trim();
-    const serviceName    = document.getElementById('quickService').value.trim();
-    const time       = document.getElementById('quickTime').value;
-    const date       = new Date().toISOString().split('T')[0]; // Today
-    
+    const serviceName = document.getElementById('quickService').value.trim();
+    const time = document.getElementById('quickTime').value;
+    const date = new Date().toISOString().split('T')[0]; // Today
+
     const btn = this.querySelector('button[type="submit"]');
     if (btn) { btn.disabled = true; btn.textContent = 'Adding...'; }
 
@@ -205,27 +205,27 @@ if (appointmentForm) {
         api('/staff/all-services'),
         api('/staff')
       ]);
-      
-      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || 
-                   await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
 
-      let _serviceObj = services.find(s => s.serviceName.toLowerCase() === serviceName.toLowerCase()) || 
-                     (services.length > 0 ? services[0] : null);
+      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) ||
+        await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+
+      let _serviceObj = services.find(s => s.serviceName.toLowerCase() === serviceName.toLowerCase()) ||
+        (services.length > 0 ? services[0] : null);
 
       if (!_serviceObj) {
         throw new Error('Please add at least one Service to a Staff member first.');
       }
 
-      await api('/appointments', { 
-        method: 'POST', 
-        body: { 
-          clientId: client._id, clientName: client.name, 
-          serviceId: _serviceObj.serviceId, serviceName: _serviceObj.serviceName, 
+      await api('/appointments', {
+        method: 'POST',
+        body: {
+          clientId: client._id, clientName: client.name,
+          serviceId: _serviceObj.serviceId, serviceName: _serviceObj.serviceName,
           staffId: _serviceObj.staffId, staffName: _serviceObj.staffName,
-          date, time, duration: _serviceObj.durationMins || 30, status: 'Upcoming' 
-        } 
+          date, time, duration: _serviceObj.durationMins || 30, status: 'Upcoming'
+        }
       });
-      
+
       this.reset();
       showToast('Appointment added');
       loadDashboard();
@@ -238,12 +238,12 @@ if (appointmentForm) {
    2. CALENDAR / APPOINTMENTS
    ══════════════════════════════════════════════════════════ */
 
-const SLOT_COLORS = ['#ff4d4d','#6c5ce7','#0984e3','#e17055','#00b894','#fdcb6e','#fd79a8'];
+const SLOT_COLORS = ['#ff4d4d', '#6c5ce7', '#0984e3', '#e17055', '#00b894', '#fdcb6e', '#fd79a8'];
 
 async function loadCalendar() {
   try {
     const header = document.getElementById('calendarDateHeader');
-    if (header) header.innerText = new Date().toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    if (header) header.innerText = new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     const today = new Date().toISOString().split('T')[0];
     const [appointments, staff] = await Promise.all([
@@ -266,7 +266,7 @@ async function loadCalendar() {
 
     const grid = document.getElementById('calendarGrid');
     if (!grid) return;
-    grid.innerHTML = ''; 
+    grid.innerHTML = '';
 
     if (appointments.length === 0) {
       grid.innerHTML = `<div style="grid-column:1/-1;grid-row:1;padding:24px;text-align:center;color:#999;font-size:14px;">No appointments today.</div>`;
@@ -298,13 +298,13 @@ async function loadCalendar() {
       // Desktop Grid View
       grid.style.display = 'grid'; // Ensure grid display
       appointments.forEach((appt, idx) => {
-        const hour     = parseTimeToHour(appt.time);
-        const rowIndex = Math.max(1, hour - 7); 
-        const div      = document.createElement('div');
-        div.className  = 'appointment';
+        const hour = parseTimeToHour(appt.time);
+        const rowIndex = Math.max(1, hour - 7);
+        const div = document.createElement('div');
+        div.className = 'appointment';
         div.style.cssText = `grid-column:${(idx % 5) + 1};grid-row:${rowIndex};background:${statusColor(appt.status)};`;
-        div.innerHTML  = `<strong>${esc(appt.clientName)}</strong><br>${esc(appt.serviceName)}<br>${esc(appt.time)} <br><em>${esc(appt.status)}</em>`;
-        div.onclick    = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
+        div.innerHTML = `<strong>${esc(appt.clientName)}</strong><br>${esc(appt.serviceName)}<br>${esc(appt.time)} <br><em>${esc(appt.status)}</em>`;
+        div.onclick = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
         grid.appendChild(div);
       });
     }
@@ -331,39 +331,39 @@ function parseTimeToHour(t) {
   return h;
 }
 
-function openAddApptModal()  { document.getElementById('addApptModal').style.display = 'block'; }
+function openAddApptModal() { document.getElementById('addApptModal').style.display = 'block'; }
 function closeAddApptModal() { document.getElementById('addApptModal').style.display = 'none'; }
 
 async function saveAppointment() {
   const clientName = document.getElementById('apptClient').value.trim();
-  const serviceName    = document.getElementById('apptService').value.trim();
-  const time       = document.getElementById('apptTime').value;
-  const btn        = document.getElementById('saveApptBtn');
-  
+  const serviceName = document.getElementById('apptService').value.trim();
+  const time = document.getElementById('apptTime').value;
+  const btn = document.getElementById('saveApptBtn');
+
   if (!clientName || !serviceName || !time) { showToast('Please fill all fields', 'error'); return; }
-  
+
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
-      const clients = await api('/clients');
-      const services = await api('/staff/all-services');
-      const staffList = await api('/staff');
-      
-      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
-      let _serviceObj = services.find(s => s.serviceName.toLowerCase() === serviceName.toLowerCase()) || (services.length > 0 ? services[0] : null);
+    const clients = await api('/clients');
+    const services = await api('/staff/all-services');
+    const staffList = await api('/staff');
 
-      if (!_serviceObj) throw new Error('Please add at least one Service to a Staff member first.');
+    let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+    let _serviceObj = services.find(s => s.serviceName.toLowerCase() === serviceName.toLowerCase()) || (services.length > 0 ? services[0] : null);
 
-      await api('/appointments', { 
-        method: 'POST', 
-        body: { 
-          clientId: client._id, clientName: client.name, 
-          serviceId: _serviceObj.serviceId, serviceName: _serviceObj.serviceName, 
-          staffId: _serviceObj.staffId, staffName: _serviceObj.staffName,
-          date: document.getElementById('calendarDateHeader').dataset.isoDate || new Date().toISOString().split('T')[0], 
-          time, duration: _serviceObj.durationMins || 30, status: 'Upcoming' 
-        } 
-      });
-      
+    if (!_serviceObj) throw new Error('Please add at least one Service to a Staff member first.');
+
+    await api('/appointments', {
+      method: 'POST',
+      body: {
+        clientId: client._id, clientName: client.name,
+        serviceId: _serviceObj.serviceId, serviceName: _serviceObj.serviceName,
+        staffId: _serviceObj.staffId, staffName: _serviceObj.staffName,
+        date: document.getElementById('calendarDateHeader').dataset.isoDate || new Date().toISOString().split('T')[0],
+        time, duration: _serviceObj.durationMins || 30, status: 'Upcoming'
+      }
+    });
+
     closeAddApptModal();
     document.getElementById('apptClient').value = '';
     document.getElementById('apptService').value = '';
@@ -381,7 +381,7 @@ async function saveAppointment() {
 async function loadClients() {
   try {
     const clients = await api('/clients');
-    setEl('totalClientsCount',  clients.length);
+    setEl('totalClientsCount', clients.length);
 
     const tbody = document.getElementById('clientsTableBody');
     if (!tbody) return;
@@ -396,30 +396,30 @@ async function loadClients() {
         <td data-label="DOB">${c.dob ? new Date(c.dob).toLocaleDateString('en-IN') : '—'}</td>
         <td data-label="First Visit">${new Date(c.createdAt).toLocaleDateString()}</td>
         <td data-label="Total Visits">${c.totalVisits || 0}</td>
-        <td data-label="Last Visit">${c.lastVisit  ? new Date(c.lastVisit).toLocaleDateString()  : '—'}</td>
+        <td data-label="Last Visit">${c.lastVisit ? new Date(c.lastVisit).toLocaleDateString() : '—'}</td>
         <td data-label="Total Spent">₹${(c.totalSpend || 0).toLocaleString('en-IN')}</td>
       </tr>`).join('');
   } catch (err) { showToast(err.message || 'Clients error', 'error'); }
 }
 
-function openAddClientModal()  { document.getElementById('addClientModal').style.display = 'block'; }
+function openAddClientModal() { document.getElementById('addClientModal').style.display = 'block'; }
 function closeAddClientModal() { document.getElementById('addClientModal').style.display = 'none'; }
 
 async function saveClient() {
-  const name   = document.getElementById('newClientName').value.trim();
-  const phone  = document.getElementById('newClientPhone').value.trim();
-  const email  = document.getElementById('newClientEmail').value.trim();
-  const dob    = document.getElementById('newClientDOB').value;
-  
+  const name = document.getElementById('newClientName').value.trim();
+  const phone = document.getElementById('newClientPhone').value.trim();
+  const email = document.getElementById('newClientEmail').value.trim();
+  const dob = document.getElementById('newClientDOB').value;
+
   if (!name || !phone) { showToast('Name and phone are required', 'error'); return; }
-  
+
   const btn = document.querySelector('button[onclick="saveClient()"]');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
-  
+
   try {
     await api('/clients', { method: 'POST', body: { name, phone, email, dob } });
     closeAddClientModal();
-    ['newClientName','newClientPhone','newClientEmail','newClientDOB'].forEach(id => document.getElementById(id).value = '');
+    ['newClientName', 'newClientPhone', 'newClientEmail', 'newClientDOB'].forEach(id => document.getElementById(id).value = '');
     showToast('Client added');
     refreshRelated(['clients', 'dashboard']);
   } catch (err) { showToast(err.message, 'error'); }
@@ -442,19 +442,19 @@ async function loadStaff() {
       try {
         const perf = await api(`/staff/${s._id}/performance`);
         s.totalRevenue = perf.revenueThisMonth || 0;
-        s.earned       = perf.commissionThisMonth || 0;
-      } catch(e) { s.totalRevenue = 0; s.earned = 0; }
+        s.earned = perf.commissionThisMonth || 0;
+      } catch (e) { s.totalRevenue = 0; s.earned = 0; }
     }
 
     /* ── KPI cards ── */
-    const present  = staff.filter(s => s.active).length;
+    const present = staff.filter(s => s.active).length;
     const totalRev = staff.reduce((sum, s) => sum + (s.totalRevenue || 0), 0);
-    const top      = [...staff].sort((a,b) => (b.totalRevenue||0)-(a.totalRevenue||0))[0];
+    const top = [...staff].sort((a, b) => (b.totalRevenue || 0) - (a.totalRevenue || 0))[0];
 
-    setEl('totalStaffCount',   staff.length);
-    setEl('onDutyCount',       present);
+    setEl('totalStaffCount', staff.length);
+    setEl('onDutyCount', present);
     setEl('staffTotalRevenue', '₹' + totalRev.toLocaleString('en-IN'));
-    setEl('topPerformerName',  top ? top.name : '—');
+    setEl('topPerformerName', top ? top.name : '—');
 
     /* ── Gallery ── */
     const gallery = document.getElementById('staffGallery');
@@ -475,15 +475,15 @@ async function loadStaff() {
     gallery.innerHTML = staff.map(s => {
       const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff&size=128`;
       const commission = Math.round((s.earned || 0));
-      const svcCount   = (s.services || []).length;
+      const svcCount = (s.services || []).length;
 
       const serviceChips = svcCount === 0
         ? `<span class="staff-no-services">No services added yet</span>`
         : (s.services || []).map(sv =>
-            `<span class="service-chip">
+          `<span class="service-chip">
               ${esc(sv.name)}<span class="chip-price">₹${sv.price}</span>
             </span>`
-          ).join('');
+        ).join('');
 
       return `
         <div class="staff-member-card">
@@ -506,7 +506,7 @@ async function loadStaff() {
 
             <div class="staff-stats-row">
               <div class="staff-stat">
-                <strong>₹${(s.totalRevenue||0).toLocaleString('en-IN')}</strong>
+                <strong>₹${(s.totalRevenue || 0).toLocaleString('en-IN')}</strong>
                 <span>Revenue</span>
               </div>
               <div class="staff-stat">
@@ -535,14 +535,14 @@ async function loadStaff() {
         </div>`;
     }).join('');
 
-  } catch(err) { showToast(err.message || 'Staff error', 'error'); }
+  } catch (err) { showToast(err.message || 'Staff error', 'error'); }
 }
 
 /* ── Open modal for NEW staff ────────────────────────── */
 function openStaffModal() {
   document.getElementById('staffModalTitle').innerText = 'Add Staff Member';
   document.getElementById('editingStaffId').value = '';
-  ['newStaffName','newStaffRole','newStaffPhone','newStaffCommission']
+  ['newStaffName', 'newStaffRole', 'newStaffPhone', 'newStaffCommission']
     .forEach(id => document.getElementById(id).value = '');
   _modalServices = [];
   renderModalServices();
@@ -555,9 +555,9 @@ async function openEditStaffModal(id) {
     const s = await api(`/staff/${id}`);
     document.getElementById('staffModalTitle').innerText = 'Edit Staff Member';
     document.getElementById('editingStaffId').value = s._id;
-    document.getElementById('newStaffName').value       = s.name;
-    document.getElementById('newStaffRole').value       = s.role;
-    document.getElementById('newStaffPhone').value      = s.phone;
+    document.getElementById('newStaffName').value = s.name;
+    document.getElementById('newStaffRole').value = s.role;
+    document.getElementById('newStaffPhone').value = s.phone;
     document.getElementById('newStaffCommission').value = s.commissionPct;
     _modalServices = (s.services || []).map(sv => ({
       name: sv.name, price: sv.price,
@@ -565,7 +565,7 @@ async function openEditStaffModal(id) {
     }));
     renderModalServices();
     document.getElementById('addStaffModal').style.display = 'block';
-  } catch(err) { showToast(err.message, 'error'); }
+  } catch (err) { showToast(err.message, 'error'); }
 }
 
 function closeStaffModal() {
@@ -575,18 +575,18 @@ function closeStaffModal() {
 
 /* ── Inline add service to modal list ───────────────── */
 function addServiceToModal() {
-  const name     = document.getElementById('inlineSvcName').value.trim();
-  const price    = parseFloat(document.getElementById('inlineSvcPrice').value);
+  const name = document.getElementById('inlineSvcName').value.trim();
+  const price = parseFloat(document.getElementById('inlineSvcPrice').value);
   const duration = parseInt(document.getElementById('inlineSvcDuration').value) || 30;
 
-  if (!name)       { showToast('Service name is required', 'error'); return; }
+  if (!name) { showToast('Service name is required', 'error'); return; }
   if (isNaN(price) || price <= 0) { showToast('Enter a valid price', 'error'); return; }
 
   _modalServices.push({ name, price, durationMins: duration, category: 'General' });
   renderModalServices();
 
-  document.getElementById('inlineSvcName').value     = '';
-  document.getElementById('inlineSvcPrice').value    = '';
+  document.getElementById('inlineSvcName').value = '';
+  document.getElementById('inlineSvcPrice').value = '';
   document.getElementById('inlineSvcDuration').value = '';
   document.getElementById('inlineSvcName').focus();
 }
@@ -620,19 +620,19 @@ function renderModalServices() {
 
 /* ── Save staff (handles both add and edit) ──────────── */
 async function saveStaff() {
-  const id         = document.getElementById('editingStaffId').value;
-  const name       = document.getElementById('newStaffName').value.trim();
-  const role       = document.getElementById('newStaffRole').value.trim();
-  const phone      = document.getElementById('newStaffPhone').value.trim();
+  const id = document.getElementById('editingStaffId').value;
+  const name = document.getElementById('newStaffName').value.trim();
+  const role = document.getElementById('newStaffRole').value.trim();
+  const phone = document.getElementById('newStaffPhone').value.trim();
   const commission = document.getElementById('newStaffCommission').value;
-  const btn        = document.querySelector('#addStaffModal .btn-full');
+  const btn = document.querySelector('#addStaffModal .btn-full');
 
-  if (!name)       { showToast('Name is required', 'error');       return; }
-  if (!role)       { showToast('Role is required', 'error');       return; }
-  if (!phone)      { showToast('Phone is required', 'error');      return; }
+  if (!name) { showToast('Name is required', 'error'); return; }
+  if (!role) { showToast('Role is required', 'error'); return; }
+  if (!phone) { showToast('Phone is required', 'error'); return; }
   if (!commission) { showToast('Commission is required', 'error'); return; }
 
-  btn.disabled    = true;
+  btn.disabled = true;
   btn.textContent = 'Saving...';
 
   const payload = {
@@ -651,9 +651,9 @@ async function saveStaff() {
     }
     closeStaffModal();
     refreshRelated(['staff', 'checkout']);
-  } catch(err) { showToast(err.message, 'error'); }
+  } catch (err) { showToast(err.message, 'error'); }
   finally {
-    btn.disabled    = false;
+    btn.disabled = false;
     btn.textContent = 'Save Staff Member';
   }
 }
@@ -665,7 +665,7 @@ async function deleteStaffById(event, id) {
     await api(`/staff/${id}`, { method: 'DELETE' });
     showToast('Staff deleted');
     refreshRelated(['staff', 'checkout']);
-  } catch(err) { showToast(err.message, 'error'); }
+  } catch (err) { showToast(err.message, 'error'); }
 }
 
 /* ── Also allow Enter key in inline service form ─────── */
@@ -736,17 +736,17 @@ async function loadInventory() {
   } catch (err) { showToast('Inventory error', 'error'); }
 }
 
-function openInvModal()  { document.getElementById('inventoryModal').style.display = 'block'; }
+function openInvModal() { document.getElementById('inventoryModal').style.display = 'block'; }
 function closeInvModal() { document.getElementById('inventoryModal').style.display = 'none'; }
 
 async function addInventory() {
-  const name          = document.getElementById('invName').value.trim();
-  const category      = document.getElementById('invCategory').value.trim();
-  const stock         = parseInt(document.getElementById('invStock').value);
-  const minStock      = parseInt(document.getElementById('invMin').value);
+  const name = document.getElementById('invName').value.trim();
+  const category = document.getElementById('invCategory').value.trim();
+  const stock = parseInt(document.getElementById('invStock').value);
+  const minStock = parseInt(document.getElementById('invMin').value);
   const purchasePrice = parseInt(document.getElementById('invPurchase').value);
-  const sellingPrice  = parseInt(document.getElementById('invSelling').value);
-  const brand         = document.getElementById('invSupplier').value.trim(); // Mapping supplier to brand
+  const sellingPrice = parseInt(document.getElementById('invSelling').value);
+  const brand = document.getElementById('invSupplier').value.trim(); // Mapping supplier to brand
 
   if (!name || !category || isNaN(stock) || isNaN(minStock) || isNaN(purchasePrice) || isNaN(sellingPrice)) {
     showToast('Please fill all required fields', 'error'); return;
@@ -780,10 +780,10 @@ async function changeStockById(id, delta) {
 
 async function deleteInventoryItem(id) {
   confirmAction('Delete this product?', async () => {
-    try { 
-      await api(`/inventory/${id}`, { method: 'DELETE' }); 
+    try {
+      await api(`/inventory/${id}`, { method: 'DELETE' });
       showToast('Product deleted');
-      refreshRelated(['inventory']); 
+      refreshRelated(['inventory']);
     } catch (err) { showToast(err.message, 'error'); }
   });
 }
@@ -798,7 +798,7 @@ let currentClient = null; // Store current looked-up client object
 
 async function populateProductDropdown() {
   try {
-    const items  = await api('/inventory');
+    const items = await api('/inventory');
     const select = document.getElementById('productSelect');
     if (!select) return;
     const available = items.filter(i => i.stock > 0);
@@ -813,24 +813,24 @@ async function populateProductDropdown() {
 
 async function populateServiceDropdown() {
   try {
-    const items  = await api('/staff/all-services');
+    const items = await api('/staff/all-services');
     const select = document.getElementById('serviceSelect');
     if (!select) return;
 
     if (!items || items.length === 0) {
-      select.innerHTML = 
+      select.innerHTML =
         '<option value="">No services — add via Staff section</option>';
       return;
     }
 
-    select.innerHTML = 
+    select.innerHTML =
       '<option value="">Select Service & Staff...</option>' +
       items.map(i =>
         `<option value="${i.staffId}|${i.serviceId}|${esc(i.serviceName)}|${i.price}|${esc(i.staffName)}">
           ${esc(i.serviceName)} — ${esc(i.staffName)} (₹${i.price})
         </option>`
       ).join('');
-  } catch(err) { showToast(err.message, 'error'); }
+  } catch (err) { showToast(err.message, 'error'); }
 }
 
 async function populateClientDropdown() {
@@ -840,20 +840,20 @@ async function populateClientDropdown() {
     const clients = await api('/clients');
     let dataList = document.getElementById('clientDataList');
     if (!dataList) {
-        dataList = document.createElement('datalist');
-        dataList.id = 'clientDataList';
-        document.body.appendChild(dataList);
-        document.getElementById('billClient').setAttribute('list', 'clientDataList');
+      dataList = document.createElement('datalist');
+      dataList.id = 'clientDataList';
+      document.body.appendChild(dataList);
+      document.getElementById('billClient').setAttribute('list', 'clientDataList');
     }
-    dataList.innerHTML = clients.map(c => `<option value="${c.name}"></option>`).join('');
-  } catch(e){}
+    dataList.innerHTML = clients.map(c => `<option value="${esc(c.name)}"></option>`).join('');
+  } catch (e) { }
 }
 
 async function lookupClientByPhone() {
   const phone = document.getElementById('billClientLookup').value.trim();
   const searchBtn = document.querySelector('button[onclick="lookupClientByPhone()"]');
   const msgArea = document.getElementById('lookupMessage');
-  
+
   if (!phone || phone.length < 10) {
     showToast('Please enter a valid 10-digit mobile number', 'error');
     return;
@@ -914,10 +914,10 @@ function addProductToBill() {
   document.getElementById('productSelect').value = '';
 }
 
-function addToBill(name, type, price, refId=null, staffId=null, staffName=null) {
+function addToBill(name, type, price, refId = null, staffId = null, staffName = null) {
   const existing = billItems.find(i => i.name === name && i.staffId === staffId);
   if (existing) { existing.qty++; }
-  else { billItems.push({ name, type, price, qty:1, refId, staffId, staffName }); }
+  else { billItems.push({ name, type, price, qty: 1, refId, staffId, staffName }); }
   renderBill();
 }
 
@@ -963,19 +963,19 @@ let taxPctGlobal = 0; // fetched from settings
 
 function calculateTotals() {
   const subtotal = billItems.reduce((s, i) => s + i.qty * i.price, 0);
-  const gst      = Math.round(subtotal * (taxPctGlobal / 100));
-  
+  const gst = Math.round(subtotal * (taxPctGlobal / 100));
+
   const discountPct = parseFloat(document.getElementById('billDiscountPct').value) || 0;
   const discountFlat = parseFloat(document.getElementById('billDiscountFlat').value) || 0;
-  
+
   const discountFromPct = Math.round(subtotal * (discountPct / 100));
   const totalDiscount = discountFromPct + discountFlat;
-  
+
   const total = Math.max(0, subtotal + gst - totalDiscount);
-  
+
   setEl('billSubtotal', '₹' + subtotal.toLocaleString('en-IN'));
-  setEl('billGST',      '₹' + gst.toLocaleString('en-IN'));
-  
+  setEl('billGST', '₹' + gst.toLocaleString('en-IN'));
+
   const discRow = document.getElementById('discountLine');
   if (totalDiscount > 0) {
     discRow.style.display = 'flex';
@@ -983,8 +983,8 @@ function calculateTotals() {
   } else {
     discRow.style.display = 'none';
   }
-  
-  setEl('billTotal',    '₹' + total.toLocaleString('en-IN'));
+
+  setEl('billTotal', '₹' + total.toLocaleString('en-IN'));
 }
 
 async function sendWhatsAppBill() {
@@ -1000,9 +1000,9 @@ async function sendWhatsAppBill() {
   const salonName = document.getElementById('billSalonName').innerText;
   const clientName = currentClient.name;
   const dateStr = new Date().toLocaleString('en-IN');
-  
+
   let itemText = billItems.map(i => `${i.name} (x${i.qty}) - ₹${(i.qty * i.price).toLocaleString('en-IN')}`).join('\n');
-  
+
   const subtotal = billItems.reduce((s, i) => s + i.qty * i.price, 0);
   const gst = Math.round(subtotal * (taxPctGlobal / 100));
   const discountPct = parseFloat(document.getElementById('billDiscountPct').value) || 0;
@@ -1074,7 +1074,7 @@ async function shareBillAsPDF() {
 
 async function finalizeSale() {
   if (billItems.length === 0) { showToast('Add items to bill', 'error'); return; }
-  const clientName    = document.getElementById('billClient').value.trim();
+  const clientName = document.getElementById('billClient').value.trim();
   const paymentMethod = document.getElementById('paymentMethod').value;
   if (!clientName) { showToast('Please enter client name', 'error'); return; }
 
@@ -1082,61 +1082,61 @@ async function finalizeSale() {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
   try {
-      // Create or find client
-      const clients = await api('/clients');
-      let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
-      if (!client) {
-          client = await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+    // Create or find client
+    const clients = await api('/clients');
+    let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
+    if (!client) {
+      client = await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+    }
+
+    // Get staff from the first Service line item in the bill
+    const serviceItem = billItems.find(i => i.type === 'Service' && i.staffId);
+    const staffList = await api('/staff');
+    const staffId = serviceItem ? serviceItem.staffId : (staffList[0] ? staffList[0]._id : null);
+    const staffName = serviceItem ? serviceItem.staffName : (staffList[0] ? staffList[0].name : 'Unassigned');
+
+    if (!staffId) throw new Error('No staff found. Please add a staff member in the Staff section first.');
+
+    const subtotal = billItems.reduce((s, i) => s + i.qty * i.price, 0);
+    const gst = Math.round(subtotal * (taxPctGlobal / 100));
+    const discountPct = parseFloat(document.getElementById('billDiscountPct').value) || 0;
+    const discountFlat = parseFloat(document.getElementById('billDiscountFlat').value) || 0;
+    const discountTotal = Math.round(subtotal * (discountPct / 100)) + discountFlat;
+    const grandTotal = Math.max(0, subtotal + gst - discountTotal);
+
+    const items = billItems.map(i => ({ name: i.name, type: i.type, qty: i.qty, unitPrice: i.price, subtotal: i.qty * i.price, refId: i.refId, staffId: i.staffId, staffName: i.staffName }));
+
+    await api('/bills', {
+      method: 'POST',
+      body: {
+        clientId: client._id, clientName: client.name,
+        staffId: staffId, staffName: staffName,
+        lineItems: items,
+        subtotal, taxPct: taxPctGlobal, taxAmount: gst,
+        discountAmount: discountTotal, // Added discount tracking
+        grandTotal, paymentMethod
       }
+    });
 
-      // Get staff from the first Service line item in the bill
-      const serviceItem = billItems.find(i => i.type === 'Service' && i.staffId);
-      const staffList = await api('/staff');
-      const staffId   = serviceItem ? serviceItem.staffId   : (staffList[0] ? staffList[0]._id : null);
-      const staffName = serviceItem ? serviceItem.staffName : (staffList[0] ? staffList[0].name : 'Unassigned');
-      
-      if (!staffId) throw new Error('No staff found. Please add a staff member in the Staff section first.');
+    billItems = [];
+    currentClient = null;
+    renderBill();
+    document.getElementById('billClient').value = '';
+    document.getElementById('billClientLookup').value = '';
+    document.getElementById('lookupMessage').innerHTML = '';
+    setEl('printClientName', '—');
+    setEl('billDate', '—');
+    document.getElementById('billDiscountPct').value = '';
+    document.getElementById('billDiscountFlat').value = '';
+    document.getElementById('btnWhatsApp').disabled = true;
+    document.getElementById('btnSharePDF').disabled = true;
+    showToast(`Bill saved: ₹${grandTotal}`);
+    refreshRelated(['checkout', 'reports', 'dashboard', 'inventory', 'clients']);
 
-      const subtotal   = billItems.reduce((s, i) => s + i.qty * i.price, 0);
-      const gst        = Math.round(subtotal * (taxPctGlobal / 100));
-      const discountPct = parseFloat(document.getElementById('billDiscountPct').value) || 0;
-      const discountFlat = parseFloat(document.getElementById('billDiscountFlat').value) || 0;
-      const discountTotal = Math.round(subtotal * (discountPct / 100)) + discountFlat;
-      const grandTotal = Math.max(0, subtotal + gst - discountTotal);
+    // Auto-Print
+    setTimeout(() => printBill(), 500);
 
-      const items      = billItems.map(i => ({ name: i.name, type: i.type, qty: i.qty, unitPrice: i.price, subtotal: i.qty * i.price, refId: i.refId, staffId: i.staffId, staffName: i.staffName }));
-
-      await api('/bills', { 
-          method: 'POST', 
-          body: { 
-              clientId: client._id, clientName: client.name,
-              staffId: staffId, staffName: staffName,
-              lineItems: items,
-              subtotal, taxPct: taxPctGlobal, taxAmount: gst, 
-              discountAmount: discountTotal, // Added discount tracking
-              grandTotal, paymentMethod 
-          } 
-      });
-
-      billItems = [];
-      currentClient = null;
-      renderBill();
-      document.getElementById('billClient').value = '';
-      document.getElementById('billClientLookup').value = '';
-      document.getElementById('lookupMessage').innerHTML = '';
-      setEl('printClientName', '—');
-      setEl('billDate', '—');
-      document.getElementById('billDiscountPct').value = '';
-      document.getElementById('billDiscountFlat').value = '';
-      document.getElementById('btnWhatsApp').disabled = true;
-      document.getElementById('btnSharePDF').disabled = true;
-      showToast(`Bill saved: ₹${grandTotal}`);
-      refreshRelated(['checkout', 'reports', 'dashboard', 'inventory', 'clients']);
-      
-      // Auto-Print
-      setTimeout(() => printBill(), 500);
-
-  } catch(err) { showToast(err.message, 'error'); }
+  } catch (err) { showToast(err.message, 'error'); }
   finally { if (btn) { btn.disabled = false; btn.textContent = '✓ Finalize Sale & Print Bill'; } }
 }
 
@@ -1157,7 +1157,7 @@ async function loadBillHistory() {
       const isVoid = b.deleted;
       return `
       <tr style="${isVoid ? 'opacity:0.45;' : ''}">
-        <td data-label="Date" style="color:var(--text-muted);font-size:0.82rem;">${new Date(b.date || b.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'2-digit' })}</td>
+        <td data-label="Date" style="color:var(--text-muted);font-size:0.82rem;">${new Date(b.date || b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}</td>
         <td data-label="Client"><strong>${esc(b.clientName)}</strong></td>
         <td data-label="Items" style="color:var(--text-muted)">${b.lineItems.length} item${b.lineItems.length !== 1 ? 's' : ''}</td>
         <td data-label="Total"><strong>₹${b.grandTotal.toLocaleString('en-IN')}</strong>${isVoid ? ' <span style="color:#c0392b;font-size:0.75rem;font-weight:700;">VOID</span>' : ''}</td>
@@ -1191,7 +1191,7 @@ async function viewBill(id) {
     // Populate the print area
     document.getElementById('printClientName').innerText = bill.clientName;
     document.getElementById('billDate').innerText = new Date(bill.date || bill.createdAt).toLocaleString('en-IN');
-    
+
     const tbody = document.querySelector('#billTable tbody');
     tbody.innerHTML = bill.lineItems.map(item => `
       <tr>
@@ -1220,7 +1220,7 @@ async function viewBill(id) {
           document.getElementById('printClientName').innerText = currentClient.name;
           document.getElementById('billDate').innerText = new Date(bill.date || bill.createdAt).toLocaleString('en-IN');
           document.getElementById('billClientLookup').value = currentClient.phone || '';
-          document.getElementById('lookupMessage').innerHTML = `<span style="color:var(--success); font-weight:600;">✓ Client Loaded: ${currentClient.name}</span>`;
+          document.getElementById('lookupMessage').innerHTML = `<span ...>✓ Client Loaded: ${esc(currentClient.name)}</span>`;
           document.getElementById('btnWhatsApp').disabled = false;
           document.getElementById('btnSharePDF').disabled = false;
         }
@@ -1259,16 +1259,16 @@ async function loadReports() {
     setEl('repTotalBills', totalBills);
     setEl('repAvgBill', '₹' + avgBill.toLocaleString('en-IN'));
     setEl('repNetProfit', '₹' + Math.round(totalRevenue * 0.3).toLocaleString('en-IN')); // Estimation
-    
+
     setEl('repTotalStaff', staff.length);
 
-    const invValue  = inventory.reduce((s, i) => s + i.stock * i.costPrice, 0);
-    const lowStock  = inventory.filter(i => i.stock <= i.minStock).length;
+    const invValue = inventory.reduce((s, i) => s + i.stock * i.costPrice, 0);
+    const lowStock = inventory.filter(i => i.stock <= i.minStock).length;
     setEl('repInvValue', '₹' + invValue.toLocaleString('en-IN'));
     setEl('repLowStock', lowStock);
 
     // Render Charts
-    Object.values(_charts).forEach(c => { try { c.destroy(); } catch(e){} });
+    Object.values(_charts).forEach(c => { try { c.destroy(); } catch (e) { } });
 
     _charts.exec = new Chart(document.getElementById('execRevenueChart'), {
       type: 'bar',
@@ -1294,56 +1294,56 @@ function switchReportTab(tab, btn) {
    ══════════════════════════════════════════════════════════ */
 
 async function loadSettings() {
-    try {
-        const s = await api('/settings');
-        document.getElementById('setSalonName').value = s.salonName || '';
-        document.getElementById('setAddress').value = s.address || '';
-        document.getElementById('setPhone').value = s.phone || '';
-        document.getElementById('setCurrency').value = s.currency || '₹';
-        document.getElementById('setTax').value = s.taxPct || 0;
-        document.getElementById('setDefaultCommission').value = s.defaultCommission || 0;
-        document.getElementById('setLoyalty').checked = s.loyaltyEnabled || false;
-        document.getElementById('setPoints').value = s.pointsPerRupee || 0;
+  try {
+    const s = await api('/settings');
+    document.getElementById('setSalonName').value = s.salonName || '';
+    document.getElementById('setAddress').value = s.address || '';
+    document.getElementById('setPhone').value = s.phone || '';
+    document.getElementById('setCurrency').value = s.currency || '₹';
+    document.getElementById('setTax').value = s.taxPct || 0;
+    document.getElementById('setDefaultCommission').value = s.defaultCommission || 0;
+    document.getElementById('setLoyalty').checked = s.loyaltyEnabled || false;
+    document.getElementById('setPoints').value = s.pointsPerRupee || 0;
 
-        taxPctGlobal = s.taxPct || 0; 
+    taxPctGlobal = s.taxPct || 0;
 
-        // Update bill branding
-        setEl('billSalonName', s.salonName || 'SalonPro');
-        setEl('billSalonAddress', s.address || '');
-        setEl('billSalonPhone', s.phone ? 'Ph: ' + s.phone : '');
-        setEl('footerSalonName', s.salonName || 'SalonPro');
+    // Update bill branding
+    setEl('billSalonName', s.salonName || 'SalonPro');
+    setEl('billSalonAddress', s.address || '');
+    setEl('billSalonPhone', s.phone ? 'Ph: ' + s.phone : '');
+    setEl('footerSalonName', s.salonName || 'SalonPro');
 
-    } catch(err) { showToast(err.message || 'Settings error', 'error'); }
+  } catch (err) { showToast(err.message || 'Settings error', 'error'); }
 }
 
 async function saveSettings() {
-    const btn = document.querySelector('button[onclick="saveSettings()"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  const btn = document.querySelector('button[onclick="saveSettings()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
-    try {
-        const payload = {
-            salonName: document.getElementById('setSalonName').value,
-            address: document.getElementById('setAddress').value,
-            phone: document.getElementById('setPhone').value,
-            currency: document.getElementById('setCurrency').value,
-            taxPct: document.getElementById('setTax').value,
-            defaultCommission: document.getElementById('setDefaultCommission').value,
-            loyaltyEnabled: document.getElementById('setLoyalty').checked,
-            pointsPerRupee: document.getElementById('setPoints').value
-        };
+  try {
+    const payload = {
+      salonName: document.getElementById('setSalonName').value,
+      address: document.getElementById('setAddress').value,
+      phone: document.getElementById('setPhone').value,
+      currency: document.getElementById('setCurrency').value,
+      taxPct: document.getElementById('setTax').value,
+      defaultCommission: document.getElementById('setDefaultCommission').value,
+      loyaltyEnabled: document.getElementById('setLoyalty').checked,
+      pointsPerRupee: document.getElementById('setPoints').value
+    };
 
-        await api('/settings', { method: 'PUT', body: payload });
-        showToast('Settings saved successfully');
-        loadSettings(); // update globals
-    } catch(err) { showToast(err.message, 'error'); }
-    finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Settings'; } }
+    await api('/settings', { method: 'PUT', body: payload });
+    showToast('Settings saved successfully');
+    loadSettings(); // update globals
+  } catch (err) { showToast(err.message, 'error'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Settings'; } }
 }
 
 async function dangerDeleteAccount() {
-    const word = prompt("To permanently delete everything, type DELETE");
-    if (word === 'DELETE') {
-        alert("This was a demo function. Database wipe requested but bypassed for safety context.");
-    }
+  const word = prompt("To permanently delete everything, type DELETE");
+  if (word === 'DELETE') {
+    alert("This was a demo function. Database wipe requested but bypassed for safety context.");
+  }
 }
 
 
@@ -1352,7 +1352,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('token');
   if (token) {
     loadSettings().then(() => {
-        loadDashboard(); // Tax pct loaded, proceed
+      loadDashboard(); // Tax pct loaded, proceed
     });
   }
 });
