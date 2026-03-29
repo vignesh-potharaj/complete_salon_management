@@ -386,6 +386,7 @@ async function loadClients() {
       <tr>
         <td data-label="Name">${c.name}</td>
         <td data-label="Contact">${c.phone}</td>
+        <td data-label="DOB">${c.dob ? new Date(c.dob).toLocaleDateString('en-IN') : '—'}</td>
         <td data-label="First Visit">${new Date(c.createdAt).toLocaleDateString()}</td>
         <td data-label="Total Visits">${c.totalVisits || 0}</td>
         <td data-label="Last Visit">${c.lastVisit  ? new Date(c.lastVisit).toLocaleDateString()  : '—'}</td>
@@ -401,6 +402,7 @@ async function saveClient() {
   const name   = document.getElementById('newClientName').value.trim();
   const phone  = document.getElementById('newClientPhone').value.trim();
   const email  = document.getElementById('newClientEmail').value.trim();
+  const dob    = document.getElementById('newClientDOB').value;
   
   if (!name || !phone) { showToast('Name and phone are required', 'error'); return; }
   
@@ -408,9 +410,9 @@ async function saveClient() {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
   
   try {
-    await api('/clients', { method: 'POST', body: { name, phone, email } });
+    await api('/clients', { method: 'POST', body: { name, phone, email, dob } });
     closeAddClientModal();
-    ['newClientName','newClientPhone','newClientEmail'].forEach(id => document.getElementById(id).value = '');
+    ['newClientName','newClientPhone','newClientEmail','newClientDOB'].forEach(id => document.getElementById(id).value = '');
     showToast('Client added');
     refreshRelated(['clients', 'dashboard']);
   } catch (err) { showToast(err.message, 'error'); }
