@@ -86,7 +86,6 @@ function refreshRelated(modules) {
       'calendar': loadCalendar,
       'clients': loadClients,
       'staff': loadStaff,
-      'services': loadServices,
       'inventory': loadInventory,
       'checkout': () => { populateProductDropdown(); populateServiceDropdown(); loadBillHistory(); },
       'reports': loadReports,
