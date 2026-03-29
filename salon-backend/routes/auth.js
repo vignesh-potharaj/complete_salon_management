@@ -3,12 +3,18 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
+const { loginLimiter, registerLimiter } = require('../middleware/rateLimiter');
 
 const User = require('../models/User');
 
 // POST /api/auth/register
 router.post('/register', [
-  body('userId').trim().notEmpty().withMessage('userId is required'),
+  registerLimiter,
+  body('userId')
+    .trim()
+    .notEmpty().withMessage('userId is required')
+    .isLength({ min: 3, max: 30 }).withMessage('userId must be 3–30 characters')
+    .matches(/^[a-zA-Z0-9_]+$/).withMessage('userId may only contain letters, numbers, and underscores'),
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('salonName').trim().notEmpty().withMessage('Salon Name is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
@@ -51,6 +57,7 @@ router.post('/register', [
 
 // POST /api/auth/login
 router.post('/login', [
+  loginLimiter,
   body('userId').notEmpty().withMessage('userId is required'),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res, next) => {

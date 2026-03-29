@@ -58,7 +58,7 @@ function confirmAction(message, onConfirm) {
   toast.style.cssText = `padding:14px 18px;background:white;border:1px solid #ddd;border-radius:10px;
     box-shadow:0 4px 16px rgba(0,0,0,0.15);display:flex;flex-direction:column;gap:10px;min-width:220px;`;
   toast.innerHTML = `
-    <span style="font-size:14px;color:#333;">${message}</span>
+    <span style="font-size:14px;color:#333;">${esc(message)}</span>
     <div style="display:flex;gap:8px;">
       <button id="confirmYes" style="flex:1;padding:8px;background:#e74c3c;color:white;border:none;
         border-radius:6px;cursor:pointer;font-size:13px;">Yes, Delete</button>
@@ -109,11 +109,11 @@ function openModal(client, service, time, amount, staff, id, status) {
     <p style="font-size:12px;color:#666;margin-bottom:8px;">Update Status:</p>
     <div style="display:flex;gap:5px;flex-wrap:wrap;">
       ${['Upcoming','Ongoing','Completed','Cancelled'].map(s => `
-        <button onclick="updateAppointmentStatus('${id}', '${s}')" 
+        <button onclick="updateAppointmentStatus('${esc(id)}', '${esc(s)}')" 
           style="padding:5px 10px;font-size:11px;border:none;border-radius:4px;cursor:pointer;
           background:${s === status ? statusColor(s) : '#eee'};
           color:${s === status ? 'white' : '#333'};">
-          ${s}
+          ${esc(s)}
         </button>
       `).join('')}
     </div>
@@ -155,7 +155,7 @@ async function loadDashboard() {
         alertList.innerHTML = '<li style="color:#27ae60;">All stock levels OK</li>';
       } else {
         alertList.innerHTML = lowStockItems
-          .map(i => `<li>${i.name} – ${i.stock} left</li>`)
+          .map(i => `<li>${esc(i.name)} – ${i.stock} left</li>`)
           .join('');
       }
     }
@@ -172,10 +172,10 @@ async function loadDashboard() {
         appointmentsToday.forEach(a => {
           table.innerHTML += `
             <tr>
-              <td data-label="Time">${a.time}</td>
-              <td data-label="Client">${a.clientName}</td>
-              <td data-label="Service">${a.serviceName}</td>
-              <td data-label="Status"><span style="padding:3px 8px;border-radius:4px;font-size:12px;background:${statusColor(a.status)};color:white;">${a.status}</span></td>
+              <td data-label="Time">${esc(a.time)}</td>
+              <td data-label="Client">${esc(a.clientName)}</td>
+              <td data-label="Service">${esc(a.serviceName)}</td>
+              <td data-label="Status"><span style="padding:3px 8px;border-radius:4px;font-size:12px;background:${statusColor(a.status)};color:white;">${esc(a.status)}</span></td>
             </tr>`;
         });
       }
@@ -259,7 +259,7 @@ async function loadCalendar() {
         staffRow.innerHTML = staff.slice(0, 5).map(s => `
           <div class="staff-card">
             <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff&size=80">
-            <span>${s.name}</span>
+            <span>${esc(s.name)}</span>
           </div>`).join('');
       }
     }
@@ -283,13 +283,13 @@ async function loadCalendar() {
           box-shadow:0 2px 8px rgba(0,0,0,0.05);`;
         card.innerHTML = `
           <div>
-            <strong style="font-size:16px;color:#2c3e50;">${appt.clientName}</strong>
-            <div style="color:#7f8c8d;font-size:13px;margin-top:4px;">${appt.serviceName} • ${appt.staffName}</div>
+            <strong style="font-size:16px;color:#2c3e50;">${esc(appt.clientName)}</strong>
+            <div style="color:#7f8c8d;font-size:13px;margin-top:4px;">${esc(appt.serviceName)} • ${esc(appt.staffName)}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:14px;font-weight:700;color:#34495e;margin-bottom:6px;">${appt.time}</div>
+            <div style="font-size:14px;font-weight:700;color:#34495e;margin-bottom:6px;">${esc(appt.time)}</div>
             <span style="padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;
-              background:${statusColor(appt.status)};color:white;">${appt.status.toUpperCase()}</span>
+              background:${statusColor(appt.status)};color:white;">${esc(appt.status.toUpperCase())}</span>
           </div>`;
         card.onclick = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
         grid.appendChild(card);
@@ -303,7 +303,7 @@ async function loadCalendar() {
         const div      = document.createElement('div');
         div.className  = 'appointment';
         div.style.cssText = `grid-column:${(idx % 5) + 1};grid-row:${rowIndex};background:${statusColor(appt.status)};`;
-        div.innerHTML  = `<strong>${appt.clientName}</strong><br>${appt.serviceName}<br>${appt.time} <br><em>${appt.status}</em>`;
+        div.innerHTML  = `<strong>${esc(appt.clientName)}</strong><br>${esc(appt.serviceName)}<br>${esc(appt.time)} <br><em>${esc(appt.status)}</em>`;
         div.onclick    = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
         grid.appendChild(div);
       });
@@ -391,8 +391,8 @@ async function loadClients() {
     }
     tbody.innerHTML = clients.map(c => `
       <tr>
-        <td data-label="Name">${c.name}</td>
-        <td data-label="Contact">${c.phone}</td>
+        <td data-label="Name">${esc(c.name)}</td>
+        <td data-label="Contact">${esc(c.phone)}</td>
         <td data-label="DOB">${c.dob ? new Date(c.dob).toLocaleDateString('en-IN') : '—'}</td>
         <td data-label="First Visit">${new Date(c.createdAt).toLocaleDateString()}</td>
         <td data-label="Total Visits">${c.totalVisits || 0}</td>
@@ -481,7 +481,7 @@ async function loadStaff() {
         ? `<span class="staff-no-services">No services added yet</span>`
         : (s.services || []).map(sv =>
             `<span class="service-chip">
-              ${sv.name}<span class="chip-price">₹${sv.price}</span>
+              ${esc(sv.name)}<span class="chip-price">₹${sv.price}</span>
             </span>`
           ).join('');
 
@@ -490,19 +490,19 @@ async function loadStaff() {
           <div class="staff-card-header">
             <img class="staff-avatar" 
                  src="${avatarUrl}" 
-                 alt="${s.name}"
+                 alt="${esc(s.name)}"
                  onerror="this.src='https://ui-avatars.com/api/?name=S&background=555&color=fff'">
             <div class="staff-header-info">
-              <div class="staff-card-name">${s.name}</div>
-              <div class="staff-card-role">${s.role}</div>
+              <div class="staff-card-name">${esc(s.name)}</div>
+              <div class="staff-card-role">${esc(s.role)}</div>
             </div>
             <span class="staff-status-badge ${s.active ? 'badge-active' : 'badge-inactive'}">
-              ${s.active ? 'Active' : 'Inactive'}
+              ${esc(s.active ? 'Active' : 'Inactive')}
             </span>
           </div>
 
           <div class="staff-card-body">
-            <div class="staff-card-phone">📞 ${s.phone}</div>
+            <div class="staff-card-phone">📞 ${esc(s.phone)}</div>
 
             <div class="staff-stats-row">
               <div class="staff-stat">
@@ -523,11 +523,11 @@ async function loadStaff() {
 
             <div class="staff-card-actions">
               <button class="btn-edit-staff" 
-                      onclick="openEditStaffModal('${s._id}')">
+                      onclick="openEditStaffModal('${esc(s._id)}')">
                 ✏ Edit
               </button>
               <button class="btn-delete-staff" 
-                      onclick="deleteStaffById(event,'${s._id}')">
+                      onclick="deleteStaffById(event,'${esc(s._id)}')">
                 🗑 Delete
               </button>
             </div>
@@ -609,7 +609,7 @@ function renderModalServices() {
   container.innerHTML = _modalServices.map((s, i) => `
     <div class="modal-service-row">
       <div class="svc-info">
-        <strong>${s.name}</strong>
+        <strong>${esc(s.name)}</strong>
         <span>₹${s.price}</span>
         <span>· ${s.durationMins} mins</span>
       </div>
@@ -705,16 +705,16 @@ async function loadInventory() {
       return `
         <div class="product-card ${isLow ? 'low-stock-alert' : ''}">
           <div class="product-img-wrapper">
-            <img src="${item.imageUrl || placeholder}" alt="${item.name}" onerror="this.src='${placeholder}'">
+            <img src="${item.imageUrl || placeholder}" alt="${esc(item.name)}" onerror="this.src='${placeholder}'">
             ${isLow ? '<span class="stock-badge badge-low">Low Stock</span>' : '<span class="stock-badge badge-ok">In Stock</span>'}
           </div>
           <div class="product-info">
             <div class="product-meta">
-              <span class="product-cat">${item.category || 'General'}</span>
-              <span class="product-brand">${item.brand || 'No Brand'}</span>
+              <span class="product-cat">${esc(item.category || 'General')}</span>
+              <span class="product-brand">${esc(item.brand || 'No Brand')}</span>
             </div>
-            <h3 class="product-name">${item.name}</h3>
-            <p class="product-desc">${item.description || 'No description provided.'}</p>
+            <h3 class="product-name">${esc(item.name)}</h3>
+            <p class="product-desc">${esc(item.description || 'No description provided.')}</p>
             
             <div class="product-stats-grid">
               <div class="p-stat"><strong>${item.stock}</strong><span>Units</span></div>
@@ -807,7 +807,7 @@ async function populateProductDropdown() {
       return;
     }
     select.innerHTML = '<option value="">Select Product...</option>' +
-      available.map(i => `<option value="${i._id}|${i.name}|${i.sellPrice}">${i.name} — ₹${i.sellPrice} (${i.stock} in stock)</option>`).join('');
+      available.map(i => `<option value="${i._id}|${esc(i.name)}|${i.sellPrice}">${esc(i.name)} — ₹${i.sellPrice} (${i.stock} in stock)</option>`).join('');
   } catch (err) { showToast(err.message || 'Failed to load products', 'error'); }
 }
 
@@ -826,8 +826,8 @@ async function populateServiceDropdown() {
     select.innerHTML = 
       '<option value="">Select Service & Staff...</option>' +
       items.map(i =>
-        `<option value="${i.staffId}|${i.serviceId}|${i.serviceName}|${i.price}|${i.staffName}">
-          ${i.serviceName} — ${i.staffName} (₹${i.price})
+        `<option value="${i.staffId}|${i.serviceId}|${esc(i.serviceName)}|${i.price}|${esc(i.staffName)}">
+          ${esc(i.serviceName)} — ${esc(i.staffName)} (₹${i.price})
         </option>`
       ).join('');
   } catch(err) { showToast(err.message, 'error'); }
@@ -875,7 +875,7 @@ async function lookupClientByPhone() {
       document.getElementById('billClient').value = client.name;
       document.getElementById('printClientName').innerText = client.name;
       document.getElementById('billDate').innerText = new Date().toLocaleString('en-IN');
-      msgArea.innerHTML = `<span style="color:var(--success); font-weight:600;">✓ Client Found: ${client.name}</span>`;
+      msgArea.innerHTML = `<span style="color:var(--success); font-weight:600;">✓ Client Found: ${esc(client.name)}</span>`;
       document.getElementById('btnWhatsApp').disabled = false;
       document.getElementById('btnSharePDF').disabled = false;
       showToast('Client found');
@@ -929,8 +929,8 @@ function renderBill() {
     tbody.innerHTML += `
       <tr>
         <td>
-          <div style="font-weight:600;">${item.name}</div>
-          ${item.staffName ? `<div style="font-size:0.75rem; color:#888;">with ${item.staffName}</div>` : ''}
+          <div style="font-weight:600;">${esc(item.name)}</div>
+          ${item.staffName ? `<div style="font-size:0.75rem; color:#888;">with ${esc(item.staffName)}</div>` : ''}
         </td>
         <td class="text-center" style="white-space:nowrap;">
           <span class="no-print" style="display:inline-flex; align-items:center; gap:6px;">
@@ -1158,10 +1158,10 @@ async function loadBillHistory() {
       return `
       <tr style="${isVoid ? 'opacity:0.45;' : ''}">
         <td data-label="Date" style="color:var(--text-muted);font-size:0.82rem;">${new Date(b.date || b.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'2-digit' })}</td>
-        <td data-label="Client"><strong>${b.clientName}</strong></td>
+        <td data-label="Client"><strong>${esc(b.clientName)}</strong></td>
         <td data-label="Items" style="color:var(--text-muted)">${b.lineItems.length} item${b.lineItems.length !== 1 ? 's' : ''}</td>
         <td data-label="Total"><strong>₹${b.grandTotal.toLocaleString('en-IN')}</strong>${isVoid ? ' <span style="color:#c0392b;font-size:0.75rem;font-weight:700;">VOID</span>' : ''}</td>
-        <td data-label="Payment"><span class="pay-badge ${payClass(b.paymentMethod)}">${b.paymentMethod}</span></td>
+        <td data-label="Payment"><span class="pay-badge ${payClass(b.paymentMethod)}">${esc(b.paymentMethod)}</span></td>
         <td data-label="Actions" class="no-print">
           <div class="action-btns">
             <button class="btn-act-view" onclick="viewBill('${b._id}')" ${isVoid ? 'disabled' : ''}>View</button>
@@ -1196,8 +1196,8 @@ async function viewBill(id) {
     tbody.innerHTML = bill.lineItems.map(item => `
       <tr>
         <td>
-          <div style="font-weight:600;">${item.name}</div>
-          ${item.staffName ? `<div style="font-size:0.75rem; color:#888;">with ${item.staffName}</div>` : ''}
+          <div style="font-weight:600;">${esc(item.name)}</div>
+          ${item.staffName ? `<div style="font-size:0.75rem; color:#888;">with ${esc(item.staffName)}</div>` : ''}
         </td>
         <td class="text-center">${item.qty}</td>
         <td class="text-right">₹${item.unitPrice.toLocaleString('en-IN')}</td>

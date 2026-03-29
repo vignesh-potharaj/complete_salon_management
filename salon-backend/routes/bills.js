@@ -181,6 +181,15 @@ router.delete('/:id', auth, async (req, res, next) => {
         );
       }
     }
+    
+    if (bill.clientId) {
+      await Client.findByIdAndUpdate(bill.clientId, {
+        $inc: {
+          totalSpend: -bill.grandTotal,
+          totalVisits: -1
+        }
+      });
+    }
 
     res.json({ message: 'Bill voided' });
   } catch (err) {
