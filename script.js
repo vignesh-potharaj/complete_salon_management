@@ -306,20 +306,20 @@ async function loadCalendar() {
       grid.style.display = 'grid';
       const START_HOUR = 8; // Calendar starts at 8 AM
 
-      appointments.forEach((appt) => {
-        const hour = parseTimeToHour(appt.time);
+      appointments.forEach((appt, idx) => {
+        const { hour, mins } = parseTimeToHour(appt.time);
         
-        // Fix for 2-hour drift: ensure the row correlates exactly with (Hour - START_HOUR + 1)
-        // e.g., 8 AM -> Row 1, 10 AM -> Row 3, 6 PM (18) -> Row 11
-        const rowIndex = Math.max(1, hour - START_HOUR + 1);
+        // Grid Math for 30-min slots:
+        // Each hour has 2 rows (80px total, 40px each).
+        // 8:00 AM is Row 1.
+        const rowIndex = ((hour - START_HOUR) * 2) + (mins >= 30 ? 1 : 0) + 1;
         
         const div = document.createElement('div');
         const statusClass = `appt-${appt.status.toLowerCase()}`;
         div.className = `appointment ${statusClass}`;
-        div.dataset.id = appt._id; // Essential for modal interaction
+        div.dataset.id = appt._id;
         
-        // idx % 5 + 1 as column (assuming 5 staff columns)
-        div.style.cssText = `grid-column:${(idx % 5) + 1}; grid-row:${rowIndex};`;
+        div.style.cssText = `grid-column:${(idx % 5) + 1}; grid-row:${rowIndex} / span 1;`;
         
         div.innerHTML = `
           <strong>${esc(appt.clientName)}</strong>
@@ -330,6 +330,8 @@ async function loadCalendar() {
         div.onclick = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
         grid.appendChild(div);
       });
+      
+      updateTimeIndicator();
     }
 
   } catch (err) { showToast(err.message || 'Calendar error', 'error'); }
@@ -345,25 +347,59 @@ async function updateAppointmentStatus(id, newStatus) {
 }
 
 function parseTimeToHour(t) {
-  if (!t) return 8;
+  if (!t) return { hour: 8, mins: 0 };
+  
+  let h = 8, m = 0;
   
   // Handle 24h format (e.g., "14:30" or "09:00")
   if (t.includes(':') && !t.includes('AM') && !t.includes('PM')) {
-    return parseInt(t.split(':')[0]);
+    const p = t.split(':');
+    h = parseInt(p[0]);
+    m = parseInt(p[1]) || 0;
+  } else {
+    // Handle 12h format (e.g., "2:30 PM")
+    const parts = t.trim().split(' ');
+    if (parts.length >= 2) {
+      const [time, period] = parts;
+      const p = time.split(':');
+      h = parseInt(p[0]);
+      m = parseInt(p[1]) || 0;
+      if (period.toUpperCase() === 'PM' && h !== 12) h += 12;
+      if (period.toUpperCase() === 'AM' && h === 12) h = 0;
+    } else {
+      h = parseInt(t) || 8;
+    }
   }
   
-  // Handle 12h format (e.g., "2:30 PM")
-  const parts = t.trim().split(' ');
-  if (parts.length < 2) return parseInt(t) || 8;
-  
-  const [time, period] = parts;
-  let [h] = time.split(':').map(Number);
-  
-  if (period.toUpperCase() === 'PM' && h !== 12) h += 12;
-  if (period.toUpperCase() === 'AM' && h === 12) h = 0;
-  
-  return h;
+  return { hour: h, mins: m };
 }
+
+/**
+ * ─── Current Time Indicator ───
+ */
+function updateTimeIndicator() {
+  const indicator = document.getElementById('currentTimeIndicator');
+  if (!indicator) return;
+
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMin = now.getMinutes();
+  const START_HOUR = 8;
+  const END_HOUR = 23;
+
+  if (currentHour < START_HOUR || currentHour >= END_HOUR) {
+    indicator.style.display = 'none';
+    return;
+  }
+
+  indicator.style.display = 'block';
+  // 80px per hour mapping
+  const topPos = ((currentHour - START_HOUR) * 80) + ((currentMin / 60) * 80);
+  indicator.style.top = topPos + 'px';
+}
+
+// Update time indicator every minute
+setInterval(updateTimeIndicator, 60000);
 
 /**
  * ─── Render Time Pills ───

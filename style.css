@@ -677,9 +677,9 @@ label {
   grid-column: 1;
   grid-row: 2;
   display: grid;
-  grid-template-rows: repeat(15, 80px); /* 8 AM to 11 PM */
+  grid-template-rows: repeat(30, 40px); /* 30-min precision (15hrs * 2) */
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-align: right;
   padding-right: 10px;
@@ -691,11 +691,12 @@ label {
 }
 
 .time-slots div {
-  height: 80px;
+  height: 80px; /* Two slots per hour, but the text ONLY at the start of the hour */
   display: flex;
   align-items: center;
   justify-content: flex-end;
   border-bottom: 1px solid rgba(0,0,0,0.03);
+  grid-row: span 2; /* Stretch label across two 30-min rows */
 }
 
 .grid-content {
@@ -703,12 +704,38 @@ label {
   grid-row: 2;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(15, 80px);
-  gap: 0; /* Gap 0 to keep columns aligned with sticky staff */
+  grid-template-rows: repeat(30, 40px);
+  gap: 0;
   background-size: 100% 80px;
-  background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-image: 
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, transparent 39px, rgba(0,0,0,0.05) 1px, transparent 1px); /* 30-min divider */
   position: relative;
   padding: 0 10px;
+}
+
+/* Current Time Indicator ─── */
+.current-time-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ff7675;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(255, 118, 117, 0.4);
+}
+
+.current-time-line::after {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ff7675;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 118, 117, 0.6);
 }
 
 .appointment {
