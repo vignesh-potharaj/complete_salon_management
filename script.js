@@ -316,9 +316,9 @@ async function loadCalendar() {
         const div = document.createElement('div');
         const statusClass = `appt-${appt.status.toLowerCase()}`;
         div.className = `appointment ${statusClass}`;
+        div.dataset.id = appt._id; // Essential for modal interaction
         
         // idx % 5 + 1 as column (assuming 5 staff columns)
-        // In a real app, this should match the staff member's specific column
         div.style.cssText = `grid-column:${(idx % 5) + 1}; grid-row:${rowIndex};`;
         
         div.innerHTML = `
@@ -374,12 +374,12 @@ function renderTimePills(containerId, hiddenInputId) {
   if (!container) return;
   
   const times = [];
-  // 8 AM to 8 PM
-  for (let h = 8; h <= 20; h++) {
-    const period = h < 12 ? 'AM' : 'PM';
+  // 8 AM to 11 PM (23:00)
+  for (let h = 8; h <= 23; h++) {
+    const period = h < 12 ? 'AM' : (h === 12 ? 'PM' : (h >= 24 ? 'AM' : 'PM'));
     const displayH = h % 12 || 12;
     times.push(`${displayH}:00 ${period}`);
-    if (h < 20) times.push(`${displayH}:30 ${period}`);
+    if (h < 23) times.push(`${displayH}:30 ${period}`);
   }
   
   container.innerHTML = times.map(t => `<div class="time-pill" data-time="${t}">${t}</div>`).join('');
