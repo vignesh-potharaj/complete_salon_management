@@ -427,6 +427,38 @@ tr:hover td {
   display: flex;
 }
 
+.btn-whatsapp {
+  background: #25D366;
+  color: white !important;
+  border: 1px solid #25D366;
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  gap: 10px;
+}
+
+.btn-whatsapp:hover {
+  background: #128C7E;
+  border-color: #128C7E;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-whatsapp:disabled {
+  background: #a5d6a7;
+  border-color: #a5d6a7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* Enhanced Touch Targets for all buttons and links */
 button,
 .sidebar-menu li,

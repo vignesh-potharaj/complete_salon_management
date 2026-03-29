@@ -785,6 +785,7 @@ async function deleteInventoryItem(id) {
    ══════════════════════════════════════════════════════════ */
 
 let billItems = [];
+let currentClient = null; // Store current looked-up client object
 
 async function populateProductDropdown() {
   try {
@@ -837,6 +838,52 @@ async function populateClientDropdown() {
     }
     dataList.innerHTML = clients.map(c => `<option value="${c.name}"></option>`).join('');
   } catch(e){}
+}
+
+async function lookupClientByPhone() {
+  const phone = document.getElementById('billClientLookup').value.trim();
+  const searchBtn = document.querySelector('button[onclick="lookupClientByPhone()"]');
+  const msgArea = document.getElementById('lookupMessage');
+  
+  if (!phone || phone.length < 10) {
+    showToast('Please enter a valid 10-digit mobile number', 'error');
+    return;
+  }
+
+  searchBtn.disabled = true;
+  searchBtn.textContent = '...';
+  msgArea.innerHTML = '';
+  currentClient = null;
+  document.getElementById('billClient').value = '';
+  document.getElementById('btnWhatsApp').disabled = true;
+
+  try {
+    const clients = await api('/clients');
+    const client = clients.find(c => c.phone === phone);
+
+    if (client) {
+      currentClient = client;
+      document.getElementById('billClient').value = client.name;
+      msgArea.innerHTML = `<span style="color:var(--success); font-weight:600;">✓ Client Found: ${client.name}</span>`;
+      document.getElementById('btnWhatsApp').disabled = false;
+      showToast('Client found');
+    } else {
+      msgArea.innerHTML = `
+        <div style="color:var(--danger); font-weight:600; margin-bottom:5px;">No record found for this mobile number</div>
+        <button onclick="openAddClientFromCheckout('${phone}')" class="btn-primary" style="padding:6px 12px; font-size:12px; height:auto; min-height:auto;">+ Add New Client</button>
+      `;
+    }
+  } catch (err) {
+    showToast('Error searching client', 'error');
+  } finally {
+    searchBtn.disabled = false;
+    searchBtn.textContent = 'Search';
+  }
+}
+
+function openAddClientFromCheckout(phone) {
+  openAddClientModal();
+  document.getElementById('newClientPhone').value = phone;
 }
 
 function addServiceToBill() {
@@ -905,10 +952,66 @@ let taxPctGlobal = 0; // fetched from settings
 function calculateTotals() {
   const subtotal = billItems.reduce((s, i) => s + i.qty * i.price, 0);
   const gst      = Math.round(subtotal * (taxPctGlobal / 100));
-  const total    = subtotal + gst;
+  
+  const discountPct = parseFloat(document.getElementById('billDiscountPct').value) || 0;
+  const discountFlat = parseFloat(document.getElementById('billDiscountFlat').value) || 0;
+  
+  const discountFromPct = Math.round(subtotal * (discountPct / 100));
+  const totalDiscount = discountFromPct + discountFlat;
+  
+  const total = Math.max(0, subtotal + gst - totalDiscount);
+  
   setEl('billSubtotal', '₹' + subtotal.toLocaleString('en-IN'));
   setEl('billGST',      '₹' + gst.toLocaleString('en-IN'));
+  
+  const discRow = document.getElementById('discountLine');
+  if (totalDiscount > 0) {
+    discRow.style.display = 'flex';
+    setEl('billDiscountTotal', '- ₹' + totalDiscount.toLocaleString('en-IN'));
+  } else {
+    discRow.style.display = 'none';
+  }
+  
   setEl('billTotal',    '₹' + total.toLocaleString('en-IN'));
+}
+
+async function sendWhatsAppBill() {
+  if (!currentClient || !currentClient.phone) {
+    showToast('Please lookup a client first', 'error');
+    return;
+  }
+  if (billItems.length === 0) {
+    showToast('Add items to the bill', 'error');
+    return;
+  }
+
+  const salonName = document.getElementById('billSalonName').innerText;
+  const clientName = currentClient.name;
+  const dateStr = new Date().toLocaleString('en-IN');
+  
+  let itemText = billItems.map(i => `${i.name} (x${i.qty}) - ₹${(i.qty * i.price).toLocaleString('en-IN')}`).join('\n');
+  
+  const subtotal = billItems.reduce((s, i) => s + i.qty * i.price, 0);
+  const gst = Math.round(subtotal * (taxPctGlobal / 100));
+  const discountPct = parseFloat(document.getElementById('billDiscountPct').value) || 0;
+  const discountFlat = parseFloat(document.getElementById('billDiscountFlat').value) || 0;
+  const discountTotal = Math.round(subtotal * (discountPct / 100)) + discountFlat;
+  const grandTotal = Math.max(0, subtotal + gst - discountTotal);
+
+  let message = `*INVOICE: ${salonName}*\n\n`;
+  message += `*Date:* ${dateStr}\n`;
+  message += `*Client:* ${clientName}\n`;
+  message += `--------------------------\n`;
+  message += `*Items:*\n${itemText}\n`;
+  message += `--------------------------\n`;
+  message += `*Subtotal:* ₹${subtotal.toLocaleString('en-IN')}\n`;
+  if (gst > 0) message += `*Tax (${taxPctGlobal}%):* ₹${gst.toLocaleString('en-IN')}\n`;
+  if (discountTotal > 0) message += `*Discount:* -₹${discountTotal.toLocaleString('en-IN')}\n`;
+  message += `*GRAND TOTAL: ₹${grandTotal.toLocaleString('en-IN')}*\n\n`;
+  message += `Thank you for choosing ${salonName}!\nVisit again soon.`;
+
+  const url = `https://wa.me/91${currentClient.phone}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank');
 }
 
 async function finalizeSale() {
@@ -938,7 +1041,11 @@ async function finalizeSale() {
 
       const subtotal   = billItems.reduce((s, i) => s + i.qty * i.price, 0);
       const gst        = Math.round(subtotal * (taxPctGlobal / 100));
-      const grandTotal = subtotal + gst;
+      const discountPct = parseFloat(document.getElementById('billDiscountPct').value) || 0;
+      const discountFlat = parseFloat(document.getElementById('billDiscountFlat').value) || 0;
+      const discountTotal = Math.round(subtotal * (discountPct / 100)) + discountFlat;
+      const grandTotal = Math.max(0, subtotal + gst - discountTotal);
+
       const items      = billItems.map(i => ({ name: i.name, type: i.type, qty: i.qty, unitPrice: i.price, subtotal: i.qty * i.price, refId: i.refId, staffId: i.staffId, staffName: i.staffName }));
 
       await api('/bills', { 
@@ -947,13 +1054,21 @@ async function finalizeSale() {
               clientId: client._id, clientName: client.name,
               staffId: staffId, staffName: staffName,
               lineItems: items,
-              subtotal, taxPct: taxPctGlobal, taxAmount: gst, grandTotal, paymentMethod 
+              subtotal, taxPct: taxPctGlobal, taxAmount: gst, 
+              discountAmount: discountTotal, // Added discount tracking
+              grandTotal, paymentMethod 
           } 
       });
 
       billItems = [];
+      currentClient = null;
       renderBill();
       document.getElementById('billClient').value = '';
+      document.getElementById('billClientLookup').value = '';
+      document.getElementById('lookupMessage').innerHTML = '';
+      document.getElementById('billDiscountPct').value = '';
+      document.getElementById('billDiscountFlat').value = '';
+      document.getElementById('btnWhatsApp').disabled = true;
       showToast(`Bill saved: ₹${grandTotal}`);
       refreshRelated(['checkout', 'reports', 'dashboard', 'inventory', 'clients']);
       
