@@ -29,9 +29,9 @@
     transition: var(--transition);
 }
 
-.premium-search-input {
+.search-input-wrapper .premium-search-input {
     width: 100%;
-    padding: 12px 45px 12px 45px;
+    padding: 12px 14px 12px 48px !important; /* Force padding to prevent overlap */
     background: var(--bg-color);
     border: 1.5px solid var(--border);
     border-radius: 12px;
