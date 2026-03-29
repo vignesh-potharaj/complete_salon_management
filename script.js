@@ -1233,40 +1233,174 @@ const _charts = {};
 
 async function loadReports() {
   try {
-    const [reportData, staff, inventory] = await Promise.all([
+    const [reportData, staff, inventory, appointments] = await Promise.all([
       api('/bills/stats/range'),
       api('/staff'),
-      api('/inventory')
+      api('/inventory'),
+      api('/appointments') 
     ]);
 
-    const { bills, totalRevenue, totalBills, revenueByMonth } = reportData;
-    const avgBill = totalBills ? Math.round(totalRevenue / totalBills) : 0;
+    const { bills, totalRevenue, totalBills, revenueByMonth, revenueByService } = reportData;
+    
+    // 1. Advanced KPI Calculations
+    // 1.1 Net Profit (Estimation: 40% margin)
+    const netProfit = Math.round(totalRevenue * 0.4);
+    setEl('repNetProfit', '₹' + netProfit.toLocaleString('en-IN'));
 
-    setEl('repTotalRevenue', '₹' + totalRevenue.toLocaleString('en-IN'));
-    setEl('repTotalBills', totalBills);
-    setEl('repAvgBill', '₹' + avgBill.toLocaleString('en-IN'));
-    setEl('repNetProfit', '₹' + Math.round(totalRevenue * 0.3).toLocaleString('en-IN')); // Estimation
+    // 1.2 Staff Utilization (Global benchmark)
+    // Booked mins from appointments vs capacity (Total staff * 8h * 22 days)
+    const totalCapacityMins = staff.length * 20 * 8 * 60; // 20 working days
+    const bookedMins = bills.reduce((sum, b) => {
+        return sum + b.lineItems.reduce((s, i) => s + (i.type === 'Service' ? 45 : 0), 0);
+    }, 0);
+    const utilization = Math.min(100, Math.round((bookedMins / (totalCapacityMins || 1)) * 100));
+    setEl('repStaffUtil', utilization + '%');
+    setEl('repUtilDetail', utilization > 65 ? '🟢 High Efficiency' : '🟠 Room for Growth');
 
-    setEl('repTotalStaff', staff.length);
+    // 1.3 Rebooking Rate (Clients with future bookings)
+    const futureAppts = appointments.filter(a => new Date(a.date) > new Date()).length;
+    const rebookingRate = Math.min(100, Math.round((futureAppts / (totalBills || 1)) * 100));
+    setEl('repRebooking', rebookingRate + '%');
+    setEl('repRebookDetail', rebookingRate > 40 ? '📈 Loyalty Leader' : '📉 Retention Focus');
 
+    // 1.4 Avg Ticket Size
+    const avgTicket = totalBills ? Math.round(totalRevenue / totalBills) : 0;
+    setEl('repAvgTicket', '₹' + avgTicket.toLocaleString('en-IN'));
+
+    // 1.5 Revenue Split
+    const serviceRev = bills.reduce((sum, b) => sum + b.lineItems.filter(i => i.type === 'Service').reduce((s, li) => s + li.subtotal, 0), 0);
+    const retailRev = totalRevenue - serviceRev;
+    const retailRatio = Math.round((retailRev / (serviceRev || 1)) * 100);
+    setEl('repTotalRevenue', '₹' + serviceRev.toLocaleString('en-IN'));
+    setEl('repRetailRevenue', '₹' + retailRev.toLocaleString('en-IN'));
+    setEl('repRetailRatio', retailRatio + '%');
+
+    // 2. Assets & Alerts
     const invValue = inventory.reduce((s, i) => s + i.stock * i.costPrice, 0);
     const lowStock = inventory.filter(i => i.stock <= i.minStock).length;
     setEl('repInvValue', '₹' + invValue.toLocaleString('en-IN'));
     setEl('repLowStock', lowStock);
 
-    // Render Charts
-    Object.values(_charts).forEach(c => { try { c.destroy(); } catch (e) { } });
+    // 3. Smart Insights Component
+    generateSmartInsights(utilization, retailRatio, rebookingRate);
 
-    _charts.exec = new Chart(document.getElementById('execRevenueChart'), {
-      type: 'bar',
-      data: {
-        labels: Object.keys(revenueByMonth).length ? Object.keys(revenueByMonth) : ['No Data'],
-        datasets: [{ label: 'Revenue (₹)', data: Object.values(revenueByMonth).length ? Object.values(revenueByMonth) : [0], backgroundColor: '#6c5ce7' }]
-      },
-      options: { responsive: true, maintainAspectRatio: false }
-    });
+    // 4. Premium Charts
+    renderPremiumCharts(revenueByMonth, bills, staff);
+
+    // 5. Staff Performance Table
+    renderStaffReportTable(bills, staff);
 
   } catch (err) { showToast(err.message || 'Reports error', 'error'); }
+}
+
+function generateSmartInsights(util, retail, rebook) {
+    const desc = document.getElementById('insightDescription');
+    if (!desc) return;
+    
+    let advice = [];
+    if (util < 55) advice.push("Staff utilization is lagging (under 55%). Consider off-peak happy hours.");
+    if (retail < 15) advice.push("Retail revenue is low. Bundle products with high-end services.");
+    if (rebook < 30) advice.push("Low rebooking rate detected. Implement a loyalty point bonus for same-day rebooking.");
+    
+    if (advice.length === 0) {
+        desc.innerText = "Performance looks world-class! Current trajectory exceeds benchmarks for productivity and retention.";
+    } else {
+        desc.innerText = advice.join(" | ");
+    }
+}
+
+function renderPremiumCharts(revenueByMonth, bills, staff) {
+    Object.values(_charts).forEach(c => { try { c.destroy(); } catch (e) { } });
+
+    // Revenue Velocity Chart (Stripe-Style Area)
+    const ctx = document.getElementById('execRevenueChart')?.getContext('2d');
+    if (ctx) {
+        const labels = Object.keys(revenueByMonth).length ? Object.keys(revenueByMonth) : ['No Data'];
+        const data = Object.values(revenueByMonth).length ? Object.values(revenueByMonth) : [0];
+        
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(108, 92, 231, 0.25)');
+        gradient.addColorStop(1, 'rgba(108, 92, 231, 0)');
+
+        _charts.exec = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Revenue',
+                    data,
+                    borderColor: '#6c5ce7',
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.45,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#6c5ce7',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { cornerRadius: 8, padding: 12 } },
+                scales: {
+                    y: { grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }, ticks: { callback: v => '₹' + v.toLocaleString() } },
+                    x: { grid: { display: false }, border: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Category Mix (Doughnut)
+    const ctxPie = document.getElementById('salesPieChart')?.getContext('2d');
+    if (ctxPie) {
+        const types = { 'Service': 0, 'Product': 0 };
+        bills.forEach(b => b.lineItems.forEach(li => { types[li.type] = (types[li.type] || 0) + li.subtotal; }));
+        _charts.pie = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(types),
+                datasets: [{ data: Object.values(types), backgroundColor: ['#6c5ce7', '#a29bfe'], borderWidth: 0 }]
+            },
+            options: { cutout: '80%', plugins: { legend: { position: 'right' } } }
+        });
+    }
+
+    // Staff Performance (Horizontal Bar)
+    const ctxStaff = document.getElementById('staffRevenueChart')?.getContext('2d');
+    if (ctxStaff) {
+        const staffRev = {};
+        bills.forEach(b => b.lineItems.forEach(li => { if(li.staffName) staffRev[li.staffName] = (staffRev[li.staffName] || 0) + li.subtotal; }));
+        _charts.staff = new Chart(ctxStaff, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(staffRev),
+                datasets: [{ data: Object.values(staffRev), backgroundColor: '#6c5ce7', borderRadius: 10 }]
+            },
+            options: { indexAxis: 'y', plugins: { legend: { display: false } },
+                       scales: { x: { display: false }, y: { grid: { display: false } } } }
+        });
+    }
+}
+
+function renderStaffReportTable(bills, staff) {
+    const tbody = document.getElementById('staffReportTable');
+    if (!tbody) return;
+    
+    tbody.innerHTML = staff.map(s => {
+        const sBills = bills.filter(b => b.lineItems.some(li => li.staffId === s._id));
+        const revenue = sBills.reduce((sum, b) => sum + b.lineItems.filter(li => li.staffId === s._id).reduce((st, li) => st + li.subtotal, 0), 0);
+        const clients = new Set(sBills.map(b => b.clientId)).size;
+        const commission = Math.round(revenue * (s.commissionPct / 100));
+        return `
+            <tr>
+                <td><strong>${esc(s.name)}</strong></td>
+                <td>₹${revenue.toLocaleString('en-IN')}</td>
+                <td>${Math.round((revenue / 40000) * 100)}%</td>
+                <td>${clients}</td>
+                <td>₹${commission.toLocaleString('en-IN')}</td>
+            </tr>`;
+    }).join('');
 }
 
 function switchReportTab(tab, btn) {
