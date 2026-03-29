@@ -172,13 +172,9 @@ async function loadDashboard() {
     const retention = Math.round((recurringCount / (appointmentsToday.length || 1)) * 100);
     setEl('dashRetention', retention + '%');
 
-    // 3. Populate Quick Add Dropdown
-    const svcSelect = document.getElementById('quickServiceSelect');
-    if (svcSelect && svcSelect.options.length <= 1) {
-        const services = await api('/staff/all-services');
-        svcSelect.innerHTML = '<option value="">Select Service</option>' + 
-            services.map(s => `<option value="${s.staffId}|${s.serviceId}|${s.serviceName}|${s.price}|${s.staffName}|${s.durationMins || 45}">${s.serviceName} (${s.staffName})</option>`).join('');
-    }
+    // 3. Populate Sync Dropdowns
+    populateServiceDropdown(['quickServiceSelect', 'serviceSelect', 'apptService']);
+    renderTimePills('quickTimeSlots', 'quickTime');
 
     // 4. Update Smart Components
     updateActionCenter(lowStockItems, appointmentsToday);
@@ -307,14 +303,30 @@ async function loadCalendar() {
       });
     } else {
       // Desktop Grid View
-      grid.style.display = 'grid'; // Ensure grid display
-      appointments.forEach((appt, idx) => {
+      grid.style.display = 'grid';
+      const START_HOUR = 8; // Calendar starts at 8 AM
+
+      appointments.forEach((appt) => {
         const hour = parseTimeToHour(appt.time);
-        const rowIndex = Math.max(1, hour - 7);
+        
+        // Fix for 2-hour drift: ensure the row correlates exactly with (Hour - START_HOUR + 1)
+        // e.g., 8 AM -> Row 1, 10 AM -> Row 3, 6 PM (18) -> Row 11
+        const rowIndex = Math.max(1, hour - START_HOUR + 1);
+        
         const div = document.createElement('div');
-        div.className = 'appointment';
-        div.style.cssText = `grid-column:${(idx % 5) + 1};grid-row:${rowIndex};background:${statusColor(appt.status)};`;
-        div.innerHTML = `<strong>${esc(appt.clientName)}</strong><br>${esc(appt.serviceName)}<br>${esc(appt.time)} <br><em>${esc(appt.status)}</em>`;
+        const statusClass = `appt-${appt.status.toLowerCase()}`;
+        div.className = `appointment ${statusClass}`;
+        
+        // idx % 5 + 1 as column (assuming 5 staff columns)
+        // In a real app, this should match the staff member's specific column
+        div.style.cssText = `grid-column:${(idx % 5) + 1}; grid-row:${rowIndex};`;
+        
+        div.innerHTML = `
+          <strong>${esc(appt.clientName)}</strong>
+          <span>${esc(appt.serviceName)}</span>
+          <div style="font-size: 0.7rem; margin-top: 4px; opacity: 0.8;">${esc(appt.time)}</div>
+        `;
+        
         div.onclick = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
         grid.appendChild(div);
       });
@@ -334,51 +346,95 @@ async function updateAppointmentStatus(id, newStatus) {
 
 function parseTimeToHour(t) {
   if (!t) return 8;
-  if (t.includes(':') && !t.includes('AM') && !t.includes('PM')) return parseInt(t.split(':')[0]);
-  const [time, period] = t.split(' ');
+  
+  // Handle 24h format (e.g., "14:30" or "09:00")
+  if (t.includes(':') && !t.includes('AM') && !t.includes('PM')) {
+    return parseInt(t.split(':')[0]);
+  }
+  
+  // Handle 12h format (e.g., "2:30 PM")
+  const parts = t.trim().split(' ');
+  if (parts.length < 2) return parseInt(t) || 8;
+  
+  const [time, period] = parts;
   let [h] = time.split(':').map(Number);
-  if (period === 'PM' && h !== 12) h += 12;
-  if (period === 'AM' && h === 12) h = 0;
+  
+  if (period.toUpperCase() === 'PM' && h !== 12) h += 12;
+  if (period.toUpperCase() === 'AM' && h === 12) h = 0;
+  
   return h;
 }
 
-function openAddApptModal() { document.getElementById('addApptModal').style.display = 'block'; }
+/**
+ * ─── Render Time Pills ───
+ * Generates time selection pills for forms
+ */
+function renderTimePills(containerId, hiddenInputId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  const times = [];
+  // 8 AM to 8 PM
+  for (let h = 8; h <= 20; h++) {
+    const period = h < 12 ? 'AM' : 'PM';
+    const displayH = h % 12 || 12;
+    times.push(`${displayH}:00 ${period}`);
+    if (h < 20) times.push(`${displayH}:30 ${period}`);
+  }
+  
+  container.innerHTML = times.map(t => `<div class="time-pill" data-time="${t}">${t}</div>`).join('');
+  
+  const pills = container.querySelectorAll('.time-pill');
+  pills.forEach(pill => {
+    pill.onclick = () => {
+      pills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      document.getElementById(hiddenInputId).value = pill.dataset.time;
+    };
+  });
+}
+
+function openAddApptModal() { 
+  document.getElementById('addApptModal').style.display = 'block'; 
+  renderTimePills('apptTimeSlots', 'apptTime');
+}
 function closeAddApptModal() { document.getElementById('addApptModal').style.display = 'none'; }
 
 async function saveAppointment() {
   const clientName = document.getElementById('apptClient').value.trim();
-  const serviceName = document.getElementById('apptService').value.trim();
+  const serviceVal = document.getElementById('apptService').value;
   const time = document.getElementById('apptTime').value;
   const btn = document.getElementById('saveApptBtn');
 
-  if (!clientName || !serviceName || !time) { showToast('Please fill all fields', 'error'); return; }
+  if (!clientName || !serviceVal || !time) { showToast('Please fill all fields', 'error'); return; }
 
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
     const clients = await api('/clients');
-    const services = await api('/staff/all-services');
     const staffList = await api('/staff');
 
-    let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
-    let _serviceObj = services.find(s => s.serviceName.toLowerCase() === serviceName.toLowerCase()) || (services.length > 0 ? services[0] : null);
+    let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || 
+                 await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
 
-    if (!_serviceObj) throw new Error('Please add at least one Service to a Staff member first.');
+    // New logic for synced dropdown value
+    const [staffId, serviceId, sName, price, sStaff, duration] = serviceVal.split('|');
 
     await api('/appointments', {
       method: 'POST',
       body: {
         clientId: client._id, clientName: client.name,
-        serviceId: _serviceObj.serviceId, serviceName: _serviceObj.serviceName,
-        staffId: _serviceObj.staffId, staffName: _serviceObj.staffName,
+        serviceId, serviceName: sName,
+        staffId, staffName: sStaff,
         date: document.getElementById('calendarDateHeader').dataset.isoDate || new Date().toISOString().split('T')[0],
-        time, duration: _serviceObj.durationMins || 30, status: 'Upcoming'
+        time, duration: parseInt(duration) || 45, status: 'Upcoming'
       }
     });
 
     closeAddApptModal();
     document.getElementById('apptClient').value = '';
-    document.getElementById('apptService').value = '';
     document.getElementById('apptTime').value = '';
+    // Clear active pill
+    document.querySelector('#apptTimeSlots .active')?.classList.remove('active');
     showToast('Appointment Saved');
     refreshRelated(['calendar', 'dashboard']);
   } catch (err) { showToast(err.message, 'error'); }
@@ -867,26 +923,24 @@ async function populateProductDropdown() {
   } catch (err) { showToast(err.message || 'Failed to load products', 'error'); }
 }
 
-async function populateServiceDropdown() {
+async function populateServiceDropdown(dropdownIds = ['serviceSelect']) {
   try {
     const items = await api('/staff/all-services');
-    const select = document.getElementById('serviceSelect');
-    if (!select) return;
+    if (!items || items.length === 0) return;
 
-    if (!items || items.length === 0) {
-      select.innerHTML =
-        '<option value="">No services — add via Staff section</option>';
-      return;
-    }
-
-    select.innerHTML =
-      '<option value="">Select Service & Staff...</option>' +
+    const optionsHTML = '<option value="">Select Service & Staff...</option>' +
       items.map(i =>
-        `<option value="${i.staffId}|${i.serviceId}|${esc(i.serviceName)}|${i.price}|${esc(i.staffName)}">
+        `<option value="${i.staffId}|${i.serviceId}|${esc(i.serviceName)}|${i.price}|${esc(i.staffName)}|${i.durationMins || 45}">
           ${esc(i.serviceName)} — ${esc(i.staffName)} (₹${i.price})
         </option>`
       ).join('');
-  } catch (err) { showToast(err.message, 'error'); }
+
+    const ids = Array.isArray(dropdownIds) ? dropdownIds : [dropdownIds];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = optionsHTML;
+    });
+  } catch (err) { console.error('Service list error:', err); }
 }
 
 async function populateClientDropdown() {
