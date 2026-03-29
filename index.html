@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="reports.css">
+  <link rel="stylesheet" href="clients.css">
 </head>
 
 <body>
@@ -290,24 +291,38 @@
           </div>
         </div>
 
-        <div class="mb-15" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <input type="tel" id="clientPhoneSearch" placeholder="Search Mobile No..." style="width:150px;">
-          <label for="clientGenderFilter" class="sr-only">Filter by gender</label>
-          <select id="clientGenderFilter" title="Filter by gender" style="width:130px;">
-            <option value="">All Genders</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-          <label for="clientDateFrom" class="sr-only">From date</label>
-          <input type="date" id="clientDateFrom" title="From date" style="width:130px;">
-          <label for="clientDateTo" class="sr-only">To date</label>
-          <input type="date" id="clientDateTo" title="To date" style="width:130px;">
-          <button class="btn-primary" onclick="loadClients()">Search</button>
-          <button class="btn-black" onclick="exportClients()">Export</button>
-          <button class="btn-primary" onclick="openAddClientModal()">+ Add Client</button>
+        <!-- Premium Search Bar Group -->
+        <div class="search-bar-group no-print">
+          <div class="search-input-wrapper">
+            <i>🔍</i>
+            <input type="text" id="clientNameSearch" placeholder="Search by Client Name..." class="premium-search-input" oninput="filterClients()">
+            <button class="clear-search-btn" id="clearNameSearch" onclick="clearSearch('clientNameSearch')">✕</button>
+          </div>
+          <div class="search-input-wrapper">
+            <i>📱</i>
+            <input type="tel" id="clientMobileSearch" placeholder="Search by Mobile (10 digits)..." class="premium-search-input" oninput="filterClients()">
+            <button class="clear-search-btn" id="clearMobileSearch" onclick="clearSearch('clientMobileSearch')">✕</button>
+          </div>
+          <div class="client-filters">
+            <select id="clientGenderFilter" class="filter-select" onchange="filterClients()">
+              <option value="">All Genders</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+            <button class="btn-black" style="padding: 12px 20px;" onclick="exportClients()">Export CSV</button>
+            <button class="btn-primary" style="padding: 12px 20px;" onclick="openAddClientModal()">+ Add Client</button>
+          </div>
         </div>
 
-        <div class="table-container">
+        <!-- Empty State -->
+        <div id="clientsEmptyState" class="empty-state-container">
+          <div class="empty-state-icon">👥</div>
+          <h3>No clients found</h3>
+          <p>We couldn't find any clients matching your search criteria. Try a different name or number.</p>
+          <button class="btn-primary" onclick="openAddClientModal()">+ Add New Client</button>
+        </div>
+
+        <div id="clientsTableContainer" class="table-container">
           <table>
             <thead>
               <tr>

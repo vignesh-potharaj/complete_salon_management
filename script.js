@@ -389,36 +389,60 @@ async function saveAppointment() {
    3. CLIENTS
    ══════════════════════════════════════════════════════════ */
 
+let _allClients = []; // Cache for real-time filtering
+
 async function loadClients() {
   try {
-    const allClients = await api('/clients');
+    _allClients = await api('/clients');
+    setEl('totalClientsCount', _allClients.length);
+    filterClients(); // Initial render
+  } catch (err) { showToast(err.message || 'Clients error', 'error'); }
+}
+
+function filterClients() {
+  const nameQuery = document.getElementById('clientNameSearch').value.toLowerCase().trim();
+  const mobileQuery = document.getElementById('clientMobileSearch').value.trim();
+  const genderFilter = document.getElementById('clientGenderFilter').value;
+
+  // 1. Mobile Strict Validation & Visual Cue
+  const mobileInput = document.getElementById('clientMobileSearch');
+  // Strip non-numeric as user types
+  mobileInput.value = mobileInput.value.replace(/\D/g, '').substring(0, 10);
+  const cleanMobile = mobileInput.value;
+  
+  if (cleanMobile.length === 10) {
+    mobileInput.classList.add('valid-mobile');
+  } else {
+    mobileInput.classList.remove('valid-mobile');
+  }
+
+  // 2. Clear Button Visibility
+  document.getElementById('clearNameSearch').style.display = nameQuery ? 'flex' : 'none';
+  document.getElementById('clearMobileSearch').style.display = cleanMobile ? 'flex' : 'none';
+
+  // 3. Filtering Logic
+  const filtered = _allClients.filter(c => {
+    const matchesName = !nameQuery || c.name.toLowerCase().includes(nameQuery);
+    const matchesMobile = !cleanMobile || c.phone.includes(cleanMobile);
+    const matchesGender = !genderFilter || c.gender === genderFilter;
+    return matchesName && matchesMobile && matchesGender;
+  });
+
+  // 4. GUI Rendering
+  const tbody = document.getElementById('clientsTableBody');
+  const tableContainer = document.getElementById('clientsTableContainer');
+  const emptyState = document.getElementById('clientsEmptyState');
+
+  if (filtered.length === 0) {
+    tableContainer.style.display = 'none';
+    emptyState.style.display = 'flex';
+  } else {
+    tableContainer.style.display = 'block';
+    emptyState.style.display = 'none';
     
-    // Filtering logic
-    const phoneFilter = document.getElementById('clientPhoneSearch')?.value.trim();
-    const genderFilter = document.getElementById('clientGenderFilter')?.value;
-    const dateFrom = document.getElementById('clientDateFrom')?.value;
-    const dateTo = document.getElementById('clientDateTo')?.value;
-
-    let filtered = allClients.filter(c => {
-      let matches = true;
-      if (phoneFilter && !c.phone.includes(phoneFilter)) matches = false;
-      if (genderFilter && c.gender !== genderFilter) matches = false;
-      if (dateFrom && new Date(c.createdAt) < new Date(dateFrom)) matches = false;
-      if (dateTo && new Date(c.createdAt) > new Date(dateTo).setHours(23,59,59)) matches = false;
-      return matches;
-    });
-
-    setEl('totalClientsCount', allClients.length);
-
-    const tbody = document.getElementById('clientsTableBody');
-    if (!tbody) return;
-    if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#999;padding:24px;">No clients found matching filters.</td></tr>`;
-      return;
-    }
     tbody.innerHTML = filtered.map(c => `
       <tr>
-        <td data-label="Name">${esc(c.name)}</td>
+        <td data-label="Name"><strong>${esc(c.name)}</strong></td>
         <td data-label="Contact">${esc(c.phone)}</td>
         <td data-label="DOB">${c.dob ? new Date(c.dob).toLocaleDateString('en-IN') : '—'}</td>
         <td data-label="First Visit">${new Date(c.createdAt).toLocaleDateString()}</td>
@@ -426,7 +450,12 @@ async function loadClients() {
         <td data-label="Last Visit">${c.lastVisit ? new Date(c.lastVisit).toLocaleDateString() : '—'}</td>
         <td data-label="Total Spent">₹${(c.totalSpend || 0).toLocaleString('en-IN')}</td>
       </tr>`).join('');
-  } catch (err) { showToast(err.message || 'Clients error', 'error'); }
+  }
+}
+
+function clearSearch(id) {
+  document.getElementById(id).value = '';
+  filterClients();
 }
 
 function openAddClientModal() { document.getElementById('addClientModal').style.display = 'block'; }
