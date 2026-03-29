@@ -18,7 +18,8 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="reports.css">
@@ -61,9 +62,11 @@
         <div class="dashboard-header no-print">
           <div>
             <h1>Dashboard</h1>
-            <p id="dashboardGreeting" style="color: var(--text-muted); font-size: 0.95rem;">Loading your salon's pulse...</p>
+            <p id="dashboardGreeting" style="color: var(--text-muted); font-size: 0.95rem;">Loading your salon's
+              pulse...</p>
           </div>
-          <div class="date-chip" style="background: var(--surface); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600;">
+          <div class="date-chip"
+            style="background: var(--surface); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600;">
             <span id="dashCurrentDate">Today</span>
           </div>
         </div>
@@ -86,7 +89,9 @@
             <div class="card-content">
               <span class="card-title">Projected Revenue</span>
               <div class="card-value" id="dashProjectedRev">₹0</div>
-              <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-top: 10px; font-weight: 700;">Vs Daily Target</div>
+              <div
+                style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-top: 10px; font-weight: 700;">
+                Vs Daily Target</div>
             </div>
           </div>
 
@@ -104,7 +109,9 @@
             <div class="card-content">
               <span class="card-title">Client Retention</span>
               <div class="card-value" id="dashRetention">0%</div>
-              <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-top: 10px; font-weight: 700;">Recurring Today</div>
+              <div
+                style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-top: 10px; font-weight: 700;">
+                Recurring Today</div>
             </div>
           </div>
 
@@ -114,9 +121,10 @@
               <h2>Quick Add</h2>
             </div>
             <form id="appointmentForm" style="display:flex; flex-direction:column; gap:8px;">
-              <input type="text" id="quickClientName" placeholder="Client Name" required class="modal-input" style="padding: 8px; font-size: 0.85rem;">
+              <input type="text" id="quickClientName" placeholder="Client Name" required class="modal-input"
+                style="padding: 8px; font-size: 0.85rem;">
               <select id="quickServiceSelect" class="modal-input" style="padding: 8px; font-size: 0.85rem;" required>
-                 <option value="">Select Service</option>
+                <option value="">Select Service</option>
               </select>
               <input type="time" id="quickTime" required class="modal-input" style="padding: 8px; font-size: 0.85rem;">
               <button type="submit" class="btn-black" style="padding: 8px; font-size: 0.85rem;">+ Add</button>
@@ -129,8 +137,9 @@
               <h2>Live Salon Pulse</h2>
               <div class="badge-live">LIVE</div>
             </div>
-            <div id="livePulseContent" style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #aaa;">
-               <p style="font-style: italic;">Monitoring bookings, check-ins, and floor gaps...</p>
+            <div id="livePulseContent"
+              style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #aaa;">
+              <p style="font-style: italic;">Monitoring bookings, check-ins, and floor gaps...</p>
             </div>
           </div>
 
@@ -174,7 +183,8 @@
           <div class="bento-item span-4">
             <div class="bento-header">
               <h2>Today's Agenda</h2>
-              <button class="btn-secondary" style="height: 32px; padding: 0 12px; font-size: 0.8rem;" onclick="showSection('calendar')">Full Calendar →</button>
+              <button class="btn-secondary" style="height: 32px; padding: 0 12px; font-size: 0.8rem;"
+                onclick="showSection('calendar')">Full Calendar →</button>
             </div>
             <div class="table-container">
               <div class="table-scroll">
@@ -432,28 +442,24 @@
             <div>
               <label style="font-size:11px; color:#888; font-weight:700; 
                             text-transform:uppercase;">Service Name</label>
-              <input type="text" id="inlineSvcName" placeholder="e.g. Haircut" 
-                     class="modal-input" style="margin-bottom:0;">
+              <input type="text" id="inlineSvcName" placeholder="e.g. Haircut" class="modal-input"
+                style="margin-bottom:0;">
             </div>
             <div>
               <label style="font-size:11px; color:#888; font-weight:700; 
                             text-transform:uppercase;">Price ₹</label>
-              <input type="number" id="inlineSvcPrice" placeholder="250" 
-                     class="modal-input" style="margin-bottom:0;">
+              <input type="number" id="inlineSvcPrice" placeholder="250" class="modal-input" style="margin-bottom:0;">
             </div>
             <div>
               <label style="font-size:11px; color:#888; font-weight:700; 
                             text-transform:uppercase;">Mins</label>
-              <input type="number" id="inlineSvcDuration" placeholder="30" 
-                     class="modal-input" style="margin-bottom:0;">
+              <input type="number" id="inlineSvcDuration" placeholder="30" class="modal-input" style="margin-bottom:0;">
             </div>
-            <button onclick="addServiceToModal()" class="btn-black" 
-                    style="padding:10px 14px; white-space:nowrap; 
+            <button onclick="addServiceToModal()" class="btn-black" style="padding:10px 14px; white-space:nowrap; 
                            height:42px; margin-top:0;">+ Add</button>
           </div>
 
-          <button onclick="saveStaff()" class="btn-black btn-full" 
-                  style="padding:13px;">Save Staff Member</button>
+          <button onclick="saveStaff()" class="btn-black btn-full" style="padding:13px;">Save Staff Member</button>
         </div>
       </div>
 
@@ -541,14 +547,17 @@
             <div class="bill-card mb-15">
               <label for="billClientLookup">Lookup Client by Mobile</label>
               <div style="display:flex; gap:8px;">
-                <input type="tel" id="billClientLookup" placeholder="Enter 10-digit mobile" class="modal-input" style="margin-bottom:0;">
-                <button onclick="lookupClientByPhone()" class="btn-black" style="padding:10px 15px; height:44px; margin-top:0;">Search</button>
+                <input type="tel" id="billClientLookup" placeholder="Enter 10-digit mobile" class="modal-input"
+                  style="margin-bottom:0;">
+                <button onclick="lookupClientByPhone()" class="btn-black"
+                  style="padding:10px 15px; height:44px; margin-top:0;">Search</button>
               </div>
               <div id="lookupMessage" style="margin-top:8px; font-size:0.85rem;"></div>
             </div>
             <div class="bill-card mb-15">
               <label for="billClient">Client Name</label>
-              <input type="text" id="billClient" placeholder="Enter client name" class="modal-input" oninput="document.getElementById('printClientName').innerText = this.value || '—'">
+              <input type="text" id="billClient" placeholder="Enter client name" class="modal-input"
+                oninput="document.getElementById('printClientName').innerText = this.value || '—'">
             </div>
             <div class="bill-card mb-15">
               <label for="paymentMethod">Payment Method</label>
@@ -579,11 +588,13 @@
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 <div>
                   <label for="billDiscountPct" style="font-size:11px; color:#888;">Pct (%)</label>
-                  <input type="number" id="billDiscountPct" placeholder="0" class="modal-input" oninput="calculateTotals()">
+                  <input type="number" id="billDiscountPct" placeholder="0" class="modal-input"
+                    oninput="calculateTotals()">
                 </div>
                 <div>
                   <label for="billDiscountFlat" style="font-size:11px; color:#888;">Amount (₹)</label>
-                  <input type="number" id="billDiscountFlat" placeholder="0" class="modal-input" oninput="calculateTotals()">
+                  <input type="number" id="billDiscountFlat" placeholder="0" class="modal-input"
+                    oninput="calculateTotals()">
                 </div>
               </div>
             </div>
@@ -657,8 +668,10 @@
             <button class="btn-black no-print mt-20 btn-full" onclick="printBill()">
               🖨 Print Receipt
             </button>
-            <button id="btnSharePDF" class="btn-whatsapp no-print mt-10 btn-full" onclick="shareBillAsPDF()" disabled title="Lookup client first">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" style="width:18px; height:18px; filter:brightness(0) invert(1);"> 
+            <button id="btnSharePDF" class="btn-whatsapp no-print mt-10 btn-full" onclick="shareBillAsPDF()" disabled
+              title="Lookup client first">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA"
+                style="width:18px; height:18px; filter:brightness(0) invert(1);">
               Send Receipt via WhatsApp
             </button>
           </div>
@@ -689,199 +702,205 @@
               </table>
             </div>
           </div>
-        </div><!-- end .bill      <!-- ═══ REPORTS (Stripe-Level Overhaul) ═══ -->
-      <div id="reports" class="section section-hidden">
-        <div class="dashboard-header no-print">
-          <div>
-            <h1>Analytics Command</h1>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Data-driven insights for salon growth.</p>
-          </div>
-          <div id="reportDateRange" class="date-chip" style="background: var(--surface); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600;">
-            All Time
-          </div>
-        </div>
+        </div><!-- end .bill-history-section -->
+      </div><!-- end #checkout -->
 
-        <!-- Smart Insights -->
-        <div id="smartInsights" class="smart-insights no-print">
-          <div class="insight-icon">💡</div>
-          <div class="insight-text">
-            <h3>Manager's Assistant</h3>
-            <p id="insightDescription">Preparing your executive intelligence report...</p>
-          </div>
-        </div>
-
-        <div class="report-tabs no-print">
-          <button class="tab-btn active" onclick="switchReportTab('executive',this)">Overview</button>
-          <button class="tab-btn" onclick="switchReportTab('sales',this)">Revenue</button>
-          <button class="tab-btn" onclick="switchReportTab('staff',this)">Performance</button>
-          <button class="tab-btn" onclick="switchReportTab('clients',this)">Retention</button>
-          <button class="tab-btn" onclick="switchReportTab('inventory',this)">Assets</button>
-        </div>
-
-        <!-- Overview -->
-        <div id="report-executive" class="report-content">
-          <div class="reports-grid">
-            <div class="glass-card">
-              <span class="card-title">Estimated Net Profit</span>
-              <div class="card-value" id="repNetProfit">₹0</div>
-              <div class="kpi-trend trend-up">↑ Real-time tracking</div>
+      <!-- ═══ REPORTS (Stripe-Level Overhaul) ═══ -->
+        <div id="reports" class="section section-hidden">
+          <div class="dashboard-header no-print">
+            <div>
+              <h1>Analytics Command</h1>
+              <p style="color: var(--text-muted); font-size: 0.95rem;">Data-driven insights for salon growth.</p>
             </div>
-            <div class="glass-card">
-              <span class="card-title">Staff Utilization</span>
-              <div class="card-value" id="repStaffUtil">0%</div>
-              <div class="kpi-trend" id="repUtilDetail">Target: 70%+</div>
-            </div>
-            <div class="glass-card">
-              <span class="card-title">Rebooking Rate</span>
-              <div class="card-value" id="repRebooking">0%</div>
-              <div class="kpi-trend" id="repRebookDetail">Growth driver</div>
-            </div>
-            <div class="glass-card">
-              <span class="card-title">Avg Ticket Size</span>
-              <div class="card-value" id="repAvgTicket">₹0</div>
-              <div class="kpi-trend trend-up">Total Revenue / Total Bills</div>
+            <div id="reportDateRange" class="date-chip"
+              style="background: var(--surface); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600;">
+              All Time
             </div>
           </div>
 
-          <div class="chart-container-premium">
-            <div class="chart-header">
-              <h3>Revenue Velocity (Last 30 Days)</h3>
-              <div style="font-size:0.8rem; color:var(--text-muted);">Cumulative Sales Trend</div>
-            </div>
-            <div style="height: 350px;">
-              <canvas id="execRevenueChart"></canvas>
+          <!-- Smart Insights -->
+          <div id="smartInsights" class="smart-insights no-print">
+            <div class="insight-icon">💡</div>
+            <div class="insight-text">
+              <h3>Manager's Assistant</h3>
+              <p id="insightDescription">Preparing your executive intelligence report...</p>
             </div>
           </div>
-        </div>
 
-        <!-- Sales -->
-        <div id="report-sales" class="report-content section-hidden">
-          <div class="reports-grid">
-            <div class="glass-card">
-              <span class="card-title">Service Revenue</span>
-              <div class="card-value" id="repTotalRevenue">₹0</div>
-            </div>
-            <div class="glass-card">
-              <span class="card-title">Retail Revenue</span>
-              <div class="card-value" id="repRetailRevenue">₹0</div>
-            </div>
-            <div class="glass-card">
-              <span class="card-title">Retail-to-Service Ratio</span>
-              <div class="card-value" id="repRetailRatio">0%</div>
-            </div>
+          <div class="report-tabs no-print">
+            <button class="tab-btn active" onclick="switchReportTab('executive',this)">Overview</button>
+            <button class="tab-btn" onclick="switchReportTab('sales',this)">Revenue</button>
+            <button class="tab-btn" onclick="switchReportTab('staff',this)">Performance</button>
+            <button class="tab-btn" onclick="switchReportTab('clients',this)">Retention</button>
+            <button class="tab-btn" onclick="switchReportTab('inventory',this)">Assets</button>
           </div>
-          <div class="chart-container-premium">
-            <div class="chart-header"><h3>Category Contribution</h3></div>
-            <div style="height: 300px;"><canvas id="salesPieChart"></canvas></div>
-          </div>
-        </div>
 
-        <!-- Staff -->
-        <div id="report-staff" class="report-content section-hidden">
-          <div class="chart-container-premium">
-            <div class="chart-header"><h3>Staff Revenue Attribution</h3></div>
-            <div style="height: 300px;"><canvas id="staffRevenueChart"></canvas></div>
-          </div>
-          <div class="table-container mt-20">
-            <div class="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Professional</th>
-                    <th>Gross Revenue</th>
-                    <th>Utilization</th>
-                    <th>Clients</th>
-                    <th>Commission Earned</th>
-                  </tr>
-                </thead>
-                <tbody id="staffReportTable"></tbody>
-              </table>
+          <!-- Overview -->
+          <div id="report-executive" class="report-content">
+            <div class="reports-grid">
+              <div class="glass-card">
+                <span class="card-title">Estimated Net Profit</span>
+                <div class="card-value" id="repNetProfit">₹0</div>
+                <div class="kpi-trend trend-up">↑ Real-time tracking</div>
+              </div>
+              <div class="glass-card">
+                <span class="card-title">Staff Utilization</span>
+                <div class="card-value" id="repStaffUtil">0%</div>
+                <div class="kpi-trend" id="repUtilDetail">Target: 70%+</div>
+              </div>
+              <div class="glass-card">
+                <span class="card-title">Rebooking Rate</span>
+                <div class="card-value" id="repRebooking">0%</div>
+                <div class="kpi-trend" id="repRebookDetail">Growth driver</div>
+              </div>
+              <div class="glass-card">
+                <span class="card-title">Avg Ticket Size</span>
+                <div class="card-value" id="repAvgTicket">₹0</div>
+                <div class="kpi-trend trend-up">Total Revenue / Total Bills</div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Clients -->
-        <div id="report-clients" class="report-content section-hidden">
-          <div class="chart-container-premium">
-            <div class="chart-header"><h3>Client Growth & Retention</h3></div>
-            <div style="height: 300px;"><canvas id="recurringClientChart"></canvas></div>
+            <div class="chart-container-premium">
+              <div class="chart-header">
+                <h3>Revenue Velocity (Last 30 Days)</h3>
+                <div style="font-size:0.8rem; color:var(--text-muted);">Cumulative Sales Trend</div>
+              </div>
+              <div style="height: 350px;">
+                <canvas id="execRevenueChart"></canvas>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <!-- Assets -->
-        <div id="report-inventory" class="report-content section-hidden">
-          <div class="reports-grid">
-            <div class="glass-card">
-              <span class="card-title">Total Inventory Value</span>
-              <div class="card-value" id="repInvValue">₹0</div>
+          <!-- Sales -->
+          <div id="report-sales" class="report-content section-hidden">
+            <div class="reports-grid">
+              <div class="glass-card">
+                <span class="card-title">Service Revenue</span>
+                <div class="card-value" id="repTotalRevenue">₹0</div>
+              </div>
+              <div class="glass-card">
+                <span class="card-title">Retail Revenue</span>
+                <div class="card-value" id="repRetailRevenue">₹0</div>
+              </div>
+              <div class="glass-card">
+                <span class="card-title">Retail-to-Service Ratio</span>
+                <div class="card-value" id="repRetailRatio">0%</div>
+              </div>
             </div>
-            <div class="glass-card" style="border-left: 4px solid var(--danger) !important;">
-              <span class="card-title" style="color:var(--danger)">Stock Alerts</span>
-              <div class="card-value" id="repLowStock">0</div>
+            <div class="chart-container-premium">
+              <div class="chart-header">
+                <h3>Category Contribution</h3>
+              </div>
+              <div style="height: 300px;"><canvas id="salesPieChart"></canvas></div>
             </div>
           </div>
-          <div class="chart-container-premium">
-            <div class="chart-header"><h3>Top Depletion Products</h3></div>
-            <div style="height: 300px;"><canvas id="inventoryMarginChart"></canvas></div>
+
+          <!-- Staff -->
+          <div id="report-staff" class="report-content section-hidden">
+            <div class="chart-container-premium">
+              <div class="chart-header">
+                <h3>Staff Revenue Attribution</h3>
+              </div>
+              <div style="height: 300px;"><canvas id="staffRevenueChart"></canvas></div>
+            </div>
+            <div class="table-container mt-20">
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Professional</th>
+                      <th>Gross Revenue</th>
+                      <th>Utilization</th>
+                      <th>Clients</th>
+                      <th>Commission Earned</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staffReportTable"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
+
+          <!-- Clients -->
+          <div id="report-clients" class="report-content section-hidden">
+            <div class="chart-container-premium">
+              <div class="chart-header">
+                <h3>Client Growth & Retention</h3>
+              </div>
+              <div style="height: 300px;"><canvas id="recurringClientChart"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Assets -->
+          <div id="report-inventory" class="report-content section-hidden">
+            <div class="reports-grid">
+              <div class="glass-card">
+                <span class="card-title">Total Inventory Value</span>
+                <div class="card-value" id="repInvValue">₹0</div>
+              </div>
+              <div class="glass-card" style="border-left: 4px solid var(--danger) !important;">
+                <span class="card-title" style="color:var(--danger)">Stock Alerts</span>
+                <div class="card-value" id="repLowStock">0</div>
+              </div>
+            </div>
+            <div class="chart-container-premium">
+              <div class="chart-header">
+                <h3>Top Depletion Products</h3>
+              </div>
+              <div style="height: 300px;"><canvas id="inventoryMarginChart"></canvas></div>
+            </div>
+          </div>
+        </div><!-- end #reports -->
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div id="settings" class="section section-hidden">
+      <h2>Salon Settings</h2>
+
+      <div class="settings-container" style="max-width: 600px; background: white; padding: 20px; border-radius: 8px;">
+        <h3>General Settings</h3>
+        <label for="setSalonName">Salon Name</label>
+        <input type="text" id="setSalonName" class="modal-input">
+
+        <label for="setAddress">Address</label>
+        <input type="text" id="setAddress" class="modal-input">
+
+        <label for="setPhone">Phone Number</label>
+        <input type="text" id="setPhone" class="modal-input">
+
+        <label for="setCurrency">Currency Symbol</label>
+        <input type="text" id="setCurrency" class="modal-input" placeholder="e.g. ₹ or $">
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+        <h3>Billing & Taxes</h3>
+        <label for="setTax">Default Tax % (e.g. GST)</label>
+        <input type="number" id="setTax" class="modal-input" placeholder="e.g. 18">
+
+        <label for="setDefaultCommission">Default Staff Commission %</label>
+        <input type="number" id="setDefaultCommission" class="modal-input" placeholder="e.g. 20">
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+        <h3>Loyalty Program</h3>
+        <div style="margin-bottom: 12px;">
+          <label style="display:inline;">
+            <input type="checkbox" id="setLoyalty"> Enable Loyalty Points
+          </label>
         </div>
+        <label for="setPoints">Points per spent unit (e.g. 1 point per ₹100 → put 0.01)</label>
+        <input type="number" id="setPoints" class="modal-input" step="0.01">
+
+        <button onclick="saveSettings()" class="btn-black mt-20" style="padding: 12px 24px;">Save Settings</button>
+
+        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ff4d4f;">
+        <h3 style="color: #ff4d4f;">Danger Zone</h3>
+        <button class="btn-danger btn-full mt-20" onclick="dangerDeleteAccount()">
+          Delete Entire Salon Account & Data
+        </button>
       </div>
-<div class="chart-box chart-tall mt-20">
-            <canvas id="inventoryMarginChart"></canvas>
-          </div>
-        </div>
+    </div><!-- end #settings -->
 
-      </div><!-- end #reports -->
-
-      <!-- ═══ SETTINGS ═══ -->
-      <div id="settings" class="section section-hidden">
-        <h2>Salon Settings</h2>
-
-        <div class="settings-container" style="max-width: 600px; background: white; padding: 20px; border-radius: 8px;">
-          <h3>General Settings</h3>
-          <label for="setSalonName">Salon Name</label>
-          <input type="text" id="setSalonName" class="modal-input">
-
-          <label for="setAddress">Address</label>
-          <input type="text" id="setAddress" class="modal-input">
-
-          <label for="setPhone">Phone Number</label>
-          <input type="text" id="setPhone" class="modal-input">
-
-          <label for="setCurrency">Currency Symbol</label>
-          <input type="text" id="setCurrency" class="modal-input" placeholder="e.g. ₹ or $">
-
-          <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-
-          <h3>Billing & Taxes</h3>
-          <label for="setTax">Default Tax % (e.g. GST)</label>
-          <input type="number" id="setTax" class="modal-input" placeholder="e.g. 18">
-
-          <label for="setDefaultCommission">Default Staff Commission %</label>
-          <input type="number" id="setDefaultCommission" class="modal-input" placeholder="e.g. 20">
-
-          <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-
-          <h3>Loyalty Program</h3>
-          <div style="margin-bottom: 12px;">
-            <label style="display:inline;">
-              <input type="checkbox" id="setLoyalty"> Enable Loyalty Points
-            </label>
-          </div>
-          <label for="setPoints">Points per spent unit (e.g. 1 point per ₹100 → put 0.01)</label>
-          <input type="number" id="setPoints" class="modal-input" step="0.01">
-
-          <button onclick="saveSettings()" class="btn-black mt-20" style="padding: 12px 24px;">Save Settings</button>
-
-          <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ff4d4f;">
-          <h3 style="color: #ff4d4f;">Danger Zone</h3>
-          <button class="btn-danger btn-full mt-20" onclick="dangerDeleteAccount()">
-            Delete Entire Salon Account & Data
-          </button>
-        </div>
-      </div><!-- end #settings -->
-
-    </div><!-- end .main -->
+  </div><!-- end .main -->
   </div><!-- end .container -->
 
   <script src="api.js"></script>
