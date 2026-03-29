@@ -1280,6 +1280,12 @@ label {
   border: 1px solid #f0f0f0;
 }
 
+.receipt-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin: 20px 0;
+}
+
 .receipt-header {
   text-align: center;
   margin-bottom: 30px;
@@ -1345,8 +1351,9 @@ label {
 
 .receipt-table {
   width: 100% !important;
+  min-width: 0 !important; /* Reset inheriting min-width: 650px */
   border-collapse: collapse !important;
-  margin: 20px 0 !important;
+  margin: 0 !important;
   display: table !important; /* Force table layout */
 }
 
@@ -1421,6 +1428,9 @@ label {
 
 
 @media (max-width: 768px) {
+  .professional-receipt {
+    padding: 20px 15px;
+  }
 
   /* Tables to Cards */
   table {
