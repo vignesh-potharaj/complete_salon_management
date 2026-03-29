@@ -127,7 +127,9 @@
               <select id="quickServiceSelect" class="modal-input" style="padding: 8px; font-size: 0.85rem;" required>
                 <option value="">Select Service</option>
               </select>
-              <input type="time" id="quickTime" required class="modal-input" style="padding: 8px; font-size: 0.85rem;">
+              <div class="time-pills-label">Select Time</div>
+              <div id="quickTimeSlots" class="time-pills-container"></div>
+              <input type="hidden" id="quickTime" required>
               <button type="submit" class="btn-black" style="padding: 8px; font-size: 0.85rem;">+ Add</button>
             </form>
           </div>
@@ -248,9 +250,12 @@
           <label for="apptClient">Client Name</label>
           <input type="text" id="apptClient" placeholder="Enter client name" class="modal-input">
           <label for="apptService">Service</label>
-          <input type="text" id="apptService" placeholder="e.g. Haircut, Facial" class="modal-input">
-          <label for="apptTime">Time</label>
-          <input type="time" id="apptTime" class="modal-input">
+          <select id="apptService" class="modal-input" required>
+            <option value="">Select Service</option>
+          </select>
+          <label>Select Time</label>
+          <div id="apptTimeSlots" class="time-pills-container"></div>
+          <input type="hidden" id="apptTime" required>
           <button id="saveApptBtn" onclick="saveAppointment()" class="btn-black btn-full">Save Appointment</button>
         </div>
       </div>

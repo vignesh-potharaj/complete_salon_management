@@ -94,7 +94,7 @@ function refreshRelated(modules) {
       'clients': loadClients,
       'staff': loadStaff,
       'inventory': loadInventory,
-      'checkout': () => { populateProductDropdown(); populateServiceDropdown(); loadBillHistory(); },
+      'checkout': () => { populateProductDropdown(); populateServiceDropdown(['serviceSelect']); loadBillHistory(); },
       'reports': loadReports,
       'settings': loadSettings
     };
