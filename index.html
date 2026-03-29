@@ -20,6 +20,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
 </head>
 
 <body>
@@ -54,59 +55,141 @@
     <div class="main">
 
       <!-- ═══ HOME ═══ -->
+      <!-- HOME SECTION (Bento Redesign) -->
       <div id="home" class="section">
-        <div class="dashboard">
-          <h1>Dashboard</h1>
+        <div class="dashboard-header no-print">
+          <div>
+            <h1>Dashboard</h1>
+            <p id="dashboardGreeting" style="color: var(--text-muted); font-size: 0.95rem;">Loading your salon's pulse...</p>
+          </div>
+          <div class="date-chip" style="background: var(--surface); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600;">
+            <span id="dashCurrentDate">Today</span>
+          </div>
+        </div>
 
-          <div class="dashboard-cards">
-            <div class="card">
-              <div class="card-title">Total Sales Today</div>
-              <div class="card-value" id="dashTotalSales">Loading...</div>
-              <div id="dashTotalBills" class="card-subtext">—</div>
-            </div>
-            <div class="card">
-              <div class="card-title">Appointments Today</div>
-              <div class="card-value" id="dashApptCount">Loading...</div>
-              <div id="dashApptOngoing" class="card-subtext">—</div>
-            </div>
-            <div class="card">
-              <div class="card-title">Total Clients</div>
-              <div class="card-value" id="dashTotalClients">Loading...</div>
-              <div class="card-subtext">Registered in system</div>
-            </div>
-            <div class="card alert-card">
-              <div class="card-title" style="color:var(--danger)">Low Inventory</div>
-              <ul id="dashLowStockList" style="list-style:none; padding:0; margin-top:8px;">
-                <li class="muted-text">Loading...</li>
-              </ul>
+        <div class="bento-grid no-print">
+          <!-- KPI Row -->
+          <div class="bento-item kpi-card magnetic">
+            <div class="card-icon">⚡</div>
+            <div class="card-content">
+              <span class="card-title">Staff Utilization</span>
+              <div class="card-value" id="dashUtilization">0%</div>
+              <div class="progress-container">
+                <div class="progress-bar" id="utilizationBar" style="width: 0%"></div>
+              </div>
             </div>
           </div>
 
-          <!-- Quick Add Appointment -->
-          <div class="quick-add">
-            <h2>Quick Add Appointment</h2>
-            <form id="appointmentForm" style="display:grid; gap:10px; max-width:400px;">
-              <label for="quickClientName" class="sr-only">Client Name</label>
-              <input type="text" id="quickClientName" placeholder="Client Name" required class="modal-input">
-              <label for="quickService" class="sr-only">Service</label>
-              <input type="text" id="quickService" placeholder="Service" required class="modal-input">
-              <label for="quickTime" class="sr-only">Appointment Time</label>
-              <input type="time" id="quickTime" required class="modal-input">
-              <button type="submit" class="btn-black">Add Appointment</button>
+          <div class="bento-item kpi-card magnetic">
+            <div class="card-icon">💰</div>
+            <div class="card-content">
+              <span class="card-title">Projected Revenue</span>
+              <div class="card-value" id="dashProjectedRev">₹0</div>
+              <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-top: 10px; font-weight: 700;">Vs Daily Target</div>
+            </div>
+          </div>
+
+          <div class="bento-item kpi-card magnetic">
+            <div class="card-icon">🎟️</div>
+            <div class="card-content">
+              <span class="card-title">Avg Ticket Size</span>
+              <div class="card-value" id="dashAvgTicket">₹0</div>
+              <div id="ticketTrend" style="font-size: 0.7rem; margin-top: 10px; font-weight: 600;">...</div>
+            </div>
+          </div>
+
+          <div class="bento-item kpi-card magnetic">
+            <div class="card-icon">👥</div>
+            <div class="card-content">
+              <span class="card-title">Client Retention</span>
+              <div class="card-value" id="dashRetention">0%</div>
+              <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-top: 10px; font-weight: 700;">Recurring Today</div>
+            </div>
+          </div>
+
+          <!-- Quick Add Appt -->
+          <div class="bento-item span-1 glass">
+            <div class="bento-header">
+              <h2>Quick Add</h2>
+            </div>
+            <form id="appointmentForm" style="display:flex; flex-direction:column; gap:8px;">
+              <input type="text" id="quickClientName" placeholder="Client Name" required class="modal-input" style="padding: 8px; font-size: 0.85rem;">
+              <select id="quickServiceSelect" class="modal-input" style="padding: 8px; font-size: 0.85rem;" required>
+                 <option value="">Select Service</option>
+              </select>
+              <input type="time" id="quickTime" required class="modal-input" style="padding: 8px; font-size: 0.85rem;">
+              <button type="submit" class="btn-black" style="padding: 8px; font-size: 0.85rem;">+ Add</button>
             </form>
           </div>
 
-          <!-- Today's Appointments -->
-          <div class="appointments-list">
-            <h2>Today's Appointments</h2>
-            <table id="dashApptTable">
-              <tr>
-                <th>Time</th>
-                <th>Client</th>
-                <th>Service</th>
-                <th>Status</th>
-              </tr>
-            </table>
+          <!-- Main Pulse -->
+          <div class="bento-item span-3 row-2 main-pulse">
+            <div class="bento-header">
+              <h2>Live Salon Pulse</h2>
+              <div class="badge-live">LIVE</div>
+            </div>
+            <div id="livePulseContent" style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #aaa;">
+               <p style="font-style: italic;">Monitoring bookings, check-ins, and floor gaps...</p>
+            </div>
+          </div>
+
+          <!-- Action Center -->
+          <div class="bento-item action-center row-2">
+            <div class="bento-header">
+              <h2>Action Center</h2>
+            </div>
+            <div id="actionFeed" class="action-feed">
+              <div class="action-item info">
+                <div class="action-icon">💡</div>
+                <div class="action-content">
+                  <strong>Scanning for alerts...</strong>
+                  <span>Hang tight, manager.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart 1 -->
+          <div class="bento-item span-2">
+            <div class="bento-header">
+              <h2>Hourly Booking Density</h2>
+            </div>
+            <div class="chart-container">
+              <canvas id="densityChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2 -->
+          <div class="bento-item span-2">
+            <div class="bento-header">
+              <h2>Service Revenue Mix</h2>
+            </div>
+            <div class="chart-container">
+              <canvas id="serviceMixChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Today's Agenda (Full Width) -->
+          <div class="bento-item span-4">
+            <div class="bento-header">
+              <h2>Today's Agenda</h2>
+              <button class="btn-secondary" style="height: 32px; padding: 0 12px; font-size: 0.8rem;" onclick="showSection('calendar')">Full Calendar →</button>
+            </div>
+            <div class="table-container">
+              <div class="table-scroll">
+                <table id="dashApptTable">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Client</th>
+                      <th>Service</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashApptTableBody"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
