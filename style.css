@@ -638,36 +638,77 @@ label {
 
 .calendar-grid-container {
   display: grid;
-  grid-template-columns: 60px 1fr;
-  gap: 10px;
+  grid-template-columns: 80px 1fr;
+  grid-template-rows: 60px 1fr; /* Staff row height + data */
+  gap: 0;
   min-width: 800px;
+  max-height: 80vh;
+  overflow: auto;
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: white;
+}
+
+.time-header-corner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.sticky-staff {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: var(--surface);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0 !important;
 }
 
 .time-slots {
+  grid-column: 1;
+  grid-row: 2;
   display: grid;
-  grid-template-rows: repeat(12, 80px);
+  grid-template-rows: repeat(15, 80px); /* 8 AM to 11 PM */
   color: var(--text-muted);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-align: right;
-  padding-right: 15px;
+  padding-right: 10px;
+  background: var(--surface);
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  border-right: 1px solid var(--border);
 }
 
 .time-slots div {
-  border-bottom: 1px solid var(--border);
+  height: 80px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
-  padding-top: 5px;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
 }
 
 .grid-content {
+  grid-column: 2;
+  grid-row: 2;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(12, 80px);
-  gap: 10px;
+  grid-template-rows: repeat(15, 80px);
+  gap: 0; /* Gap 0 to keep columns aligned with sticky staff */
   background-size: 100% 80px;
   background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  position: relative;
+  padding: 0 10px;
 }
 
 .appointment {
