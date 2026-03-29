@@ -1,5 +1,12 @@
 // api.js - Global API Helper and Auth
 
+function esc(str) {
+  if (str == null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+
 const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
   : 'https://salonpro-backend-javg.onrender.com/api';

@@ -27,7 +27,6 @@ app.use('/api', apiLimiter);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/clients', require('./routes/clients'));
 app.use('/api/staff', require('./routes/staff'));
-// app.use('/api/services', require('./routes/services')); // Removed per instruction
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/bills', require('./routes/bills'));

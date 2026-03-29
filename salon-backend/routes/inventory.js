@@ -99,18 +99,26 @@ router.post('/:id/adjust-stock', auth, async (req, res, next) => {
   try {
     const { adjustment, reason } = req.body;
     
+    const adj = Number(adjustment);
+    if (!Number.isFinite(adj) || adj === 0) {
+      return res.status(400).json({ message: 'Adjustment must be a non-zero number' });
+    }
+    if (Math.abs(adj) > 10000) {
+      return res.status(400).json({ message: 'Adjustment value is too large' });
+    }
+
     let item = await InventoryItem.findById(req.params.id);
     if (!item) return res.status(404).json({ message: 'Inventory Item not found' });
     if (item.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });
 
     const oldStock = item.stock;
-    item.stock = Math.max(0, item.stock + Number(adjustment));
+    item.stock = Math.max(0, item.stock + adj);
     
     // Log the adjustment
     if (!item.stockLog) item.stockLog = [];
     item.stockLog.push({
       date: new Date(),
-      adjustment: Number(adjustment),
+      adjustment: adj,
       reason: reason || 'Manual adjustment',
       newStock: item.stock
     });
