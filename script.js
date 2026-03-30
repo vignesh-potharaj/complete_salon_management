@@ -123,10 +123,22 @@ function openModal(client, service, time, amount, staff, id, status) {
 }
 function closeModal() { document.getElementById('appointmentModal').style.display = 'none'; }
 
-function printBill() {
-  window.print();
-}
+async function printBill() {
+  if (!currentBillId && billItems.length > 0) {
+    // If not saved to history yet, save it first
+    const success = await finalizeSale(false); // pass false to avoid double print
+    if (!success) return; 
+  }
 
+  const clientName = document.getElementById('printClientName').innerText.replace(/\s+/g, '_') || 'Client';
+  const timestamp = new Date().getTime();
+  const originalTitle = document.title;
+  
+  // Set title for the PDF filename in the print dialog
+  document.title = `${clientName}_${timestamp}`;
+  window.print();
+  document.title = originalTitle;
+}
 
 /* ══════════════════════════════════════════════════════════
    1. DASHBOARD
@@ -1017,6 +1029,7 @@ async function lookupClientByPhone() {
   renderBill();
   document.getElementById('billDiscountPct').value = '';
   document.getElementById('billDiscountFlat').value = '';
+  currentBillId = null;
 
   try {
     const clients = await api('/clients');
@@ -1066,6 +1079,7 @@ function addProductToBill() {
 }
 
 function addToBill(name, type, price, refId = null, staffId = null, staffName = null) {
+  currentBillId = null; // Unsaved changes
   const existing = billItems.find(i => i.name === name && i.staffId === staffId);
   if (existing) { existing.qty++; }
   else { billItems.push({ name, type, price, qty: 1, refId, staffId, staffName }); }
@@ -1104,11 +1118,16 @@ function renderBill() {
 }
 
 function changeQty(index, delta) {
+  currentBillId = null; // Unsaved changes
   billItems[index].qty += delta;
   if (billItems[index].qty <= 0) billItems.splice(index, 1);
   renderBill();
 }
-function removeItem(index) { billItems.splice(index, 1); renderBill(); }
+function removeItem(index) { 
+  currentBillId = null; // Unsaved changes
+  billItems.splice(index, 1); 
+  renderBill(); 
+}
 
 let taxPctGlobal = 0; // fetched from settings
 
@@ -1141,6 +1160,12 @@ function calculateTotals() {
 // sendWhatsAppBill removed in favor of PDF sharing
 
 async function shareBillAsPDF() {
+  if (!currentBillId && billItems.length > 0) {
+    // If not saved to history yet, save it first
+    const success = await finalizeSale(false); 
+    if (!success) return; 
+  }
+
   const element = document.getElementById('bill-area');
   const clientName = currentClient ? currentClient.name : 'Client';
   const clientPhone = currentClient ? (currentClient.phone || '') : '';
@@ -1205,11 +1230,12 @@ async function shareBillAsPDF() {
 
 }
 
-async function finalizeSale() {
-  if (billItems.length === 0) { showToast('Add items to bill', 'error'); return; }
+async function finalizeSale(autoPrint = true) {
+  if (currentBillId) { showToast('Bill already saved in history'); return true; }
+  if (billItems.length === 0) { showToast('Add items to bill', 'error'); return false; }
   const clientName = document.getElementById('billClient').value.trim();
   const paymentMethod = document.getElementById('paymentMethod').value;
-  if (!clientName) { showToast('Please enter client name', 'error'); return; }
+  if (!clientName) { showToast('Please enter client name', 'error'); return false; }
 
   const btn = document.querySelector('.btn-finalize');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
@@ -1239,37 +1265,38 @@ async function finalizeSale() {
 
     const items = billItems.map(i => ({ name: i.name, type: i.type, qty: i.qty, unitPrice: i.price, subtotal: i.qty * i.price, refId: i.refId, staffId: i.staffId, staffName: i.staffName }));
 
-    await api('/bills', {
+    const savedBill = await api('/bills', {
       method: 'POST',
       body: {
         clientId: client._id, clientName: client.name,
         staffId: staffId, staffName: staffName,
         lineItems: items,
         subtotal, taxPct: taxPctGlobal, taxAmount: gst,
-        discountAmount: discountTotal, // Added discount tracking
+        discountAmount: discountTotal, 
         grandTotal, paymentMethod
       }
     });
 
-    billItems = [];
-    currentClient = null;
-    renderBill();
-    document.getElementById('billClient').value = '';
-    document.getElementById('billClientLookup').value = '';
-    document.getElementById('lookupMessage').innerHTML = '';
-    setEl('printClientName', '—');
-    setEl('billDate', '—');
-    document.getElementById('billDiscountPct').value = '';
-    document.getElementById('billDiscountFlat').value = '';
-    document.getElementById('btnSharePDF').disabled = true;
+    currentBillId = savedBill._id; // Mark as saved
+    
+    // We intentionally DO NOT clear the bill view here so the user can see it to print/share it.
+    // The view will automatically reset the next time they search a Client Mobile Number.
+
+    document.getElementById('btnSharePDF').disabled = false;
     showToast(`Bill saved: ₹${grandTotal}`);
     refreshRelated(['checkout', 'reports', 'dashboard', 'inventory', 'clients']);
 
     // Auto-Print
-    setTimeout(() => printBill(), 500);
+    if (autoPrint) {
+      setTimeout(() => printBill(), 500);
+    }
+    return true;
 
-  } catch (err) { showToast(err.message, 'error'); }
-  finally { if (btn) { btn.disabled = false; btn.textContent = '✓ Finalize Sale & Print Bill'; } }
+  } catch (err) { 
+    showToast(err.message, 'error'); 
+    return false;
+  }
+  finally { if (btn) { btn.textContent = '✓ Saved Successfully'; } }
 }
 
 async function loadBillHistory() {
@@ -1366,6 +1393,7 @@ async function viewBill(id) {
 
 async function printPastBill(id) {
   await viewBill(id);
+  currentBillId = id; // Flag as saved
   setTimeout(() => printBill(), 500);
 }
 
