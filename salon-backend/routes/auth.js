@@ -145,6 +145,7 @@ router.post('/resend-verify', [
 
 // ─── POST /api/auth/forgot-password ───
 router.post('/forgot-password', [
+  body('userId').trim().notEmpty().withMessage('User ID is required'),
   body('email').trim().isEmail().withMessage('Valid email is required').normalizeEmail()
 ], async (req, res, next) => {
   const errors = validationResult(req);
@@ -153,10 +154,9 @@ router.post('/forgot-password', [
   }
 
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findOne({ userId: req.body.userId, email: req.body.email });
     if (!user) {
-      // Don't reveal whether email exists (security)
-      return res.json({ message: 'If this email is registered, you will receive a reset code.' });
+      return res.json({ message: 'If this account exists, you will receive a reset code.' });
     }
 
     const code = generateOTP();
@@ -165,7 +165,7 @@ router.post('/forgot-password', [
     await user.save();
 
     await sendPasswordResetCode(user.email, code, user.name);
-    res.json({ message: 'If this email is registered, you will receive a reset code.' });
+    res.json({ message: 'If this account exists, you will receive a reset code.' });
 
   } catch (err) {
     next(err);
@@ -174,6 +174,7 @@ router.post('/forgot-password', [
 
 // ─── POST /api/auth/reset-password ───
 router.post('/reset-password', [
+  body('userId').trim().notEmpty().withMessage('User ID is required'),
   body('email').trim().isEmail().withMessage('Valid email is required').normalizeEmail(),
   body('code').trim().notEmpty().withMessage('Reset code is required'),
   body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
@@ -183,10 +184,10 @@ router.post('/reset-password', [
     return res.status(400).json({ message: errors.array()[0].msg });
   }
 
-  const { email, code, newPassword } = req.body;
+  const { userId, email, code, newPassword } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ userId, email });
     if (!user) return res.status(400).json({ message: 'Invalid request' });
 
     if (user.resetPasswordCode !== code) {

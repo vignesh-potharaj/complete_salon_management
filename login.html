@@ -313,6 +313,14 @@
         <div class="success-msg" id="forgotSuccessMsg"></div>
 
         <div class="form-group">
+          <label>User ID</label>
+          <div class="userid-wrap">
+            <span class="userid-prefix">@</span>
+            <input type="text" id="forgotUserId" placeholder="your.userid">
+          </div>
+        </div>
+
+        <div class="form-group">
           <label>Email Address</label>
           <input type="email" id="forgotEmail" placeholder="e.g. rahul@gmail.com">
         </div>
@@ -375,6 +383,7 @@
     }
 
     let forgotEmailValue = '';
+    let forgotUserIdValue = '';
 
     // ─── OTP Auto-Focus for reset inputs ───
     document.querySelectorAll('.reset-otp').forEach((input, idx, inputs) => {
@@ -452,10 +461,12 @@
     }
 
     async function sendResetCode() {
+      const forgotUid = document.getElementById('forgotUserId').value.trim();
       const email = document.getElementById('forgotEmail').value.trim();
       const btn = document.getElementById('sendCodeBtn');
 
       hideAll();
+      if (!forgotUid) return showMsg('forgotErrorMsg', 'Please enter your User ID.');
       if (!email) return showMsg('forgotErrorMsg', 'Please enter your email.');
 
       btn.disabled = true;
@@ -465,12 +476,13 @@
         const res = await fetch(`${API}/auth/forgot-password`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
+          body: JSON.stringify({ userId: forgotUid, email })
         });
 
         const data = await res.json();
 
         forgotEmailValue = email;
+        forgotUserIdValue = forgotUid;
         // Always proceed to step 2 (for security, API doesn't reveal if email exists)
         document.getElementById('forgotStep1').classList.add('hidden');
         document.getElementById('forgotStep2').classList.remove('hidden');
@@ -505,7 +517,7 @@
         const res = await fetch(`${API}/auth/reset-password`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: forgotEmailValue, code, newPassword })
+          body: JSON.stringify({ userId: forgotUserIdValue, email: forgotEmailValue, code, newPassword })
         });
 
         const data = await res.json();
