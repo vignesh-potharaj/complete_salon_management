@@ -131,13 +131,18 @@ async function printBill() {
   }
 
   const clientName = document.getElementById('printClientName').innerText.replace(/\s+/g, '_') || 'Client';
-  const timestamp = new Date().getTime();
   const originalTitle = document.title;
   
   // Set title for the PDF filename in the print dialog
-  document.title = `${clientName}_${timestamp}`;
+  document.title = `Receipt_${clientName}`;
+
+  // Restore the title ONLY after the print dialog closes
+  window.onafterprint = () => {
+    document.title = originalTitle;
+    window.onafterprint = null;
+  };
+
   window.print();
-  document.title = originalTitle;
 }
 
 /* ══════════════════════════════════════════════════════════
