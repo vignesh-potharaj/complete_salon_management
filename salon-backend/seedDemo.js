@@ -58,7 +58,7 @@ async function seed() {
     console.log(`👨‍🎨 Step 4: Generating Staff...`);
     // Map defaultPrice to price for Staff schema
     const staffServices = servicesData.map(s => ({ ...s, price: s.defaultPrice }));
-    
+
     const staffData = [
       { name: 'Sarah (Senior Stylist)', role: 'Senior Stylist', phone: '555-0101', commissionPct: 40, services: staffServices },
       { name: 'Michael (Colorist)', role: 'Color Expert', phone: '555-0102', commissionPct: 35, services: staffServices.filter(s => s.category === 'Color' || s.category === 'Hair') },
@@ -69,16 +69,16 @@ async function seed() {
 
     console.log(`🤝 Step 5: Generating Clients...`);
     const clientData = [
-      { name: 'Emily Chen', phone: '555-1001', totalVisits: 12, totalSpend: 1500, loyaltyPoints: 150 },
-      { name: 'David Smith', phone: '555-1002', totalVisits: 4, totalSpend: 250, loyaltyPoints: 25 },
-      { name: 'Sophia Patel', phone: '555-1003', totalVisits: 25, totalSpend: 4200, loyaltyPoints: 420 }, // VIP
-      { name: 'James Wilson', phone: '555-1004', totalVisits: 1, totalSpend: 50, loyaltyPoints: 5 },
-      { name: 'Olivia Martin', phone: '555-1005', totalVisits: 8, totalSpend: 800, loyaltyPoints: 80 },
-      { name: 'Liam Garcia', phone: '555-1006', totalVisits: 3, totalSpend: 120, loyaltyPoints: 12 },
-      { name: 'Isabella Lee', phone: '555-1007', totalVisits: 15, totalSpend: 2100, loyaltyPoints: 210 }, // VIP
-      { name: 'Lucas White', phone: '555-1008', totalVisits: 2, totalSpend: 100, loyaltyPoints: 10 },
-      { name: 'Mia Thompson', phone: '555-1009', totalVisits: 5, totalSpend: 450, loyaltyPoints: 45 },
-      { name: 'Ethan Davis', phone: '555-1010', totalVisits: 0, totalSpend: 0, loyaltyPoints: 0 } // New
+      { name: 'Emily Chen', phone: '4143946038', totalVisits: 12, totalSpend: 1500, loyaltyPoints: 150 },
+      { name: 'David Smith', phone: '3035546033', totalVisits: 4, totalSpend: 250, loyaltyPoints: 25 },
+      { name: 'Sophia Patel', phone: '8005392010', totalVisits: 25, totalSpend: 4200, loyaltyPoints: 420 }, // VIP
+      { name: 'James Wilson', phone: '3809888735', totalVisits: 1, totalSpend: 50, loyaltyPoints: 5 },
+      { name: 'Olivia Martin', phone: '4143946038', totalVisits: 8, totalSpend: 800, loyaltyPoints: 80 },
+      { name: 'Liam Garcia', phone: '4143946038', totalVisits: 3, totalSpend: 120, loyaltyPoints: 12 },
+      { name: 'Isabella Lee', phone: '4143946038', totalVisits: 15, totalSpend: 2100, loyaltyPoints: 210 }, // VIP
+      { name: 'Lucas White', phone: '4143946038', totalVisits: 2, totalSpend: 100, loyaltyPoints: 10 },
+      { name: 'Mia Thompson', phone: '4143946038', totalVisits: 5, totalSpend: 450, loyaltyPoints: 45 },
+      { name: 'Ethan Davis', phone: '3035546033', totalVisits: 0, totalSpend: 0, loyaltyPoints: 0 } // New
     ];
     const clients = await Client.insertMany(clientData.map(c => ({ ...c, userId: USER_ID })));
 
@@ -94,10 +94,10 @@ async function seed() {
 
     console.log(`📅 Step 7: Generating Appointments...`);
     const today = new Date();
-    
+
     // Formatting helpers
     const formatDate = (date) => date.toISOString().split('T')[0];
-    
+
     // Generate dates: yesterday, today, tomorrow
     const yesterdayDate = new Date(today); yesterdayDate.setDate(today.getDate() - 1);
     const tomorrowDate = new Date(today); tomorrowDate.setDate(today.getDate() + 1);
@@ -106,7 +106,7 @@ async function seed() {
       // Yesterday (Completed)
       { clientId: clients[0]._id, clientName: clients[0].name, serviceId: services[0]._id, serviceName: services[0].name, staffId: staff[0]._id, staffName: staff[0].name, date: formatDate(yesterdayDate), time: '10:00', duration: services[0].durationMins, status: 'Completed' },
       { clientId: clients[1]._id, clientName: clients[1].name, serviceId: services[1]._id, serviceName: services[1].name, staffId: staff[3]._id, staffName: staff[3].name, date: formatDate(yesterdayDate), time: '14:30', duration: services[1].durationMins, status: 'Completed' },
-      
+
       // Today (Various statuses)
       { clientId: clients[2]._id, clientName: clients[2].name, serviceId: services[2]._id, serviceName: services[2].name, staffId: staff[1]._id, staffName: staff[1].name, date: formatDate(today), time: '09:00', duration: services[2].durationMins, status: 'Completed' },
       { clientId: clients[4]._id, clientName: clients[4].name, serviceId: services[4]._id, serviceName: services[4].name, staffId: staff[2]._id, staffName: staff[2].name, date: formatDate(today), time: '11:00', duration: services[4].durationMins, status: 'Completed' },
@@ -122,21 +122,21 @@ async function seed() {
 
     console.log(`🧾 Step 8: Generating Bills (for 30-Day Reports)...`);
     const billsData = [];
-    
+
     // Create random bills over the last 30 days to build a beautiful revenue chart
     for (let i = 0; i < 30; i++) {
       const billDate = new Date(today);
       billDate.setDate(today.getDate() - Math.floor(Math.random() * 30)); // random day within last 30 days
-      
+
       const randomClient = clients[Math.floor(Math.random() * clients.length)];
       const randomStaff = staff[Math.floor(Math.random() * staff.length)];
       const randomService = services[Math.floor(Math.random() * services.length)];
-      
+
       // Some bills have multiple items (Service + Product)
       const lineItems = [
         { type: 'Service', refId: randomService._id, name: randomService.name, qty: 1, unitPrice: randomService.defaultPrice, subtotal: randomService.defaultPrice }
       ];
-      
+
       let grandTotal = randomService.defaultPrice;
 
       // 30% chance they bought a retail product too
@@ -169,7 +169,7 @@ async function seed() {
     console.log(`\n🎉 SEEDING COMPLETE!`);
     console.log(`User ID: ${USER_ID}`);
     console.log(`Password: 123456\n`);
-    
+
     process.exit(0);
 
   } catch (err) {
