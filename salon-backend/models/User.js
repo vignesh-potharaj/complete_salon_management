@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   salonName: { type: String, required: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  email: { type: String, required: true, lowercase: true, trim: true },
   passwordHash: { type: String, required: true },
 
   // Email Verification
