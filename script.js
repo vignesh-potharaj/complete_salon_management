@@ -1137,9 +1137,13 @@ function calculateTotals() {
 async function shareBillAsPDF() {
   const element = document.getElementById('bill-area');
   const clientName = currentClient ? currentClient.name : 'Client';
+  const clientPhone = currentClient ? (currentClient.phone || '') : '';
+  const salonName = document.getElementById('billSalonName')?.innerText || 'SalonPro';
+  const filename = `Receipt_${clientName.replace(/\s+/g, '_')}.pdf`;
+
   const opt = {
     margin: 0.2,
-    filename: `Bill_${clientName.replace(/\s+/g, '_')}.pdf`,
+    filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -1148,29 +1152,31 @@ async function shareBillAsPDF() {
   const btn = document.getElementById('btnSharePDF');
   const originalText = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = '⌛ Generating...';
+  btn.innerHTML = '⌛ Generating PDF...';
 
   try {
-    // Generate PDF blob
-    const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
-    const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
+    // Step 1: Generate and download the PDF
+    await html2pdf().set(opt).from(element).save();
 
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: 'Salon Receipt',
-        text: `Here is your receipt from ${document.getElementById('billSalonName').innerText}`
-      });
-      showToast('Share sheet opened');
+    // Step 2: Open WhatsApp with client's number pre-filled
+    if (clientPhone) {
+      // Clean phone number: remove spaces, dashes, brackets. Add country code if missing.
+      let cleanPhone = clientPhone.replace(/[\s\-\(\)]/g, '');
+      // If it's a 10-digit Indian number, add country code 91
+      if (/^\d{10}$/.test(cleanPhone)) cleanPhone = '91' + cleanPhone;
+
+      const message = encodeURIComponent(
+        `Hi ${clientName}! 👋\n\nThank you for visiting *${salonName}*! 🙏\nPlease find your receipt attached.\n\nSee you again soon! ✨`
+      );
+
+      // Small delay so the PDF download triggers first
+      setTimeout(() => {
+        window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+      }, 800);
+
+      showToast('PDF downloaded! WhatsApp opening...');
     } else {
-      // Fallback to download
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = opt.filename;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('PDF downloaded (Sharing not supported on this browser)');
+      showToast('PDF downloaded! (No phone number on file for WhatsApp)');
     }
   } catch (err) {
     showToast('Failed to generate PDF: ' + err.message, 'error');
@@ -1178,6 +1184,7 @@ async function shareBillAsPDF() {
     btn.disabled = false;
     btn.innerHTML = originalText;
   }
+
 }
 
 async function finalizeSale() {
