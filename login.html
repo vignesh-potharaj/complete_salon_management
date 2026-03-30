@@ -134,9 +134,36 @@
       cursor: not-allowed;
     }
 
+    .btn-outline {
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      color: #111;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+
+    .btn-outline:hover {
+      border-color: #111;
+    }
+
     .error-msg {
       background: #fdecea;
       color: #c0392b;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .success-msg {
+      background: #eafaf1;
+      color: #1e8449;
       padding: 10px 14px;
       border-radius: 6px;
       font-size: 13px;
@@ -178,6 +205,57 @@
       font-weight: bold;
       text-decoration: none;
     }
+
+    .forgot-link {
+      display: block;
+      text-align: right;
+      font-size: 13px;
+      color: #888;
+      text-decoration: none;
+      margin-top: -10px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .forgot-link:hover {
+      color: #111;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .otp-container {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .otp-input {
+      width: 48px;
+      height: 56px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      transition: border 0.2s;
+    }
+
+    .otp-input:focus {
+      border-color: #111;
+    }
+
+    .step-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
   </style>
 </head>
 
@@ -186,35 +264,103 @@
   <div class="auth-card">
 
     <div class="brand">✂ SalonPro</div>
-    <h1>Welcome back</h1>
-    <p class="subtitle">Log in to manage your salon</p>
 
-    <div class="welcome-box">
-      <strong>New to SalonPro?</strong>
-      <a href="register.html" class="welcome-link">Create a free account</a> — takes less than a minute.
-    </div>
+    <!-- ═══ LOGIN PANEL ═══ -->
+    <div id="loginPanel">
+      <h1>Welcome back</h1>
+      <p class="subtitle">Log in to manage your salon</p>
 
-    <div class="error-msg" id="errorMsg"></div>
+      <div class="welcome-box">
+        <strong>New to SalonPro?</strong>
+        <a href="register.html" class="welcome-link">Create a free account</a> — takes less than a minute.
+      </div>
 
-    <!-- User ID -->
-    <div class="form-group">
-      <label>User ID</label>
-      <div class="userid-wrap">
-        <span class="userid-prefix">@</span>
-        <input type="text" id="userId" placeholder="your.userid" autocomplete="username">
+      <div class="error-msg" id="errorMsg"></div>
+
+      <!-- User ID -->
+      <div class="form-group">
+        <label>User ID</label>
+        <div class="userid-wrap">
+          <span class="userid-prefix">@</span>
+          <input type="text" id="userId" placeholder="your.userid" autocomplete="username">
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <a class="forgot-link" onclick="showForgotPanel()">Forgot Password?</a>
+
+      <button class="btn" id="loginBtn" onclick="login()">Log In</button>
+
+      <div class="switch-link">
+        Don't have an account? <a href="register.html">Register here</a>
       </div>
     </div>
 
-    <!-- Password -->
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
-    </div>
+    <!-- ═══ FORGOT PASSWORD PANEL ═══ -->
+    <div id="forgotPanel" class="hidden">
 
-    <button class="btn" id="loginBtn" onclick="login()">Log In</button>
+      <!-- Step 1: Enter Email -->
+      <div id="forgotStep1">
+        <h1>Reset Password</h1>
+        <p class="subtitle">Enter your registered email to receive a reset code</p>
 
-    <div class="switch-link">
-      Don't have an account? <a href="register.html">Register here</a>
+        <div class="error-msg" id="forgotErrorMsg"></div>
+        <div class="success-msg" id="forgotSuccessMsg"></div>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="forgotEmail" placeholder="e.g. rahul@gmail.com">
+        </div>
+
+        <button class="btn" id="sendCodeBtn" onclick="sendResetCode()">Send Reset Code</button>
+        <button class="btn-outline" onclick="backToLogin()">← Back to Login</button>
+      </div>
+
+      <!-- Step 2: Enter Code + New Password -->
+      <div id="forgotStep2" class="hidden">
+        <h1>Enter Reset Code</h1>
+        <p class="subtitle">Check your email for the 6-digit code</p>
+
+        <div class="error-msg" id="resetErrorMsg"></div>
+        <div class="success-msg" id="resetSuccessMsg"></div>
+
+        <div class="step-label">Verification Code</div>
+        <div class="otp-container" id="resetOtpContainer">
+          <input type="text" class="otp-input reset-otp" maxlength="1" inputmode="numeric" data-index="0">
+          <input type="text" class="otp-input reset-otp" maxlength="1" inputmode="numeric" data-index="1">
+          <input type="text" class="otp-input reset-otp" maxlength="1" inputmode="numeric" data-index="2">
+          <input type="text" class="otp-input reset-otp" maxlength="1" inputmode="numeric" data-index="3">
+          <input type="text" class="otp-input reset-otp" maxlength="1" inputmode="numeric" data-index="4">
+          <input type="text" class="otp-input reset-otp" maxlength="1" inputmode="numeric" data-index="5">
+        </div>
+
+        <div class="form-group">
+          <label>New Password</label>
+          <input type="password" id="newPassword" placeholder="Minimum 6 characters">
+        </div>
+
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" id="confirmNewPassword" placeholder="Re-enter new password">
+        </div>
+
+        <button class="btn" id="resetBtn" onclick="resetPassword()">Reset Password</button>
+        <button class="btn-outline" onclick="backToLogin()">← Back to Login</button>
+      </div>
+
+      <!-- Step 3: Success -->
+      <div id="forgotStep3" class="hidden" style="text-align:center;">
+        <div style="font-size:48px; margin-bottom:16px;">✅</div>
+        <h1>Password Reset!</h1>
+        <p class="subtitle">Your password has been changed successfully.</p>
+        <button class="btn" onclick="backToLogin()">Log In Now</button>
+      </div>
+
     </div>
 
   </div>
@@ -228,6 +374,20 @@
       window.location.href = 'index.html';
     }
 
+    let forgotEmailValue = '';
+
+    // ─── OTP Auto-Focus for reset inputs ───
+    document.querySelectorAll('.reset-otp').forEach((input, idx, inputs) => {
+      input.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        if (e.target.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) inputs[idx - 1].focus();
+      });
+    });
+
+    // ─── Login ───
     async function login() {
       const userId = document.getElementById('userId').value.trim();
       const password = document.getElementById('password').value;
@@ -236,8 +396,8 @@
 
       errEl.style.display = 'none';
 
-      if (!userId) return showError('Please enter your User ID.');
-      if (!password) return showError('Please enter your password.');
+      if (!userId) return showMsg('errorMsg', 'Please enter your User ID.');
+      if (!password) return showMsg('errorMsg', 'Please enter your password.');
 
       btn.disabled = true;
       btn.textContent = 'Logging in...';
@@ -251,7 +411,13 @@
 
         const data = await res.json();
 
-        if (!res.ok) return showError(data.message || 'Login failed');
+        if (!res.ok) {
+          // If needs verification, redirect to register
+          if (data.needsVerification) {
+            return showMsg('errorMsg', 'Your email is not verified. Please check your inbox or register again.');
+          }
+          return showMsg('errorMsg', data.message || 'Login failed');
+        }
 
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify({
@@ -263,20 +429,119 @@
         window.location.href = 'index.html';
 
       } catch (err) {
-        showError('Cannot connect to server. Make sure the backend is running.');
+        showMsg('errorMsg', 'Cannot connect to server. Make sure the backend is running.');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Log In';
       }
     }
 
-    function showError(msg) {
-      const el = document.getElementById('errorMsg');
+    // ─── Forgot Password: Step 1 ───
+    function showForgotPanel() {
+      document.getElementById('loginPanel').classList.add('hidden');
+      document.getElementById('forgotPanel').classList.remove('hidden');
+    }
+
+    function backToLogin() {
+      document.getElementById('forgotPanel').classList.add('hidden');
+      document.getElementById('forgotStep1').classList.remove('hidden');
+      document.getElementById('forgotStep2').classList.add('hidden');
+      document.getElementById('forgotStep3').classList.add('hidden');
+      document.getElementById('loginPanel').classList.remove('hidden');
+      hideAll();
+    }
+
+    async function sendResetCode() {
+      const email = document.getElementById('forgotEmail').value.trim();
+      const btn = document.getElementById('sendCodeBtn');
+
+      hideAll();
+      if (!email) return showMsg('forgotErrorMsg', 'Please enter your email.');
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      try {
+        const res = await fetch(`${API}/auth/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        forgotEmailValue = email;
+        // Always proceed to step 2 (for security, API doesn't reveal if email exists)
+        document.getElementById('forgotStep1').classList.add('hidden');
+        document.getElementById('forgotStep2').classList.remove('hidden');
+        document.querySelector('.reset-otp').focus();
+
+      } catch (err) {
+        showMsg('forgotErrorMsg', 'Cannot connect to server.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Reset Code';
+      }
+    }
+
+    // ─── Forgot Password: Step 2 ───
+    async function resetPassword() {
+      const otpInputs = document.querySelectorAll('.reset-otp');
+      const code = Array.from(otpInputs).map(i => i.value).join('');
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+      const btn = document.getElementById('resetBtn');
+
+      hideAll();
+      if (code.length !== 6) return showMsg('resetErrorMsg', 'Please enter the full 6-digit code.');
+      if (!newPassword) return showMsg('resetErrorMsg', 'Please enter a new password.');
+      if (newPassword.length < 6) return showMsg('resetErrorMsg', 'Password must be at least 6 characters.');
+      if (newPassword !== confirmNewPassword) return showMsg('resetErrorMsg', 'Passwords do not match.');
+
+      btn.disabled = true;
+      btn.textContent = 'Resetting...';
+
+      try {
+        const res = await fetch(`${API}/auth/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: forgotEmailValue, code, newPassword })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          otpInputs.forEach(i => i.value = '');
+          otpInputs[0].focus();
+          return showMsg('resetErrorMsg', data.message || 'Reset failed');
+        }
+
+        // Success — show step 3
+        document.getElementById('forgotStep2').classList.add('hidden');
+        document.getElementById('forgotStep3').classList.remove('hidden');
+
+      } catch (err) {
+        showMsg('resetErrorMsg', 'Cannot connect to server.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Reset Password';
+      }
+    }
+
+    // ─── Helpers ───
+    function showMsg(id, msg) {
+      const el = document.getElementById(id);
       el.textContent = msg;
       el.style.display = 'block';
     }
 
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+    function hideAll() {
+      document.querySelectorAll('.error-msg, .success-msg').forEach(el => el.style.display = 'none');
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !document.getElementById('loginPanel').classList.contains('hidden')) login();
+    });
   </script>
 
 </body>
