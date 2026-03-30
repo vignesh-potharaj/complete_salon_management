@@ -1012,6 +1012,12 @@ async function lookupClientByPhone() {
   document.getElementById('billClient').value = '';
   document.getElementById('btnSharePDF').disabled = true;
 
+  // Clear existing bill on fresh lookup
+  billItems = [];
+  renderBill();
+  document.getElementById('billDiscountPct').value = '';
+  document.getElementById('billDiscountFlat').value = '';
+
   try {
     const clients = await api('/clients');
     const client = clients.find(c => c.phone === phone);
@@ -1154,7 +1160,13 @@ async function shareBillAsPDF() {
   btn.disabled = true;
   btn.innerHTML = '⌛ Generating PDF...';
 
+  // Apply PDF styling mode before capture
+  element.classList.add('pdf-mode');
+
   try {
+    // Small delay to ensure styles apply
+    await new Promise(r => setTimeout(r, 100));
+
     // Step 1: Generate and download the PDF
     await html2pdf().set(opt).from(element).save();
 
@@ -1181,6 +1193,7 @@ async function shareBillAsPDF() {
   } catch (err) {
     showToast('Failed to generate PDF: ' + err.message, 'error');
   } finally {
+    element.classList.remove('pdf-mode');
     btn.disabled = false;
     btn.innerHTML = originalText;
   }
