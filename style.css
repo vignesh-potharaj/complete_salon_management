@@ -1097,7 +1097,33 @@ label {
   }
 }
 
+/* ─── PDF EXPORT STYLES (Used by html2pdf) ─── */
+.pdf-mode {
+  padding: 20px !important;
+  background: white !important;
+  width: 100% !important;
+  max-width: 400px !important;
+  margin: 0 auto !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+.pdf-mode .no-print {
+  display: none !important;
+}
+.pdf-mode .receipt-table td, 
+.pdf-mode .receipt-table th {
+  padding: 8px 4px !important;
+}
+.pdf-mode .print-qty {
+  display: inline !important;
+  font-weight: bold;
+}
+
 /* ─── PRINT STYLES ─── */
+.print-qty {
+  display: none;
+}
+
 @media print {
 
   .no-print,
@@ -1108,6 +1134,11 @@ label {
   h2.no-print,
   .toast-container {
     display: none !important;
+  }
+
+  .print-qty {
+    display: inline !important;
+    font-weight: bold;
   }
 
   .container {
