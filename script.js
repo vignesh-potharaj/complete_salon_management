@@ -1147,14 +1147,6 @@ async function shareBillAsPDF() {
   const salonName = document.getElementById('billSalonName')?.innerText || 'SalonPro';
   const filename = `Receipt_${clientName.replace(/\s+/g, '_')}.pdf`;
 
-  const opt = {
-    margin: 0.2,
-    filename,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-  };
-
   const btn = document.getElementById('btnSharePDF');
   const originalText = btn.innerHTML;
   btn.disabled = true;
@@ -1166,6 +1158,19 @@ async function shareBillAsPDF() {
   try {
     // Small delay to ensure styles apply
     await new Promise(r => setTimeout(r, 100));
+
+    // Calculate actual dimensions to generate a "Receipt Style" PDF
+    const opt = {
+      margin: 0,
+      filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+      jsPDF: {  
+        unit: 'px', 
+        format: [400, element.scrollHeight > 600 ? element.scrollHeight : 600], 
+        orientation: 'portrait' 
+      }
+    };
 
     // Step 1: Generate and download the PDF
     await html2pdf().set(opt).from(element).save();
