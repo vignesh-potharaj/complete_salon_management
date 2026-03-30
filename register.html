@@ -507,15 +507,16 @@
 
     function startResendTimer() {
       const btn = document.getElementById('resendBtn');
-      const timerEl = document.getElementById('resendTimer');
       let seconds = 60;
       btn.disabled = true;
+      btn.innerHTML = 'Resend Code (<span id="resendTimer">60</span>s)';
 
       if (resendInterval) clearInterval(resendInterval);
 
       resendInterval = setInterval(() => {
         seconds--;
-        timerEl.textContent = seconds;
+        const timerEl = document.getElementById('resendTimer');
+        if (timerEl) timerEl.textContent = seconds;
         if (seconds <= 0) {
           clearInterval(resendInterval);
           btn.disabled = false;
