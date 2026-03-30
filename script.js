@@ -127,31 +127,36 @@ async function printBill() {
   if (!currentBillId && billItems.length > 0) {
     // If not saved to history yet, save it first
     const success = await finalizeSale(false); // pass false to avoid double print
-    if (!success) return; 
+    if (!success) return;
   }
 
   const clientName = document.getElementById('printClientName').innerText.replace(/\s+/g, '_') || 'Client';
   const timestamp = new Date().getTime();
   const originalTitle = document.title;
-  
+
   // Set title for the PDF filename in the print dialog
   document.title = `${clientName}_${timestamp}`;
 
-  // Small delay to let browser update the tab title before the print dialog
+  // Delay print to guarantee Chrome's UI thread has time to read the new document.title
   setTimeout(() => {
     window.print();
 
-    // The print dialog blocks execution. Once it closes, the window regains focus.
-    const restoreTitle = () => {
-      document.title = originalTitle;
-      window.removeEventListener('focus', restoreTitle);
-      window.removeEventListener('mousemove', restoreTitle);
-    };
-    
-    // Listen for both focus and mousemove as fallbacks
-    window.addEventListener('focus', restoreTitle);
-    window.addEventListener('mousemove', restoreTitle);
-  }, 100);
+    // After the print command is sent, wait 2 seconds before attaching the restore listeners
+    // to avoid accidental 'mousemove' events restoring the title while the dialog is opening.
+    setTimeout(() => {
+      const restoreTitle = () => {
+        document.title = originalTitle;
+        window.removeEventListener('focus', restoreTitle);
+        window.removeEventListener('mousemove', restoreTitle);
+        window.removeEventListener('click', restoreTitle);
+      };
+
+      window.addEventListener('focus', restoreTitle);
+      window.addEventListener('mousemove', restoreTitle);
+      window.addEventListener('click', restoreTitle);
+    }, 2000);
+
+  }, 800); // 400ms is a safe harbor for Chrome to commit the DOM
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -334,29 +339,29 @@ async function loadCalendar() {
 
       appointments.forEach((appt, idx) => {
         const { hour, mins } = parseTimeToHour(appt.time);
-        
+
         // Grid Math for 30-min slots:
         // Each hour has 2 rows (80px total, 40px each).
         // 8:00 AM is Row 1.
         const rowIndex = ((hour - START_HOUR) * 2) + (mins >= 30 ? 1 : 0) + 1;
-        
+
         const div = document.createElement('div');
         const statusClass = `appt-${appt.status.toLowerCase()}`;
         div.className = `appointment ${statusClass}`;
         div.dataset.id = appt._id;
-        
+
         div.style.cssText = `grid-column:${(idx % 5) + 1}; grid-row:${rowIndex} / span 1;`;
-        
+
         div.innerHTML = `
           <strong>${esc(appt.clientName)}</strong>
           <span>${esc(appt.serviceName)}</span>
           <div style="font-size: 0.7rem; margin-top: 4px; opacity: 0.8;">${esc(appt.time)}</div>
         `;
-        
+
         div.onclick = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
         grid.appendChild(div);
       });
-      
+
       updateTimeIndicator();
     }
 
@@ -374,9 +379,9 @@ async function updateAppointmentStatus(id, newStatus) {
 
 function parseTimeToHour(t) {
   if (!t) return { hour: 8, mins: 0 };
-  
+
   let h = 8, m = 0;
-  
+
   // Handle 24h format (e.g., "14:30" or "09:00")
   if (t.includes(':') && !t.includes('AM') && !t.includes('PM')) {
     const p = t.split(':');
@@ -396,7 +401,7 @@ function parseTimeToHour(t) {
       h = parseInt(t) || 8;
     }
   }
-  
+
   return { hour: h, mins: m };
 }
 
@@ -434,7 +439,7 @@ setInterval(updateTimeIndicator, 60000);
 function renderTimePills(containerId, hiddenInputId) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  
+
   const times = [];
   // 8 AM to 11 PM (23:00)
   for (let h = 8; h <= 23; h++) {
@@ -443,9 +448,9 @@ function renderTimePills(containerId, hiddenInputId) {
     times.push(`${displayH}:00 ${period}`);
     if (h < 23) times.push(`${displayH}:30 ${period}`);
   }
-  
+
   container.innerHTML = times.map(t => `<div class="time-pill" data-time="${t}">${t}</div>`).join('');
-  
+
   const pills = container.querySelectorAll('.time-pill');
   pills.forEach(pill => {
     pill.onclick = () => {
@@ -456,8 +461,8 @@ function renderTimePills(containerId, hiddenInputId) {
   });
 }
 
-function openAddApptModal() { 
-  document.getElementById('addApptModal').style.display = 'block'; 
+function openAddApptModal() {
+  document.getElementById('addApptModal').style.display = 'block';
   renderTimePills('apptTimeSlots', 'apptTime');
 }
 function closeAddApptModal() { document.getElementById('addApptModal').style.display = 'none'; }
@@ -475,8 +480,8 @@ async function saveAppointment() {
     const clients = await api('/clients');
     const staffList = await api('/staff');
 
-    let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) || 
-                 await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+    let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) ||
+      await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
 
     // New logic for synced dropdown value
     const [staffId, serviceId, sName, price, sStaff, duration] = serviceVal.split('|');
@@ -527,7 +532,7 @@ function filterClients() {
   // Strip non-numeric as user types
   mobileInput.value = mobileInput.value.replace(/\D/g, '').substring(0, 10);
   const cleanMobile = mobileInput.value;
-  
+
   if (cleanMobile.length === 10) {
     mobileInput.classList.add('valid-mobile');
   } else {
@@ -557,7 +562,7 @@ function filterClients() {
   } else {
     tableContainer.style.display = 'block';
     emptyState.style.display = 'none';
-    
+
     tbody.innerHTML = filtered.map(c => `
       <tr>
         <td data-label="Name"><strong>${esc(c.name)}</strong></td>
@@ -1137,10 +1142,10 @@ function changeQty(index, delta) {
   if (billItems[index].qty <= 0) billItems.splice(index, 1);
   renderBill();
 }
-function removeItem(index) { 
+function removeItem(index) {
   currentBillId = null; // Unsaved changes
-  billItems.splice(index, 1); 
-  renderBill(); 
+  billItems.splice(index, 1);
+  renderBill();
 }
 
 let taxPctGlobal = 0; // fetched from settings
@@ -1176,8 +1181,8 @@ function calculateTotals() {
 async function shareBillAsPDF() {
   if (!currentBillId && billItems.length > 0) {
     // If not saved to history yet, save it first
-    const success = await finalizeSale(false); 
-    if (!success) return; 
+    const success = await finalizeSale(false);
+    if (!success) return;
   }
 
   const element = document.getElementById('bill-area');
@@ -1204,10 +1209,10 @@ async function shareBillAsPDF() {
       filename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-      jsPDF: {  
-        unit: 'px', 
-        format: [400, element.scrollHeight > 600 ? element.scrollHeight : 600], 
-        orientation: 'portrait' 
+      jsPDF: {
+        unit: 'px',
+        format: [400, element.scrollHeight > 600 ? element.scrollHeight : 600],
+        orientation: 'portrait'
       }
     };
 
@@ -1286,13 +1291,13 @@ async function finalizeSale(autoPrint = true) {
         staffId: staffId, staffName: staffName,
         lineItems: items,
         subtotal, taxPct: taxPctGlobal, taxAmount: gst,
-        discountAmount: discountTotal, 
+        discountAmount: discountTotal,
         grandTotal, paymentMethod
       }
     });
 
     currentBillId = savedBill._id; // Mark as saved
-    
+
     // We intentionally DO NOT clear the bill view here so the user can see it to print/share it.
     // The view will automatically reset the next time they search a Client Mobile Number.
 
@@ -1306,8 +1311,8 @@ async function finalizeSale(autoPrint = true) {
     }
     return true;
 
-  } catch (err) { 
-    showToast(err.message, 'error'); 
+  } catch (err) {
+    showToast(err.message, 'error');
     return false;
   }
   finally { if (btn) { btn.textContent = '✓ Saved Successfully'; } }
@@ -1423,11 +1428,11 @@ async function loadReports() {
       api('/bills/stats/range'),
       api('/staff'),
       api('/inventory'),
-      api('/appointments') 
+      api('/appointments')
     ]);
 
     const { bills, totalRevenue, totalBills, revenueByMonth, revenueByService } = reportData;
-    
+
     // 1. Advanced KPI Calculations
     // 1.1 Net Profit (Estimation: 40% margin)
     const netProfit = Math.round(totalRevenue * 0.4);
@@ -1437,7 +1442,7 @@ async function loadReports() {
     // Booked mins from appointments vs capacity (Total staff * 8h * 22 days)
     const totalCapacityMins = staff.length * 20 * 8 * 60; // 20 working days
     const bookedMins = bills.reduce((sum, b) => {
-        return sum + b.lineItems.reduce((s, i) => s + (i.type === 'Service' ? 45 : 0), 0);
+      return sum + b.lineItems.reduce((s, i) => s + (i.type === 'Service' ? 45 : 0), 0);
     }, 0);
     const utilization = Math.min(100, Math.round((bookedMins / (totalCapacityMins || 1)) * 100));
     setEl('repStaffUtil', utilization + '%');
@@ -1480,105 +1485,107 @@ async function loadReports() {
 }
 
 function generateSmartInsights(util, retail, rebook) {
-    const desc = document.getElementById('insightDescription');
-    if (!desc) return;
-    
-    let advice = [];
-    if (util < 55) advice.push("Staff utilization is lagging (under 55%). Consider off-peak happy hours.");
-    if (retail < 15) advice.push("Retail revenue is low. Bundle products with high-end services.");
-    if (rebook < 30) advice.push("Low rebooking rate detected. Implement a loyalty point bonus for same-day rebooking.");
-    
-    if (advice.length === 0) {
-        desc.innerText = "Performance looks world-class! Current trajectory exceeds benchmarks for productivity and retention.";
-    } else {
-        desc.innerText = advice.join(" | ");
-    }
+  const desc = document.getElementById('insightDescription');
+  if (!desc) return;
+
+  let advice = [];
+  if (util < 55) advice.push("Staff utilization is lagging (under 55%). Consider off-peak happy hours.");
+  if (retail < 15) advice.push("Retail revenue is low. Bundle products with high-end services.");
+  if (rebook < 30) advice.push("Low rebooking rate detected. Implement a loyalty point bonus for same-day rebooking.");
+
+  if (advice.length === 0) {
+    desc.innerText = "Performance looks world-class! Current trajectory exceeds benchmarks for productivity and retention.";
+  } else {
+    desc.innerText = advice.join(" | ");
+  }
 }
 
 function renderPremiumCharts(revenueByMonth, bills, staff) {
-    Object.values(_charts).forEach(c => { try { c.destroy(); } catch (e) { } });
+  Object.values(_charts).forEach(c => { try { c.destroy(); } catch (e) { } });
 
-    // Revenue Velocity Chart (Stripe-Style Area)
-    const ctx = document.getElementById('execRevenueChart')?.getContext('2d');
-    if (ctx) {
-        const labels = Object.keys(revenueByMonth).length ? Object.keys(revenueByMonth) : ['No Data'];
-        const data = Object.values(revenueByMonth).length ? Object.values(revenueByMonth) : [0];
-        
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(108, 92, 231, 0.25)');
-        gradient.addColorStop(1, 'rgba(108, 92, 231, 0)');
+  // Revenue Velocity Chart (Stripe-Style Area)
+  const ctx = document.getElementById('execRevenueChart')?.getContext('2d');
+  if (ctx) {
+    const labels = Object.keys(revenueByMonth).length ? Object.keys(revenueByMonth) : ['No Data'];
+    const data = Object.values(revenueByMonth).length ? Object.values(revenueByMonth) : [0];
 
-        _charts.exec = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Revenue',
-                    data,
-                    borderColor: '#6c5ce7',
-                    backgroundColor: gradient,
-                    fill: true,
-                    tension: 0.45,
-                    borderWidth: 3,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#6c5ce7',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { cornerRadius: 8, padding: 12 } },
-                scales: {
-                    y: { grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }, ticks: { callback: v => '₹' + v.toLocaleString() } },
-                    x: { grid: { display: false }, border: { display: false } }
-                }
-            }
-        });
-    }
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(108, 92, 231, 0.25)');
+    gradient.addColorStop(1, 'rgba(108, 92, 231, 0)');
 
-    // Category Mix (Doughnut)
-    const ctxPie = document.getElementById('salesPieChart')?.getContext('2d');
-    if (ctxPie) {
-        const types = { 'Service': 0, 'Product': 0 };
-        bills.forEach(b => b.lineItems.forEach(li => { types[li.type] = (types[li.type] || 0) + li.subtotal; }));
-        _charts.pie = new Chart(ctxPie, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(types),
-                datasets: [{ data: Object.values(types), backgroundColor: ['#6c5ce7', '#a29bfe'], borderWidth: 0 }]
-            },
-            options: { cutout: '80%', plugins: { legend: { position: 'right' } } }
-        });
-    }
+    _charts.exec = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Revenue',
+          data,
+          borderColor: '#6c5ce7',
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.45,
+          borderWidth: 3,
+          pointRadius: 4,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#6c5ce7',
+          pointBorderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { cornerRadius: 8, padding: 12 } },
+        scales: {
+          y: { grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }, ticks: { callback: v => '₹' + v.toLocaleString() } },
+          x: { grid: { display: false }, border: { display: false } }
+        }
+      }
+    });
+  }
 
-    // Staff Performance (Horizontal Bar)
-    const ctxStaff = document.getElementById('staffRevenueChart')?.getContext('2d');
-    if (ctxStaff) {
-        const staffRev = {};
-        bills.forEach(b => b.lineItems.forEach(li => { if(li.staffName) staffRev[li.staffName] = (staffRev[li.staffName] || 0) + li.subtotal; }));
-        _charts.staff = new Chart(ctxStaff, {
-            type: 'bar',
-            data: {
-                labels: Object.keys(staffRev),
-                datasets: [{ data: Object.values(staffRev), backgroundColor: '#6c5ce7', borderRadius: 10 }]
-            },
-            options: { indexAxis: 'y', plugins: { legend: { display: false } },
-                       scales: { x: { display: false }, y: { grid: { display: false } } } }
-        });
-    }
+  // Category Mix (Doughnut)
+  const ctxPie = document.getElementById('salesPieChart')?.getContext('2d');
+  if (ctxPie) {
+    const types = { 'Service': 0, 'Product': 0 };
+    bills.forEach(b => b.lineItems.forEach(li => { types[li.type] = (types[li.type] || 0) + li.subtotal; }));
+    _charts.pie = new Chart(ctxPie, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(types),
+        datasets: [{ data: Object.values(types), backgroundColor: ['#6c5ce7', '#a29bfe'], borderWidth: 0 }]
+      },
+      options: { cutout: '80%', plugins: { legend: { position: 'right' } } }
+    });
+  }
+
+  // Staff Performance (Horizontal Bar)
+  const ctxStaff = document.getElementById('staffRevenueChart')?.getContext('2d');
+  if (ctxStaff) {
+    const staffRev = {};
+    bills.forEach(b => b.lineItems.forEach(li => { if (li.staffName) staffRev[li.staffName] = (staffRev[li.staffName] || 0) + li.subtotal; }));
+    _charts.staff = new Chart(ctxStaff, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(staffRev),
+        datasets: [{ data: Object.values(staffRev), backgroundColor: '#6c5ce7', borderRadius: 10 }]
+      },
+      options: {
+        indexAxis: 'y', plugins: { legend: { display: false } },
+        scales: { x: { display: false }, y: { grid: { display: false } } }
+      }
+    });
+  }
 }
 
 function renderStaffReportTable(bills, staff) {
-    const tbody = document.getElementById('staffReportTable');
-    if (!tbody) return;
-    
-    tbody.innerHTML = staff.map(s => {
-        const sBills = bills.filter(b => b.lineItems.some(li => li.staffId === s._id));
-        const revenue = sBills.reduce((sum, b) => sum + b.lineItems.filter(li => li.staffId === s._id).reduce((st, li) => st + li.subtotal, 0), 0);
-        const clients = new Set(sBills.map(b => b.clientId)).size;
-        const commission = Math.round(revenue * (s.commissionPct / 100));
-        return `
+  const tbody = document.getElementById('staffReportTable');
+  if (!tbody) return;
+
+  tbody.innerHTML = staff.map(s => {
+    const sBills = bills.filter(b => b.lineItems.some(li => li.staffId === s._id));
+    const revenue = sBills.reduce((sum, b) => sum + b.lineItems.filter(li => li.staffId === s._id).reduce((st, li) => st + li.subtotal, 0), 0);
+    const clients = new Set(sBills.map(b => b.clientId)).size;
+    const commission = Math.round(revenue * (s.commissionPct / 100));
+    return `
             <tr>
                 <td><strong>${esc(s.name)}</strong></td>
                 <td>₹${revenue.toLocaleString('en-IN')}</td>
@@ -1586,7 +1593,7 @@ function renderStaffReportTable(bills, staff) {
                 <td>${clients}</td>
                 <td>₹${commission.toLocaleString('en-IN')}</td>
             </tr>`;
-    }).join('');
+  }).join('');
 }
 
 function switchReportTab(tab, btn) {
@@ -1694,7 +1701,7 @@ function updateLivePulse(appts) {
   const pulse = document.getElementById('livePulseContent');
   if (!pulse) return;
   const ongoing = appts.filter(a => a.status === 'Ongoing');
-  
+
   if (ongoing.length > 0) {
     pulse.innerHTML = ongoing.map(a => `
       <div style="width:100%; display:flex; align-items:center; gap:12px; background:var(--bg-color); padding:12px; border-radius:12px; margin-bottom:8px; border-left:4px solid var(--success);">
@@ -1723,8 +1730,8 @@ function initMagneticEffect() {
       const rect = card.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      card.style.setProperty('--rx', `${(y - rect.height/2) / -10}deg`);
-      card.style.setProperty('--ry', `${(x - rect.width/2) / 10}deg`);
+      card.style.setProperty('--rx', `${(y - rect.height / 2) / -10}deg`);
+      card.style.setProperty('--ry', `${(x - rect.width / 2) / 10}deg`);
       card.style.transform = `perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry)) scale3d(1.02, 1.02, 1.02)`;
     };
     card.onmouseleave = () => card.style.transform = '';
@@ -1737,17 +1744,19 @@ function renderDashboardCharts(appts, sales) {
     if (densityChart) densityChart.destroy();
     const data = Array(12).fill(0);
     appts.forEach(a => {
-        const h = parseInt(a.time.split(':')[0]);
-        if (h >= 8 && h < 20) data[h-8]++;
+      const h = parseInt(a.time.split(':')[0]);
+      if (h >= 8 && h < 20) data[h - 8]++;
     });
     densityChart = new Chart(ctxD, {
       type: 'line',
       data: {
-        labels: ['8a','9a','10a','11a','12p','1p','2p','3p','4p','5p','6p','7p'],
+        labels: ['8a', '9a', '10a', '11a', '12p', '1p', '2p', '3p', '4p', '5p', '6p', '7p'],
         datasets: [{ data, borderColor: '#8e44ad', backgroundColor: 'rgba(142, 68, 173, 0.05)', fill: true, tension: 0.4, pointRadius: 0 }]
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, 
-                 scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 9 } } } } }
+      options: {
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 9 } } } }
+      }
     });
   }
 
