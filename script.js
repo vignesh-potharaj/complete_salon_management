@@ -137,15 +137,20 @@ async function printBill() {
   // Set title for the PDF filename in the print dialog
   document.title = `${clientName}_${timestamp}`;
 
-  // Restore the title ONLY after the print dialog closes
-  window.onafterprint = () => {
-    document.title = originalTitle;
-    window.onafterprint = null;
-  };
-
-  // Tiny delay to let browser update the tab title before freezing for print dialog
+  // Small delay to let browser update the tab title before the print dialog
   setTimeout(() => {
     window.print();
+
+    // The print dialog blocks execution. Once it closes, the window regains focus.
+    const restoreTitle = () => {
+      document.title = originalTitle;
+      window.removeEventListener('focus', restoreTitle);
+      window.removeEventListener('mousemove', restoreTitle);
+    };
+    
+    // Listen for both focus and mousemove as fallbacks
+    window.addEventListener('focus', restoreTitle);
+    window.addEventListener('mousemove', restoreTitle);
   }, 100);
 }
 
