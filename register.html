@@ -140,6 +140,29 @@
       cursor: not-allowed;
     }
 
+    .btn-outline {
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      color: #111;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+
+    .btn-outline:hover {
+      border-color: #111;
+    }
+
+    .btn-outline:disabled {
+      color: #aaa;
+      border-color: #eee;
+      cursor: not-allowed;
+    }
+
     .error-msg {
       background: #fdecea;
       color: #c0392b;
@@ -178,6 +201,57 @@
       border-top: 1px solid #eee;
       margin: 22px 0;
     }
+
+    /* OTP Input Styling */
+    .otp-container {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .otp-input {
+      width: 48px;
+      height: 56px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      transition: border 0.2s;
+    }
+
+    .otp-input:focus {
+      border-color: #111;
+    }
+
+    .verify-panel {
+      text-align: center;
+    }
+
+    .verify-panel .email-display {
+      background: #f8f8f8;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 16px 0;
+      font-size: 14px;
+      color: #555;
+      word-break: break-all;
+    }
+
+    .verify-panel .email-display strong {
+      color: #111;
+    }
+
+    .timer {
+      font-size: 13px;
+      color: #888;
+      margin-top: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 
@@ -186,53 +260,95 @@
   <div class="auth-card">
 
     <div class="brand">✂ SalonPro</div>
-    <h1>Create your account</h1>
-    <p class="subtitle">Set up your salon in under a minute</p>
 
-    <div class="error-msg" id="errorMsg"></div>
-    <div class="success-msg" id="successMsg"></div>
+    <!-- ─── STEP 1: Registration Form ─── -->
+    <div id="registerPanel">
+      <h1>Create your account</h1>
+      <p class="subtitle">Set up your salon in under a minute</p>
 
-    <!-- Salon Name -->
-    <div class="form-group">
-      <label>Salon Name <span class="required">*</span></label>
-      <input type="text" id="salonName" placeholder="e.g. GlowUp Studio">
-      <p class="hint">This will appear on your dashboard and bills</p>
-    </div>
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="success-msg" id="successMsg"></div>
 
-    <!-- Owner Name -->
-    <div class="form-group">
-      <label>Your Name <span class="required">*</span></label>
-      <input type="text" id="name" placeholder="e.g. Rahul Sharma">
-    </div>
-
-    <hr class="divider">
-
-    <!-- User ID -->
-    <div class="form-group">
-      <label>User ID <span class="required">*</span></label>
-      <div class="userid-wrap">
-        <span class="userid-prefix">@</span>
-        <input type="text" id="userId" placeholder="e.g. rahul.salon" autocomplete="username">
+      <!-- Salon Name -->
+      <div class="form-group">
+        <label>Salon Name <span class="required">*</span></label>
+        <input type="text" id="salonName" placeholder="e.g. GlowUp Studio">
+        <p class="hint">This will appear on your dashboard and bills</p>
       </div>
-      <p class="hint">Only letters, numbers, dots (.) and underscores (_). Used to log in.</p>
+
+      <!-- Owner Name -->
+      <div class="form-group">
+        <label>Your Name <span class="required">*</span></label>
+        <input type="text" id="name" placeholder="e.g. Rahul Sharma">
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label>Email <span class="required">*</span></label>
+        <input type="email" id="email" placeholder="e.g. rahul@gmail.com">
+        <p class="hint">We'll send a verification code to this email</p>
+      </div>
+
+      <hr class="divider">
+
+      <!-- User ID -->
+      <div class="form-group">
+        <label>User ID <span class="required">*</span></label>
+        <div class="userid-wrap">
+          <span class="userid-prefix">@</span>
+          <input type="text" id="userId" placeholder="e.g. rahul.salon" autocomplete="username">
+        </div>
+        <p class="hint">Only letters, numbers, dots (.) and underscores (_). Used to log in.</p>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label>Password <span class="required">*</span></label>
+        <input type="password" id="password" placeholder="Minimum 6 characters" autocomplete="new-password">
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label>Confirm Password <span class="required">*</span></label>
+        <input type="password" id="confirmPassword" placeholder="Re-enter password" autocomplete="new-password">
+      </div>
+
+      <button class="btn" id="registerBtn" onclick="register()">Create Account</button>
+
+      <div class="switch-link">
+        Already have an account? <a href="login.html">Log in</a>
+      </div>
     </div>
 
-    <!-- Password -->
-    <div class="form-group">
-      <label>Password <span class="required">*</span></label>
-      <input type="password" id="password" placeholder="Minimum 6 characters" autocomplete="new-password">
-    </div>
+    <!-- ─── STEP 2: Email Verification Panel ─── -->
+    <div id="verifyPanel" class="verify-panel hidden">
+      <h1>Verify your email</h1>
+      <p class="subtitle">Enter the 6-digit code we sent</p>
 
-    <!-- Confirm Password -->
-    <div class="form-group">
-      <label>Confirm Password <span class="required">*</span></label>
-      <input type="password" id="confirmPassword" placeholder="Re-enter password" autocomplete="new-password">
-    </div>
+      <div class="error-msg" id="verifyErrorMsg"></div>
+      <div class="success-msg" id="verifySuccessMsg"></div>
 
-    <button class="btn" id="registerBtn" onclick="register()">Create Account</button>
+      <div class="email-display">
+        Code sent to <strong id="displayEmail"></strong>
+      </div>
 
-    <div class="switch-link">
-      Already have an account? <a href="login.html">Log in</a>
+      <div class="otp-container" id="otpContainer">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="0">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="1">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="2">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="3">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="4">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="5">
+      </div>
+
+      <button class="btn" id="verifyBtn" onclick="verifyEmail()">Verify & Continue</button>
+
+      <button class="btn-outline" id="resendBtn" onclick="resendCode()" disabled>Resend Code (<span
+          id="resendTimer">60</span>s)</button>
+
+      <div class="switch-link" style="margin-top:16px;">
+        <a href="register.html">← Start over</a>
+      </div>
     </div>
 
   </div>
@@ -246,9 +362,38 @@
       window.location.href = 'index.html';
     }
 
+    let registeredUserId = '';
+    let resendInterval = null;
+
+    // ─── OTP Input Auto-Focus Logic ───
+    document.querySelectorAll('.otp-input').forEach((input, idx, inputs) => {
+      input.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (val && idx < inputs.length - 1) {
+          inputs[idx + 1].focus();
+        }
+        // Auto-submit when all 6 digits entered
+        if (idx === inputs.length - 1 && val) {
+          const code = Array.from(inputs).map(i => i.value).join('');
+          if (code.length === 6) verifyEmail();
+        }
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+          inputs[idx - 1].focus();
+        }
+      });
+      // Only allow digits
+      input.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+      });
+    });
+
+    // ─── Step 1: Register ───
     async function register() {
       const salonName = document.getElementById('salonName').value.trim();
       const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
       const userId = document.getElementById('userId').value.trim();
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
@@ -256,13 +401,15 @@
 
       hideMessages();
 
-      if (!salonName) return showError('Salon name is required.');
-      if (!name) return showError('Your name is required.');
-      if (!userId) return showError('User ID is required.');
-      if (!/^[a-zA-Z0-9._]+$/.test(userId)) return showError('User ID can only contain letters, numbers, dots and underscores.');
-      if (!password) return showError('Password is required.');
-      if (password.length < 6) return showError('Password must be at least 6 characters.');
-      if (password !== confirmPassword) return showError('Passwords do not match.');
+      if (!salonName) return showError('errorMsg', 'Salon name is required.');
+      if (!name) return showError('errorMsg', 'Your name is required.');
+      if (!email) return showError('errorMsg', 'Email is required.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('errorMsg', 'Please enter a valid email.');
+      if (!userId) return showError('errorMsg', 'User ID is required.');
+      if (!/^[a-zA-Z0-9._]+$/.test(userId)) return showError('errorMsg', 'User ID can only contain letters, numbers, dots and underscores.');
+      if (!password) return showError('errorMsg', 'Password is required.');
+      if (password.length < 6) return showError('errorMsg', 'Password must be at least 6 characters.');
+      if (password !== confirmPassword) return showError('errorMsg', 'Passwords do not match.');
 
       btn.disabled = true;
       btn.textContent = 'Creating account...';
@@ -271,13 +418,57 @@
         const res = await fetch(`${API}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, name, salonName, password })
+          body: JSON.stringify({ userId, email, name, salonName, password })
         });
 
         const data = await res.json();
 
-        if (!res.ok) return showError(data.message || 'Registration failed');
+        if (!res.ok) return showError('errorMsg', data.message || 'Registration failed');
 
+        // Success — switch to verification panel
+        registeredUserId = userId;
+        document.getElementById('displayEmail').textContent = email;
+        document.getElementById('registerPanel').classList.add('hidden');
+        document.getElementById('verifyPanel').classList.remove('hidden');
+        startResendTimer();
+        document.querySelector('.otp-input').focus();
+
+      } catch (err) {
+        showError('errorMsg', 'Cannot connect to server.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+
+    // ─── Step 2: Verify Email ───
+    async function verifyEmail() {
+      const inputs = document.querySelectorAll('.otp-input');
+      const code = Array.from(inputs).map(i => i.value).join('');
+      const btn = document.getElementById('verifyBtn');
+
+      if (code.length !== 6) return showError('verifyErrorMsg', 'Please enter the full 6-digit code.');
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+
+      try {
+        const res = await fetch(`${API}/auth/verify-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: registeredUserId, code })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          // Clear OTP on error
+          inputs.forEach(i => i.value = '');
+          inputs[0].focus();
+          return showError('verifyErrorMsg', data.message || 'Verification failed');
+        }
+
+        // Success — save token and redirect
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify({
           userId: data.userId,
@@ -285,37 +476,76 @@
           salonName: data.salonName
         }));
 
-        showSuccess('Account created! Redirecting to your dashboard...');
+        showSuccess('verifySuccessMsg', '✓ Email verified! Redirecting...');
         setTimeout(() => window.location.href = 'index.html', 1200);
 
       } catch (err) {
-        showError('Cannot connect to server. Make sure the backend is running.');
+        showError('verifyErrorMsg', 'Cannot connect to server.');
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Create Account';
+        btn.textContent = 'Verify & Continue';
       }
     }
 
-    function showError(msg) {
-      const el = document.getElementById('errorMsg');
-      el.textContent = msg;
-      el.style.display = 'block';
-      document.getElementById('successMsg').style.display = 'none';
+    // ─── Resend Code with Timer ───
+    async function resendCode() {
+      const btn = document.getElementById('resendBtn');
+      btn.disabled = true;
+
+      try {
+        await fetch(`${API}/auth/resend-verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: registeredUserId })
+        });
+        showSuccess('verifySuccessMsg', 'New code sent to your email.');
+        startResendTimer();
+      } catch (err) {
+        showError('verifyErrorMsg', 'Failed to resend code.');
+      }
     }
 
-    function showSuccess(msg) {
-      const el = document.getElementById('successMsg');
+    function startResendTimer() {
+      const btn = document.getElementById('resendBtn');
+      const timerEl = document.getElementById('resendTimer');
+      let seconds = 60;
+      btn.disabled = true;
+
+      if (resendInterval) clearInterval(resendInterval);
+
+      resendInterval = setInterval(() => {
+        seconds--;
+        timerEl.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(resendInterval);
+          btn.disabled = false;
+          btn.innerHTML = 'Resend Code';
+        }
+      }, 1000);
+    }
+
+    // ─── Helpers ───
+    function showError(id, msg) {
+      const el = document.getElementById(id);
       el.textContent = msg;
       el.style.display = 'block';
-      document.getElementById('errorMsg').style.display = 'none';
+    }
+
+    function showSuccess(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.style.display = 'block';
     }
 
     function hideMessages() {
-      document.getElementById('errorMsg').style.display = 'none';
-      document.getElementById('successMsg').style.display = 'none';
+      document.querySelectorAll('.error-msg, .success-msg').forEach(el => el.style.display = 'none');
     }
 
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') register(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (!document.getElementById('registerPanel').classList.contains('hidden')) register();
+      }
+    });
   </script>
 
 </body>
