@@ -8,6 +8,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
+app.set('trust proxy', 1); // Required for Render (reverse proxy)
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://complete-salon-management.vercel.app');
