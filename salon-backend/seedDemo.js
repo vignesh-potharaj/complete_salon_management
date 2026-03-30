@@ -74,7 +74,7 @@ async function seed() {
       { name: 'Sophia Patel', phone: '8005392010', totalVisits: 25, totalSpend: 4200, loyaltyPoints: 420 }, // VIP
       { name: 'James Wilson', phone: '3809888735', totalVisits: 1, totalSpend: 50, loyaltyPoints: 5 },
       { name: 'Olivia Martin', phone: '4143946038', totalVisits: 8, totalSpend: 800, loyaltyPoints: 80 },
-      { name: 'Liam Garcia', phone: '4143946038', totalVisits: 3, totalSpend: 120, loyaltyPoints: 12 },
+      { name: 'Liam Garcia', phone: '4143546038', totalVisits: 3, totalSpend: 120, loyaltyPoints: 12 },
       { name: 'Isabella Lee', phone: '4143946038', totalVisits: 15, totalSpend: 2100, loyaltyPoints: 210 }, // VIP
       { name: 'Lucas White', phone: '4143946038', totalVisits: 2, totalSpend: 100, loyaltyPoints: 10 },
       { name: 'Mia Thompson', phone: '4143946038', totalVisits: 5, totalSpend: 450, loyaltyPoints: 45 },
