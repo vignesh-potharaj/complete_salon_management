@@ -131,10 +131,11 @@ async function printBill() {
   }
 
   const clientName = document.getElementById('printClientName').innerText.replace(/\s+/g, '_') || 'Client';
+  const timestamp = new Date().getTime();
   const originalTitle = document.title;
   
   // Set title for the PDF filename in the print dialog
-  document.title = `Receipt_${clientName}`;
+  document.title = `${clientName}_${timestamp}`;
 
   // Restore the title ONLY after the print dialog closes
   window.onafterprint = () => {
@@ -142,7 +143,10 @@ async function printBill() {
     window.onafterprint = null;
   };
 
-  window.print();
+  // Tiny delay to let browser update the tab title before freezing for print dialog
+  setTimeout(() => {
+    window.print();
+  }, 100);
 }
 
 /* ══════════════════════════════════════════════════════════
