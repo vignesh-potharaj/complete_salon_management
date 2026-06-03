@@ -5,14 +5,18 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD
-  }
+  },
+  connectionTimeout: 4000, // 4 seconds connection timeout
+  greetingTimeout: 4000,   // 4 seconds greeting timeout
+  socketTimeout: 4000      // 4 seconds socket inactivity timeout
 });
 
 // Verify connection on startup
 transporter.verify().then(() => {
   console.log('📧 Email service ready');
 }).catch(err => {
-  console.error('📧 Email service error:', err.message);
+  console.error('📧 Email service error (SMTP port likely blocked by cloud provider e.g. Render):', err.message);
+  console.log('💡 Note: Registration/reset verification codes will fallback to console logs.');
 });
 
 /**
@@ -43,7 +47,13 @@ async function sendVerificationCode(email, code, salonName) {
     `
   };
 
-  return transporter.sendMail(mailOptions);
+  try {
+    return await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.error(`❌ Failed to send verification email to ${email}. Connection timed out or blocked.`);
+    console.log(`🔑 [FALLBACK LOG] Verification Code for ${email} (${salonName}): ${code}`);
+    throw err;
+  }
 }
 
 /**
@@ -67,7 +77,13 @@ async function sendPasswordResetCode(email, code, userName) {
     `
   };
 
-  return transporter.sendMail(mailOptions);
+  try {
+    return await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.error(`❌ Failed to send password reset email to ${email}. Connection timed out or blocked.`);
+    console.log(`🔑 [FALLBACK LOG] Password Reset Code for ${email} (${userName}): ${code}`);
+    throw err;
+  }
 }
 
 module.exports = { generateOTP, sendVerificationCode, sendPasswordResetCode };
