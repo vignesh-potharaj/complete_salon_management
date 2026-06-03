@@ -1678,10 +1678,20 @@ label {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
+    padding: 12px 0;
     border: none;
     font-size: 14px;
     text-align: right;
+    min-height: 40px;
+  }
+
+  /* Ensure content inside td (spans) is visible and aligned */
+  td > span, 
+  td > strong,
+  td > div {
+    flex: 1;
+    text-align: right;
+    color: var(--text-main);
   }
 
   td::before {
@@ -1693,6 +1703,8 @@ label {
     letter-spacing: 0.5px;
     text-align: left;
     margin-right: 15px;
+    flex-shrink: 0;
+    max-width: 45%;
   }
 
   td:last-child {

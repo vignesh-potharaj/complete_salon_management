@@ -1333,13 +1333,14 @@ async function loadBillHistory() {
     };
     tbody.innerHTML = bills.map(b => {
       const isVoid = b.deleted;
+      const dateStr = new Date(b.date || b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
       return `
       <tr style="${isVoid ? 'opacity:0.45;' : ''}">
-        <td data-label="Date" style="color:var(--text-muted);font-size:0.82rem;">${new Date(b.date || b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}</td>
-        <td data-label="Client"><strong>${esc(b.clientName)}</strong></td>
-        <td data-label="Items" style="color:var(--text-muted)">${b.lineItems.length} item${b.lineItems.length !== 1 ? 's' : ''}</td>
-        <td data-label="Total"><strong>₹${b.grandTotal.toLocaleString('en-IN')}</strong>${isVoid ? ' <span style="color:#c0392b;font-size:0.75rem;font-weight:700;">VOID</span>' : ''}</td>
-        <td data-label="Payment"><span class="pay-badge ${payClass(b.paymentMethod)}">${esc(b.paymentMethod)}</span></td>
+        <td data-label="Date"><span style="color:var(--text-muted);font-size:0.82rem;">${dateStr}</span></td>
+        <td data-label="Client"><span style="font-weight:600;">${esc(b.clientName)}</span></td>
+        <td data-label="Items"><span style="color:var(--text-muted)">${b.lineItems.length} item${b.lineItems.length !== 1 ? 's' : ''}</span></td>
+        <td data-label="Total"><span><strong style="font-weight:700;">₹${b.grandTotal.toLocaleString('en-IN')}</strong>${isVoid ? ' <span style="color:#c0392b;font-size:0.75rem;font-weight:700;margin-left:4px;">VOID</span>' : ''}</span></td>
+        <td data-label="Payment"><span><span class="pay-badge ${payClass(b.paymentMethod)}">${esc(b.paymentMethod)}</span></span></td>
         <td data-label="Actions" class="no-print">
           <div class="action-btns">
             <button class="btn-act-view" onclick="viewBill('${b._id}')" ${isVoid ? 'disabled' : ''}>View</button>
