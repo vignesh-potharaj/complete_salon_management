@@ -10,8 +10,30 @@ connectDB();
 const app = express();
 app.set('trust proxy', 1); // Required for Render (reverse proxy)
 
+const rateLimit = require('express-rate-limit');
+const adminAuth = require('./middleware/adminAuth');
+const adminRouter = require('./routes/admin');
+
+const adminLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { msg: 'Too many login attempts from this IP, please try again after 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://complete-salon-management.vercel.app');
+  const allowedOrigins = [
+    'https://complete-salon-management.vercel.app',
+    process.env.ADMIN_PORTAL_URL
+  ].filter(Boolean);
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://complete-salon-management.vercel.app');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -24,6 +46,12 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: '10mb' }));
 
 app.use('/api', apiLimiter);
+
+// Specific admin login rate limiting
+app.use('/api/admin/login', adminLoginLimiter);
+
+// Admin routes mount
+app.use('/api/admin', adminAuth, adminRouter);
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/clients', require('./routes/clients'));

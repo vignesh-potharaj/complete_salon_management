@@ -16,6 +16,32 @@ const userSchema = new mongoose.Schema({
   resetPasswordCode: { type: String },
   resetPasswordExpires: { type: Date },
 
+  // Subscription and Admin details
+  subscriptionStatus: { type: String, enum: ['trial', 'active', 'expired', 'terminated'], default: 'trial' },
+  subscriptionPlan: { type: String, enum: ['starter', 'growth', 'pro'], default: 'starter' },
+  subscriptionStartDate: { type: Date },
+  subscriptionEndDate: { type: Date },
+  razorpayCustomerId: { type: String },
+  razorpaySubscriptionId: { type: String },
+  lastPaymentDate: { type: Date },
+  lastPaymentAmount: { type: Number },
+  paymentHistory: [{
+    razorpayPaymentId: { type: String },
+    amount: { type: Number },
+    currency: { type: String },
+    status: { type: String },  // 'captured' | 'failed' | 'refunded'
+    plan: { type: String },
+    paidAt: { type: Date }
+  }],
+  notificationsSent: [{
+    type: { type: String },   // 'renewal_reminder' | 'expiry_warning' | 'terminated' | 'activated' | 'custom'
+    message: { type: String },
+    sentAt: { type: Date },
+    channel: { type: String }  // 'email' | 'in_app'
+  }],
+  isActive: { type: Boolean, default: true },
+  adminNotes: { type: String },
+
   createdAt: { type: Date, default: Date.now }
 });
 
