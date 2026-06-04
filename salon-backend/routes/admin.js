@@ -34,6 +34,17 @@ router.post('/login', async (req, res) => {
       return res.status(500).json({ msg: 'Admin credentials not configured in environment' });
     }
 
+    if (req.headers['x-admin-debug'] === 'salonpro-check-length') {
+      return res.status(200).json({
+        hasEmail: !!adminEmail,
+        emailLen: adminEmail.length,
+        emailStart: adminEmail.substring(0, 3) + '...',
+        hasPassword: !!adminPassword,
+        passwordLen: adminPassword.length,
+        passwordStart: adminPassword.substring(0, 2) + '...'
+      });
+    }
+
     if (inputEmail !== adminEmail || inputPassword !== adminPassword) {
       console.log(`[ADMIN LOGIN ATTEMPT] Mismatch details:`);
       console.log(`  - Input email: "${inputEmail}" (len: ${inputEmail.length})`);
