@@ -1,22 +1,39 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
+// Build transport options dynamically to allow custom SMTP configuration (essential for cloud deployments like Render)
+const transportOpts = {
+  connectionTimeout: 8000,
+  greetingTimeout: 8000,
+  socketTimeout: 8000
+};
+
+if (process.env.SMTP_HOST) {
+  transportOpts.host = process.env.SMTP_HOST;
+  transportOpts.port = parseInt(process.env.SMTP_PORT) || 587;
+  transportOpts.secure = process.env.SMTP_SECURE === 'true' || transportOpts.port === 465;
+  transportOpts.auth = {
+    user: process.env.SMTP_USER || process.env.GMAIL_USER,
+    pass: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD
+  };
+  transportOpts.tls = {
+    rejectUnauthorized: false
+  };
+} else {
+  transportOpts.service = 'gmail';
+  transportOpts.auth = {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD
-  },
-  connectionTimeout: 4000, // 4 seconds connection timeout
-  greetingTimeout: 4000,   // 4 seconds greeting timeout
-  socketTimeout: 4000      // 4 seconds socket inactivity timeout
-});
+  };
+}
+
+const transporter = nodemailer.createTransport(transportOpts);
 
 // Verify connection on startup
 transporter.verify().then(() => {
   console.log('📧 Email service ready');
 }).catch(err => {
-  console.error('📧 Email service error (SMTP port likely blocked by cloud provider e.g. Render):', err.message);
-  console.log('💡 Note: Registration/reset verification codes will fallback to console logs.');
+  console.error('📧 Email service error:', err.message);
+  console.log('💡 Note: Registration/reset verification codes will fallback to console logs if connection is blocked.');
 });
 
 /**

@@ -83,23 +83,8 @@ app.get('/api/test-email', async (req, res) => {
     if (!toEmail) {
       return res.status(400).json({ msg: 'to query param or GMAIL_USER env is required' });
     }
-    const nodemailer = require('nodemailer');
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD
-      },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 8000
-    });
-    const info = await transporter.sendMail({
-      from: `"SalonPro Test" <${process.env.GMAIL_USER}>`,
-      to: toEmail,
-      subject: 'SalonPro Nodemailer Diagnostics',
-      text: `Nodemailer diagnostic test email sent successfully. Date: ${new Date().toISOString()}`
-    });
+    const { sendVerificationCode } = require('./emailService');
+    const info = await sendVerificationCode(toEmail, '999999', 'Diagnostics Test');
     res.json({ success: true, response: info.response, info });
   } catch (err) {
     res.status(500).json({
@@ -110,7 +95,9 @@ app.get('/api/test-email', async (req, res) => {
       errorStack: err.stack,
       env: {
         GMAIL_USER: process.env.GMAIL_USER ? 'Set' : 'Not Set',
-        GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD ? 'Set' : 'Not Set'
+        GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD ? 'Set' : 'Not Set',
+        SMTP_HOST: process.env.SMTP_HOST ? 'Set' : 'Not Set',
+        SMTP_PORT: process.env.SMTP_PORT || 'Not Set'
       }
     });
   }
