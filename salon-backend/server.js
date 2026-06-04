@@ -29,7 +29,21 @@ app.use((req, res, next) => {
   ].filter(Boolean);
   
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  let isAllowed = false;
+
+  if (origin) {
+    if (allowedOrigins.includes(origin)) {
+      isAllowed = true;
+    } else if (/^https?:\/\/localhost(:\d+)?$/.test(origin) || /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) {
+      isAllowed = true;
+    } else if (origin.startsWith('https://complete-salon-management') && origin.endsWith('.vercel.app')) {
+      isAllowed = true;
+    } else if (origin.startsWith('https://salonpro-admin') && origin.endsWith('.vercel.app')) {
+      isAllowed = true;
+    }
+  }
+
+  if (isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else {
     res.setHeader('Access-Control-Allow-Origin', 'https://complete-salon-management.vercel.app');
@@ -40,6 +54,7 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
+
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
 
