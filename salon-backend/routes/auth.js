@@ -135,7 +135,11 @@ router.post('/resend-verify', [
     user.emailVerifyExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendVerificationCode(user.email, code, user.salonName);
+    try {
+      await sendVerificationCode(user.email, code, user.salonName);
+    } catch (emailErr) {
+      console.error('SMTP resend-verify email failed:', emailErr.message);
+    }
     res.json({ message: 'New verification code sent to your email.' });
 
   } catch (err) {
@@ -164,7 +168,11 @@ router.post('/forgot-password', [
     user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendPasswordResetCode(user.email, code, user.name);
+    try {
+      await sendPasswordResetCode(user.email, code, user.name);
+    } catch (emailErr) {
+      console.error('SMTP forgot-password email failed:', emailErr.message);
+    }
     res.json({ message: 'If this account exists, you will receive a reset code.' });
 
   } catch (err) {
