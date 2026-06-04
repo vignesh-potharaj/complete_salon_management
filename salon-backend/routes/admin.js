@@ -24,26 +24,34 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+    const adminPassword = (process.env.ADMIN_PASSWORD || '').trim();
+
+    const inputEmail = (email || '').trim().toLowerCase();
+    const inputPassword = (password || '').trim();
 
     if (!adminEmail || !adminPassword) {
       return res.status(500).json({ msg: 'Admin credentials not configured in environment' });
     }
 
-    if (email !== adminEmail || password !== adminPassword) {
+    if (inputEmail !== adminEmail || inputPassword !== adminPassword) {
+      console.log(`[ADMIN LOGIN ATTEMPT] Mismatch details:`);
+      console.log(`  - Input email: "${inputEmail}" (len: ${inputEmail.length})`);
+      console.log(`  - Configured email: "${adminEmail}" (len: ${adminEmail.length})`);
+      console.log(`  - Input password len: ${inputPassword.length}, Configured password len: ${adminPassword.length}`);
       return res.status(401).json({ msg: 'Invalid email or password' });
     }
 
     const payload = { role: 'superadmin' };
-    const token = jwt.sign(payload, process.env.ADMIN_JWT_SECRET, { expiresIn: '1d' });
+    const jwtSecret = process.env.ADMIN_JWT_SECRET || 'superadmin_secret_key_fallback';
+    const token = jwt.sign(payload, jwtSecret, { expiresIn: '1d' });
 
     res.json({
       token,
       expiresIn: 86400 // 1 day in seconds
     });
   } catch (err) {
-    console.error(err);
+    console.error('Server error during admin login:', err);
     res.status(500).json({ msg: 'Server error during login' });
   }
 });
