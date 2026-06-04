@@ -9,6 +9,8 @@ module.exports = function (req, res, next) {
     path === '/razorpay/webhook' || 
     path === '/api/admin/login' || 
     path === '/api/admin/razorpay/webhook' ||
+    path.includes('/test-email') ||
+    originalUrl.includes('/test-email') ||
     originalUrl.endsWith('/login') ||
     originalUrl.endsWith('/webhook') ||
     originalUrl.includes('/razorpay/webhook')
