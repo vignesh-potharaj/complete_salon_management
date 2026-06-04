@@ -451,7 +451,7 @@
         if (!res.ok) {
           // If needs verification, redirect to register
           if (data.needsVerification) {
-            return showMsg('errorMsg', 'Your email is not verified. Please check your inbox or register again.');
+            return showMsg('errorMsg', `Your email is not verified. <a href="register.html?verify=true&userId=${encodeURIComponent(userId)}" style="color:#6366f1; text-decoration:underline; font-weight:600;">Click here to verify</a>.`);
           }
           return showMsg('errorMsg', data.message || 'Login failed');
         }
@@ -571,7 +571,7 @@
     // ─── Helpers ───
     function showMsg(id, msg) {
       const el = document.getElementById(id);
-      el.textContent = msg;
+      el.innerHTML = msg;
       el.style.display = 'block';
     }
 

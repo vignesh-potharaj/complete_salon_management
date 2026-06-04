@@ -575,6 +575,19 @@
         if (!document.getElementById('registerPanel').classList.contains('hidden')) register();
       }
     });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('verify') === 'true' && urlParams.get('userId')) {
+        registeredUserId = urlParams.get('userId');
+        document.getElementById('displayEmail').textContent = 'your registered email';
+        document.getElementById('registerPanel').classList.add('hidden');
+        document.getElementById('verifyPanel').classList.remove('hidden');
+        startResendTimer();
+        const otpInput = document.querySelector('.otp-input');
+        if (otpInput) otpInput.focus();
+      }
+    });
   </script>
 
 </body>
