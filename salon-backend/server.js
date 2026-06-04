@@ -1,3 +1,8 @@
+const dns = require('dns');
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
+
 const express = require('express');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
