@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const axios = require('axios');
 
 // Build transport options dynamically to allow custom SMTP configuration (essential for cloud deployments like Render)
 const transportOpts = {
@@ -29,13 +30,49 @@ if (process.env.SMTP_HOST) {
 const transporter = nodemailer.createTransport(transportOpts);
 const fromEmail = process.env.SMTP_USER || process.env.GMAIL_USER;
 
-// Verify connection on startup
-transporter.verify().then(() => {
-  console.log('📧 Email service ready');
-}).catch(err => {
-  console.error('📧 Email service error:', err.message);
-  console.log('💡 Note: Registration/reset verification codes will fallback to console logs if connection is blocked.');
-});
+const brevoApiKey = process.env.BREVO_API_KEY || (process.env.SMTP_PASS && process.env.SMTP_PASS.startsWith('xsmtpsib-') ? process.env.SMTP_PASS : null);
+
+if (brevoApiKey) {
+  console.log('📧 Email service: Brevo HTTP API active (immune to SMTP port blocks)');
+} else {
+  // Verify connection on startup
+  transporter.verify().then(() => {
+    console.log('📧 Email service ready');
+  }).catch(err => {
+    console.error('📧 Email service error:', err.message);
+    console.log('💡 Note: Registration/reset verification codes will fallback to console logs if connection is blocked.');
+  });
+}
+
+/**
+ * sendMailWrapper wraps SMTP and HTTP API sending dynamically.
+ */
+async function sendMailWrapper(mailOptions) {
+  if (brevoApiKey) {
+    const senderEmail = fromEmail || 'salonpro.noreply@gmail.com';
+    try {
+      const response = await axios.post('https://api.brevo.com/v3/smtp/email', {
+        sender: { name: 'SalonPro', email: senderEmail },
+        to: [{ email: mailOptions.to }],
+        subject: mailOptions.subject,
+        htmlContent: mailOptions.html
+      }, {
+        headers: {
+          'accept': 'application/json',
+          'api-key': brevoApiKey,
+          'content-type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (apiErr) {
+      const errMsg = apiErr.response ? JSON.stringify(apiErr.response.data) : apiErr.message;
+      console.error('📧 Brevo HTTP API Error:', errMsg);
+      throw new Error(errMsg);
+    }
+  }
+
+  return await transporter.sendMail(mailOptions);
+}
 
 /**
  * Generate a random 6-digit OTP
@@ -66,7 +103,7 @@ async function sendVerificationCode(email, code, salonName) {
   };
 
   try {
-    return await transporter.sendMail(mailOptions);
+    return await sendMailWrapper(mailOptions);
   } catch (err) {
     console.error(`❌ Failed to send verification email to ${email}. Connection timed out or blocked.`);
     console.log(`🔑 [FALLBACK LOG] Verification Code for ${email} (${salonName}): ${code}`);
@@ -96,7 +133,7 @@ async function sendPasswordResetCode(email, code, userName) {
   };
 
   try {
-    return await transporter.sendMail(mailOptions);
+    return await sendMailWrapper(mailOptions);
   } catch (err) {
     console.error(`❌ Failed to send password reset email to ${email}. Connection timed out or blocked.`);
     console.log(`🔑 [FALLBACK LOG] Password Reset Code for ${email} (${userName}): ${code}`);
@@ -129,7 +166,7 @@ async function sendSubscriptionActivated(user, plan, endDate) {
   };
 
   try {
-    return await transporter.sendMail(mailOptions);
+    return await sendMailWrapper(mailOptions);
   } catch (err) {
     console.error(`❌ Failed to send activation email to ${user.email}. Connection timed out or blocked.`);
     console.log(`🔑 [FALLBACK LOG] Subscription Activated for ${user.email} (${user.salonName}): Plan: ${plan}, End Date: ${endDate}`);
@@ -161,7 +198,7 @@ async function sendSubscriptionExpiring(user, daysLeft, renewalLink) {
   };
 
   try {
-    return await transporter.sendMail(mailOptions);
+    return await sendMailWrapper(mailOptions);
   } catch (err) {
     console.error(`❌ Failed to send expiration warning email to ${user.email}.`);
     console.log(`🔑 [FALLBACK LOG] Subscription Expiring for ${user.email} (${user.salonName}): ${daysLeft} days left. Link: ${renewalLink}`);
@@ -193,7 +230,7 @@ async function sendSubscriptionExpired(user, renewalLink) {
   };
 
   try {
-    return await transporter.sendMail(mailOptions);
+    return await sendMailWrapper(mailOptions);
   } catch (err) {
     console.error(`❌ Failed to send expired email to ${user.email}.`);
     console.log(`🔑 [FALLBACK LOG] Subscription Expired for ${user.email} (${user.salonName}). Link: ${renewalLink}`);
@@ -224,7 +261,7 @@ async function sendSubscriptionTerminated(user, reason) {
   };
 
   try {
-    return await transporter.sendMail(mailOptions);
+    return await sendMailWrapper(mailOptions);
   } catch (err) {
     console.error(`❌ Failed to send termination email to ${user.email}.`);
     console.log(`🔑 [FALLBACK LOG] Subscription Terminated for ${user.email} (${user.salonName}). Reason: ${reason}`);
@@ -251,7 +288,7 @@ async function sendCustomNotification(user, message) {
   };
 
   try {
-    return await transporter.sendMail(mailOptions);
+    return await sendMailWrapper(mailOptions);
   } catch (err) {
     console.error(`❌ Failed to send custom notification email to ${user.email}.`);
     console.log(`🔑 [FALLBACK LOG] Custom Notification for ${user.email} (${user.salonName}): ${message}`);
@@ -283,7 +320,7 @@ async function sendPaymentFailed(user, amount, retryLink) {
   };
 
   try {
-    return await transporter.sendMail(mailOptions);
+    return await sendMailWrapper(mailOptions);
   } catch (err) {
     console.error(`❌ Failed to send payment failed email to ${user.email}.`);
     console.log(`🔑 [FALLBACK LOG] Payment Failed for ${user.email} (${user.salonName}): Amount: ₹${amount}. Link: ${retryLink}`);
@@ -302,4 +339,3 @@ module.exports = {
   sendCustomNotification,
   sendPaymentFailed
 };
-
