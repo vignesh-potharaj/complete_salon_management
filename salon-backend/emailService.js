@@ -32,7 +32,7 @@ const fromEmail = process.env.SMTP_USER || process.env.GMAIL_USER;
 
 const rawKey = process.env.BREVO_API_KEY || process.env.SMTP_PASS;
 const brevoApiKey = rawKey ? rawKey.replace(/['"]/g, '').trim() : null;
-const isBrevoKey = brevoApiKey && (brevoApiKey.startsWith('xkeysib-') || brevoApiKey.startsWith('xsmtpsib-'));
+const isBrevoKey = brevoApiKey && brevoApiKey.startsWith('xkeysib-');
 
 if (isBrevoKey) {
   console.log('📧 Email service: Brevo HTTP API active (immune to SMTP port blocks)');
