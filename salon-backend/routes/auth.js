@@ -16,7 +16,7 @@ router.post('/register', [
     .notEmpty().withMessage('userId is required')
     .isLength({ min: 3, max: 30 }).withMessage('userId must be 3–30 characters')
     .matches(/^[a-zA-Z0-9_]+$/).withMessage('userId may only contain letters, numbers, and underscores'),
-  body('email').trim().isEmail().withMessage('Valid email is required').normalizeEmail(),
+  body('email').trim().isEmail().withMessage('Valid email is required').normalizeEmail({ gmail_remove_dots: false }),
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('salonName').trim().notEmpty().withMessage('Salon Name is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
@@ -154,7 +154,7 @@ router.post('/resend-verify', [
 // ─── POST /api/auth/forgot-password ───
 router.post('/forgot-password', [
   body('userId').trim().notEmpty().withMessage('User ID is required'),
-  body('email').trim().isEmail().withMessage('Valid email is required').normalizeEmail()
+  body('email').trim().isEmail().withMessage('Valid email is required').normalizeEmail({ gmail_remove_dots: false })
 ], async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -189,7 +189,7 @@ router.post('/forgot-password', [
 // ─── POST /api/auth/reset-password ───
 router.post('/reset-password', [
   body('userId').trim().notEmpty().withMessage('User ID is required'),
-  body('email').trim().isEmail().withMessage('Valid email is required').normalizeEmail(),
+  body('email').trim().isEmail().withMessage('Valid email is required').normalizeEmail({ gmail_remove_dots: false }),
   body('code').trim().notEmpty().withMessage('Reset code is required'),
   body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], async (req, res, next) => {
