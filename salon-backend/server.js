@@ -81,33 +81,6 @@ app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/bills', require('./routes/bills'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/dashboard', require('./routes/dashboard'));
-
-app.get('/api/test-email', async (req, res) => {
-  try {
-    const toEmail = req.query.to || process.env.GMAIL_USER;
-    if (!toEmail) {
-      return res.status(400).json({ msg: 'to query param or GMAIL_USER env is required' });
-    }
-    const { sendVerificationCode } = require('./emailService');
-    const info = await sendVerificationCode(toEmail, '999999', 'Diagnostics Test');
-    res.json({ success: true, response: info.response, info });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      errorName: err.name,
-      errorMessage: err.message,
-      errorCode: err.code,
-      errorStack: err.stack,
-      env: {
-        GMAIL_USER: process.env.GMAIL_USER ? 'Set' : 'Not Set',
-        GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD ? 'Set' : 'Not Set',
-        SMTP_HOST: process.env.SMTP_HOST ? 'Set' : 'Not Set',
-        SMTP_PORT: process.env.SMTP_PORT || 'Not Set'
-      }
-    });
-  }
-});
-
 app.get('/api/health', (req, res) => res.json({ status: 'ok', t: Date.now() }));
 
 app.get('/', (req, res) => res.json({ message: 'SalonPro API is running 🚀' }));

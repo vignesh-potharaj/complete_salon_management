@@ -881,10 +881,16 @@ async function loadInventory() {
       const profit = item.sellPrice - item.costPrice;
       const totalVal = item.stock * item.costPrice;
 
+      let sanitizedUrl = (item.imageUrl || '').trim();
+      if (sanitizedUrl && !sanitizedUrl.startsWith('http://') && !sanitizedUrl.startsWith('https://') && !sanitizedUrl.startsWith('/') && !sanitizedUrl.startsWith('data:image/')) {
+        sanitizedUrl = placeholder;
+      }
+      const safeImageUrl = esc(sanitizedUrl || placeholder);
+
       return `
         <div class="product-card ${isLow ? 'low-stock-alert' : ''}">
           <div class="product-img-wrapper">
-            <img src="${item.imageUrl || placeholder}" alt="${esc(item.name)}" onerror="this.src='${placeholder}'">
+            <img src="${safeImageUrl}" alt="${esc(item.name)}" onerror="this.src='${placeholder}'">
             ${isLow ? '<span class="stock-badge badge-low">Low Stock</span>' : '<span class="stock-badge badge-ok">In Stock</span>'}
           </div>
           <div class="product-info">

@@ -9,8 +9,6 @@ module.exports = function (req, res, next) {
     path === '/razorpay/webhook' || 
     path === '/api/admin/login' || 
     path === '/api/admin/razorpay/webhook' ||
-    path.includes('/test-email') ||
-    originalUrl.includes('/test-email') ||
     originalUrl.endsWith('/login') ||
     originalUrl.endsWith('/webhook') ||
     originalUrl.includes('/razorpay/webhook')
@@ -27,7 +25,10 @@ module.exports = function (req, res, next) {
   const token = authHeader.split(' ')[1];
 
   try {
-    const secret = process.env.ADMIN_JWT_SECRET || 'superadmin_secret_key_fallback';
+    const secret = process.env.ADMIN_JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ msg: 'Server configuration error' });
+    }
     const decoded = jwt.verify(token, secret);
     if (decoded.role !== 'superadmin') {
       return res.status(403).json({ msg: 'Access denied: not a superadmin' });

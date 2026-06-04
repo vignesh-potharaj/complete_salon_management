@@ -54,7 +54,10 @@ router.post('/login', async (req, res) => {
     }
 
     const payload = { role: 'superadmin' };
-    const jwtSecret = process.env.ADMIN_JWT_SECRET || 'superadmin_secret_key_fallback';
+    const jwtSecret = process.env.ADMIN_JWT_SECRET;
+    if (!jwtSecret) {
+      return res.status(500).json({ msg: 'Server configuration error: ADMIN_JWT_SECRET not set' });
+    }
     const token = jwt.sign(payload, jwtSecret, { expiresIn: '1d' });
 
     res.json({
@@ -820,51 +823,4 @@ router.get('/analytics/revenue', async (req, res) => {
     res.status(500).json({ msg: 'Error generating revenue analytics' });
   }
 });
-
-/**
- * GET /api/admin/test-email
- * Sends a test email and returns status
- */
-router.get('/test-email', async (req, res) => {
-  try {
-    const toEmail = req.query.to || process.env.GMAIL_USER;
-    if (!toEmail) {
-      return res.status(400).json({ msg: 'to query param or GMAIL_USER env is required' });
-    }
-    
-    const nodemailer = require('nodemailer');
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD
-      },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 8000
-    });
-
-    const info = await transporter.sendMail({
-      from: `"SalonPro Test" <${process.env.GMAIL_USER}>`,
-      to: toEmail,
-      subject: 'SalonPro Nodemailer Diagnostics',
-      text: `Nodemailer diagnostic test email sent successfully. Date: ${new Date().toISOString()}`
-    });
-
-    res.json({ success: true, response: info.response, info });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      errorName: err.name,
-      errorMessage: err.message,
-      errorCode: err.code,
-      errorStack: err.stack,
-      env: {
-        GMAIL_USER: process.env.GMAIL_USER ? 'Set' : 'Not Set',
-        GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD ? 'Set' : 'Not Set'
-      }
-    });
-  }
-});
-
 module.exports = router;
