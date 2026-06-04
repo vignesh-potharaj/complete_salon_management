@@ -30,9 +30,11 @@ if (process.env.SMTP_HOST) {
 const transporter = nodemailer.createTransport(transportOpts);
 const fromEmail = process.env.SMTP_USER || process.env.GMAIL_USER;
 
-const brevoApiKey = process.env.BREVO_API_KEY || (process.env.SMTP_PASS && process.env.SMTP_PASS.startsWith('xsmtpsib-') ? process.env.SMTP_PASS : null);
+const rawKey = process.env.BREVO_API_KEY || process.env.SMTP_PASS;
+const brevoApiKey = rawKey ? rawKey.replace(/['"]/g, '').trim() : null;
+const isBrevoKey = brevoApiKey && (brevoApiKey.startsWith('xkeysib-') || brevoApiKey.startsWith('xsmtpsib-'));
 
-if (brevoApiKey) {
+if (isBrevoKey) {
   console.log('📧 Email service: Brevo HTTP API active (immune to SMTP port blocks)');
 } else {
   // Verify connection on startup
@@ -48,7 +50,7 @@ if (brevoApiKey) {
  * sendMailWrapper wraps SMTP and HTTP API sending dynamically.
  */
 async function sendMailWrapper(mailOptions) {
-  if (brevoApiKey) {
+  if (isBrevoKey) {
     const senderEmail = fromEmail || 'salonpro.noreply@gmail.com';
     try {
       const response = await axios.post('https://api.brevo.com/v3/smtp/email', {
