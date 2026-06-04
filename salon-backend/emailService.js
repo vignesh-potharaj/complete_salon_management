@@ -27,6 +27,7 @@ if (process.env.SMTP_HOST) {
 }
 
 const transporter = nodemailer.createTransport(transportOpts);
+const fromEmail = process.env.SMTP_USER || process.env.GMAIL_USER;
 
 // Verify connection on startup
 transporter.verify().then(() => {
@@ -48,7 +49,7 @@ function generateOTP() {
  */
 async function sendVerificationCode(email, code, salonName) {
   const mailOptions = {
-    from: `"SalonPro" <${process.env.GMAIL_USER}>`,
+    from: `"SalonPro" <${fromEmail}>`,
     to: email,
     subject: '✂ SalonPro — Verify Your Email',
     html: `
@@ -78,7 +79,7 @@ async function sendVerificationCode(email, code, salonName) {
  */
 async function sendPasswordResetCode(email, code, userName) {
   const mailOptions = {
-    from: `"SalonPro" <${process.env.GMAIL_USER}>`,
+    from: `"SalonPro" <${fromEmail}>`,
     to: email,
     subject: '🔑 SalonPro — Password Reset Code',
     html: `
@@ -109,7 +110,7 @@ async function sendPasswordResetCode(email, code, userName) {
  */
 async function sendSubscriptionActivated(user, plan, endDate) {
   const mailOptions = {
-    from: `"SalonPro" <${process.env.GMAIL_USER}>`,
+    from: `"SalonPro" <${fromEmail}>`,
     to: user.email,
     subject: 'Your SalonPro subscription is now active 🎉',
     html: `
@@ -141,7 +142,7 @@ async function sendSubscriptionActivated(user, plan, endDate) {
  */
 async function sendSubscriptionExpiring(user, daysLeft, renewalLink) {
   const mailOptions = {
-    from: `"SalonPro" <${process.env.GMAIL_USER}>`,
+    from: `"SalonPro" <${fromEmail}>`,
     to: user.email,
     subject: `Your SalonPro subscription expires in ${daysLeft} days`,
     html: `
@@ -173,7 +174,7 @@ async function sendSubscriptionExpiring(user, daysLeft, renewalLink) {
  */
 async function sendSubscriptionExpired(user, renewalLink) {
   const mailOptions = {
-    from: `"SalonPro" <${process.env.GMAIL_USER}>`,
+    from: `"SalonPro" <${fromEmail}>`,
     to: user.email,
     subject: 'Your SalonPro subscription has expired',
     html: `
@@ -205,7 +206,7 @@ async function sendSubscriptionExpired(user, renewalLink) {
  */
 async function sendSubscriptionTerminated(user, reason) {
   const mailOptions = {
-    from: `"SalonPro" <${process.env.GMAIL_USER}>`,
+    from: `"SalonPro" <${fromEmail}>`,
     to: user.email,
     subject: 'Your SalonPro account has been suspended',
     html: `
@@ -236,7 +237,7 @@ async function sendSubscriptionTerminated(user, reason) {
  */
 async function sendCustomNotification(user, message) {
   const mailOptions = {
-    from: `"SalonPro" <${process.env.GMAIL_USER}>`,
+    from: `"SalonPro" <${fromEmail}>`,
     to: user.email,
     subject: 'Important update from SalonPro',
     html: `
@@ -263,7 +264,7 @@ async function sendCustomNotification(user, message) {
  */
 async function sendPaymentFailed(user, amount, retryLink) {
   const mailOptions = {
-    from: `"SalonPro" <${process.env.GMAIL_USER}>`,
+    from: `"SalonPro" <${fromEmail}>`,
     to: user.email,
     subject: 'SalonPro payment failed — action required',
     html: `
