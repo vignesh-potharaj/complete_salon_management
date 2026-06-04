@@ -9,6 +9,8 @@ const settingsValidation = [
   body('salonName').trim().notEmpty().withMessage('Salon name is required')
 ];
 
+const User = require('../models/User');
+
 // GET /api/settings
 router.get('/', auth, async (req, res, next) => {
   try {
@@ -22,7 +24,11 @@ router.get('/', auth, async (req, res, next) => {
       await settings.save();
     }
     
-    res.json(settings);
+    const user = await User.findOne({ userId: req.user.userId });
+    const settingsObj = settings.toObject();
+    settingsObj.registeredEmail = user ? user.email : '';
+    
+    res.json(settingsObj);
   } catch (err) {
     next(err);
   }

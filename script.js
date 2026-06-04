@@ -1614,6 +1614,7 @@ async function loadSettings() {
     document.getElementById('setSalonName').value = s.salonName || '';
     document.getElementById('setAddress').value = s.address || '';
     document.getElementById('setPhone').value = s.phone || '';
+    document.getElementById('setRegisteredEmail').value = s.registeredEmail || '';
     document.getElementById('setCurrency').value = s.currency || '₹';
     document.getElementById('setTax').value = s.taxPct || 0;
     document.getElementById('setDefaultCommission').value = s.defaultCommission || 0;
