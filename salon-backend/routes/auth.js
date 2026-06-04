@@ -55,9 +55,11 @@ router.post('/register', [
 
     // Send verification email
     try {
+      console.log(`[AUTH] Registering user ID: ${userId}, email: ${email}, sending verification code...`);
       await sendVerificationCode(email, code, salonName);
+      console.log(`[AUTH] Verification email successfully dispatched to ${email}`);
     } catch (emailErr) {
-      console.error('Email send error:', emailErr.message);
+      console.error('[AUTH] Verification email dispatch failed:', emailErr.message);
       // Don't fail registration if email fails, user can resend
     }
 
@@ -136,9 +138,11 @@ router.post('/resend-verify', [
     await user.save();
 
     try {
+      console.log(`[AUTH] Resend verification requested for user ID: ${user.userId}, email: ${user.email}`);
       await sendVerificationCode(user.email, code, user.salonName);
+      console.log(`[AUTH] Verification email successfully resent to ${user.email}`);
     } catch (emailErr) {
-      console.error('SMTP resend-verify email failed:', emailErr.message);
+      console.error('[AUTH] Resend verification email failed:', emailErr.message);
     }
     res.json({ message: 'New verification code sent to your email.' });
 
@@ -169,9 +173,11 @@ router.post('/forgot-password', [
     await user.save();
 
     try {
+      console.log(`[AUTH] Forgot password requested for user ID: ${user.userId}, email: ${user.email}`);
       await sendPasswordResetCode(user.email, code, user.name);
+      console.log(`[AUTH] Password reset email successfully dispatched to ${user.email}`);
     } catch (emailErr) {
-      console.error('SMTP forgot-password email failed:', emailErr.message);
+      console.error('[AUTH] Forgot password email failed:', emailErr.message);
     }
     res.json({ message: 'If this account exists, you will receive a reset code.' });
 
