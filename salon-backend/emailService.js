@@ -69,6 +69,9 @@ async function sendMailWrapper(mailOptions) {
     } catch (apiErr) {
       const errMsg = apiErr.response ? JSON.stringify(apiErr.response.data) : apiErr.message;
       console.error('📧 Brevo HTTP API Error:', errMsg);
+      if (brevoApiKey) {
+        console.log(`🔧 Debug Key Info - Length: ${brevoApiKey.length}, Start: ${brevoApiKey.substring(0, 12)}..., End: ...${brevoApiKey.substring(brevoApiKey.length - 4)}`);
+      }
       throw new Error(errMsg);
     }
   }
