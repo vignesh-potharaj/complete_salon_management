@@ -1,8 +1,14 @@
 // admin-api.js - Admin API Helper and Auth
 
-const ADMIN_API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5000/api'
-  : 'https://salonpro-backend-javg.onrender.com/api';
+const CONFIG = {
+  API_URL: (typeof process !== 'undefined' && process.env?.API_URL) || 
+           window.ENV?.API_URL || 
+           (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+             ? 'http://localhost:5000/api'
+             : 'https://salonpro-backend-javg.onrender.com/api')
+};
+
+const ADMIN_API_BASE = CONFIG.API_URL;
 
 async function adminApi(path, options = {}) {
   const token = localStorage.getItem('admin_token');

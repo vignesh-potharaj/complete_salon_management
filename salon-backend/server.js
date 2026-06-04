@@ -28,10 +28,11 @@ const adminLoginLimiter = rateLimit({
 });
 
 app.use((req, res, next) => {
-  const allowedOrigins = [
-    'https://complete-salon-management.vercel.app',
-    process.env.ADMIN_PORTAL_URL
-  ].filter(Boolean);
+  const clientUrl = process.env.CLIENT_URL || 'https://complete-salon-management.vercel.app';
+  const allowedOriginsStr = process.env.ALLOWED_ORIGINS || '';
+  const allowedOrigins = allowedOriginsStr
+    ? allowedOriginsStr.split(',').map(item => item.trim())
+    : [clientUrl, process.env.ADMIN_PORTAL_URL].filter(Boolean);
   
   const origin = req.headers.origin;
   let isAllowed = false;
@@ -41,9 +42,7 @@ app.use((req, res, next) => {
       isAllowed = true;
     } else if (/^https?:\/\/localhost(:\d+)?$/.test(origin) || /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) {
       isAllowed = true;
-    } else if (origin.startsWith('https://complete-salon-management') && origin.endsWith('.vercel.app')) {
-      isAllowed = true;
-    } else if (origin.startsWith('https://salonpro-admin') && origin.endsWith('.vercel.app')) {
+    } else if (origin.endsWith('.vercel.app')) {
       isAllowed = true;
     }
   }
@@ -51,7 +50,7 @@ app.use((req, res, next) => {
   if (isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else {
-    res.setHeader('Access-Control-Allow-Origin', 'https://complete-salon-management.vercel.app');
+    res.setHeader('Access-Control-Allow-Origin', clientUrl);
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
