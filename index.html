@@ -20,10 +20,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc" crossorigin="anonymous"></script>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
-  <link rel="stylesheet" href="style.css?v=1.0.3">
-  <link rel="stylesheet" href="dashboard.css?v=1.0.3">
-  <link rel="stylesheet" href="reports.css?v=1.0.3">
-  <link rel="stylesheet" href="clients.css?v=1.0.3">
+  <link rel="stylesheet" href="style.css?v=1.0.4">
+  <link rel="stylesheet" href="dashboard.css?v=1.0.4">
+  <link rel="stylesheet" href="reports.css?v=1.0.4">
+  <link rel="stylesheet" href="clients.css?v=1.0.4">
 </head>
 
 <body>
@@ -712,7 +712,16 @@
 
         <!-- Bill History -->
         <div class="bill-history-section">
-          <h2>Bill History</h2>
+          <div class="bill-history-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+            <h2 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-main);">Bill History</h2>
+            <div class="bill-date-filter" style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+              <span style="font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                📅 <span style="font-weight: 600;">Filter Date:</span>
+              </span>
+              <input type="date" id="billHistoryDateFilter" onchange="filterBillHistoryByDate()" style="border: none; outline: none; font-size: 0.9rem; color: var(--text-main); font-family: inherit; cursor: pointer; background: transparent;">
+              <button onclick="clearBillHistoryDateFilter()" style="border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 0.95rem; font-weight: bold; padding: 0 4px; display: none;" id="btnClearBillDate" title="Clear Date">✕</button>
+            </div>
+          </div>
 
           <!-- Desktop: Table View -->
           <div id="billHistoryTableContainer" class="table-container">
@@ -946,7 +955,7 @@
   </div><!-- end .container -->
 
   <script src="api.js"></script>
-  <script src="script.js?v=1.0.3"></script>
+  <script src="script.js?v=1.0.4"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

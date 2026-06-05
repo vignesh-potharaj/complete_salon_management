@@ -1,4 +1,4 @@
-const CACHE_NAME = "salonpro-v9";
+const CACHE_NAME = "salonpro-v10";
 
 // Files to cache
 const urlsToCache = [
