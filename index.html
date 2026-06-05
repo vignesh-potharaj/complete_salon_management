@@ -20,10 +20,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc" crossorigin="anonymous"></script>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
-  <link rel="stylesheet" href="style.css?v=1.0.2">
-  <link rel="stylesheet" href="dashboard.css?v=1.0.2">
-  <link rel="stylesheet" href="reports.css?v=1.0.2">
-  <link rel="stylesheet" href="clients.css?v=1.0.2">
+  <link rel="stylesheet" href="style.css?v=1.0.3">
+  <link rel="stylesheet" href="dashboard.css?v=1.0.3">
+  <link rel="stylesheet" href="reports.css?v=1.0.3">
+  <link rel="stylesheet" href="clients.css?v=1.0.3">
 </head>
 
 <body>
@@ -713,7 +713,9 @@
         <!-- Bill History -->
         <div class="bill-history-section">
           <h2>Bill History</h2>
-          <div class="table-container">
+
+          <!-- Desktop: Table View -->
+          <div id="billHistoryTableContainer" class="table-container">
             <div class="table-scroll">
               <table>
                 <thead>
@@ -733,6 +735,11 @@
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <!-- Mobile: Card View -->
+          <div id="billHistoryGallery" class="bill-cards-gallery">
+            <div class="loading-spinner">Loading Bills...</div>
           </div>
         </div><!-- end .bill-history-section -->
       </div><!-- end #checkout -->
@@ -939,7 +946,7 @@
   </div><!-- end .container -->
 
   <script src="api.js"></script>
-  <script src="script.js?v=1.0.2"></script>
+  <script src="script.js?v=1.0.3"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

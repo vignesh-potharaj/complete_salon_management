@@ -1097,6 +1097,171 @@ label {
   }
 }
 
+/* ─── BILL HISTORY: MOBILE CARD GALLERY ───────────────── */
+.bill-cards-gallery {
+  display: none; /* Hidden on desktop — CSS media query shows it on mobile */
+  grid-template-columns: 1fr;
+  gap: 14px;
+  padding: 10px 0;
+}
+
+#billHistoryTableContainer {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  #billHistoryTableContainer {
+    display: none !important;
+  }
+  .bill-cards-gallery {
+    display: grid !important;
+  }
+}
+
+/* Card Container */
+.bill-card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.bill-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.bill-card--void {
+  opacity: 0.5;
+}
+
+/* Card Header — dark gradient with client info + total badge */
+.bill-card-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.bill-card-client {
+  flex: 1;
+  min-width: 0;
+}
+
+.bill-card-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bill-card-date {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 3px;
+}
+
+.bill-card-total-badge {
+  background: rgba(39, 174, 96, 0.2);
+  color: #2ecc71;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bill-card-total--void {
+  background: rgba(192, 57, 43, 0.15);
+  color: #e74c3c;
+  text-decoration: line-through;
+}
+
+/* Card Body */
+.bill-card-body {
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Items summary row */
+.bill-card-items {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-color);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.bill-card-items-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.bill-card-items-text {
+  flex: 1;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bill-card-items-count {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Footer — payment badge + actions */
+.bill-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bill-void-tag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #c0392b;
+  background: #fff0f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.bill-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.bill-card-actions button {
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.bill-card-actions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* ─── PDF EXPORT STYLES (Used by html2pdf) ─── */
 .pdf-mode {
   padding: 20px !important;

@@ -1382,33 +1382,86 @@ async function loadBillHistory() {
   try {
     const bills = await api('/bills');
     const tbody = document.getElementById('billHistoryBody');
-    if (!tbody) return;
-    if (bills.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">No bills yet.</td></tr>`;
-      return;
-    }
+    const gallery = document.getElementById('billHistoryGallery');
+
+    if (!tbody && !gallery) return;
+
     const payClass = (m) => {
       const map = { Cash: 'pay-cash', UPI: 'pay-upi', Card: 'pay-card' };
       return map[m] || 'pay-other';
     };
-    tbody.innerHTML = bills.map(b => {
-      const isVoid = b.deleted;
-      const dateStr = new Date(b.date || b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
-      return `
-      <tr style="${isVoid ? 'opacity:0.45;' : ''}">
-        <td data-label="Date"><span style="color:var(--text-muted);font-size:0.82rem;">${dateStr}</span></td>
-        <td data-label="Client"><span style="font-weight:600;">${esc(b.clientName)}</span></td>
-        <td data-label="Items"><span style="color:var(--text-muted)">${b.lineItems.length} item${b.lineItems.length !== 1 ? 's' : ''}</span></td>
-        <td data-label="Total"><span><strong style="font-weight:700;">₹${b.grandTotal.toLocaleString('en-IN')}</strong>${isVoid ? ' <span style="color:#c0392b;font-size:0.75rem;font-weight:700;margin-left:4px;">VOID</span>' : ''}</span></td>
-        <td data-label="Payment"><span><span class="pay-badge ${payClass(b.paymentMethod)}">${esc(b.paymentMethod)}</span></span></td>
-        <td data-label="Actions" class="no-print">
-          <div class="action-btns">
-            <button class="btn-act-view" onclick="viewBill('${b._id}')" ${isVoid ? 'disabled' : ''}>View</button>
-            ${!isVoid ? `<button class="btn-act-void" onclick="voidBill('${b._id}')">Void</button>` : ''}
-            <button class="btn-act-print" onclick="printPastBill('${b._id}')" ${isVoid ? 'disabled' : ''}>Print</button>
-          </div>
-        </td>
-      </tr>`}).join('');
+
+    if (bills.length === 0) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">No bills yet.</td></tr>`;
+      if (gallery) gallery.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:#999;">
+        <div style="font-size:48px;margin-bottom:12px;">🧾</div>
+        <div style="font-size:16px;font-weight:600;">No bills yet</div>
+        <div style="font-size:13px;margin-top:6px;">Create your first bill from the checkout form above.</div>
+      </div>`;
+      return;
+    }
+
+    // 1. Render Table Rows (Desktop)
+    if (tbody) {
+      tbody.innerHTML = bills.map(b => {
+        const isVoid = b.deleted;
+        const dateStr = new Date(b.date || b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
+        return `
+        <tr style="${isVoid ? 'opacity:0.45;' : ''}">
+          <td data-label="Date"><span style="color:var(--text-muted);font-size:0.82rem;">${dateStr}</span></td>
+          <td data-label="Client"><span style="font-weight:600;">${esc(b.clientName)}</span></td>
+          <td data-label="Items"><span style="color:var(--text-muted)">${b.lineItems.length} item${b.lineItems.length !== 1 ? 's' : ''}</span></td>
+          <td data-label="Total"><span><strong style="font-weight:700;">₹${b.grandTotal.toLocaleString('en-IN')}</strong>${isVoid ? ' <span style="color:#c0392b;font-size:0.75rem;font-weight:700;margin-left:4px;">VOID</span>' : ''}</span></td>
+          <td data-label="Payment"><span><span class="pay-badge ${payClass(b.paymentMethod)}">${esc(b.paymentMethod)}</span></span></td>
+          <td data-label="Actions" class="no-print">
+            <div class="action-btns">
+              <button class="btn-act-view" onclick="viewBill('${b._id}')" ${isVoid ? 'disabled' : ''}>View</button>
+              ${!isVoid ? `<button class="btn-act-void" onclick="voidBill('${b._id}')">Void</button>` : ''}
+              <button class="btn-act-print" onclick="printPastBill('${b._id}')" ${isVoid ? 'disabled' : ''}>Print</button>
+            </div>
+          </td>
+        </tr>`}).join('');
+    }
+
+    // 2. Render Cards (Mobile)
+    if (gallery) {
+      gallery.innerHTML = bills.map(b => {
+        const isVoid = b.deleted;
+        const dateStr = new Date(b.date || b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        const timeStr = new Date(b.date || b.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        const itemsSummary = b.lineItems.map(i => i.name).slice(0, 3).join(', ');
+        const moreItems = b.lineItems.length > 3 ? ` +${b.lineItems.length - 3} more` : '';
+
+        return `
+          <div class="bill-card ${isVoid ? 'bill-card--void' : ''}">
+            <div class="bill-card-header">
+              <div class="bill-card-client">
+                <div class="bill-card-name">${esc(b.clientName)}</div>
+                <div class="bill-card-date">📅 ${dateStr} · ${timeStr}</div>
+              </div>
+              <div class="bill-card-total-badge ${isVoid ? 'bill-card-total--void' : ''}">
+                ₹${b.grandTotal.toLocaleString('en-IN')}
+              </div>
+            </div>
+            <div class="bill-card-body">
+              <div class="bill-card-items">
+                <span class="bill-card-items-icon">🛒</span>
+                <span class="bill-card-items-text">${esc(itemsSummary)}${moreItems}</span>
+                <span class="bill-card-items-count">${b.lineItems.length} item${b.lineItems.length !== 1 ? 's' : ''}</span>
+              </div>
+              <div class="bill-card-footer">
+                <span class="pay-badge ${payClass(b.paymentMethod)}">${esc(b.paymentMethod)}</span>
+                ${isVoid ? '<span class="bill-void-tag">VOID</span>' : ''}
+                <div class="bill-card-actions">
+                  <button class="btn-act-view" onclick="viewBill('${b._id}')" ${isVoid ? 'disabled' : ''}>👁 View</button>
+                  ${!isVoid ? `<button class="btn-act-void" onclick="voidBill('${b._id}')">✕ Void</button>` : ''}
+                  <button class="btn-act-print" onclick="printPastBill('${b._id}')" ${isVoid ? 'disabled' : ''}>🖨 Print</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
   } catch (err) { showToast(err.message || 'Failed to load bill history', 'error'); }
 }
 
