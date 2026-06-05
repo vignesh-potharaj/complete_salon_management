@@ -1688,10 +1688,11 @@ label {
   /* Ensure content inside td (spans) is visible and aligned */
   td > span, 
   td > strong,
-  td > div {
-    flex: 1;
-    text-align: right;
-    color: var(--text-main);
+  td > div,
+  td > * {
+    flex: 1 !important;
+    text-align: right !important;
+    color: var(--text-main) !important;
   }
 
   td::before {
