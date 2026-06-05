@@ -28,7 +28,7 @@ if (process.env.SMTP_HOST) {
 }
 
 const transporter = nodemailer.createTransport(transportOpts);
-const fromEmail = process.env.SMTP_USER || process.env.GMAIL_USER;
+const fromEmail = process.env.SENDER_EMAIL || process.env.GMAIL_USER || (process.env.SMTP_USER && !process.env.SMTP_USER.includes('@smtp-brevo.com') ? process.env.SMTP_USER : null) || 'salonpro.noreply@gmail.com';
 
 const rawKey = process.env.BREVO_API_KEY || process.env.SMTP_PASS;
 const brevoApiKey = rawKey ? rawKey.replace(/['"]/g, '').trim() : null;
