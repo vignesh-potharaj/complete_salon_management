@@ -245,8 +245,8 @@ router.post('/login', [
       return res.status(400).json({ message: 'Invalid Credentials' });
     }
 
-    // Block login if email not verified
-    if (!user.isEmailVerified) {
+    // Block login if email not verified (exception for the test demo account 'aditya.demo')
+    if (!user.isEmailVerified && user.userId !== 'aditya.demo') {
       return res.status(403).json({ message: 'Please verify your email first.', needsVerification: true, userId: user.userId });
     }
 
