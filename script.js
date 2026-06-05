@@ -554,25 +554,79 @@ function filterClients() {
   // 4. GUI Rendering
   const tbody = document.getElementById('clientsTableBody');
   const tableContainer = document.getElementById('clientsTableContainer');
+  const galleryContainer = document.getElementById('clientsGalleryContainer');
   const emptyState = document.getElementById('clientsEmptyState');
 
   if (filtered.length === 0) {
-    tableContainer.style.display = 'none';
-    emptyState.style.display = 'flex';
+    if (tableContainer) tableContainer.style.display = 'none';
+    if (galleryContainer) galleryContainer.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'flex';
   } else {
-    tableContainer.style.display = 'block';
-    emptyState.style.display = 'none';
+    if (tableContainer) tableContainer.style.display = 'block';
+    if (galleryContainer) galleryContainer.style.display = 'grid';
+    if (emptyState) emptyState.style.display = 'none';
 
-    tbody.innerHTML = filtered.map(c => `
-      <tr>
-        <td data-label="Name"><strong>${esc(c.name)}</strong></td>
-        <td data-label="Contact"><span>${esc(c.phone)}</span></td>
-        <td data-label="DOB"><span>${c.dob ? new Date(c.dob).toLocaleDateString('en-IN') : '—'}</span></td>
-        <td data-label="First Visit"><span>${new Date(c.createdAt).toLocaleDateString()}</span></td>
-        <td data-label="Total Visits"><span>${c.totalVisits || 0}</span></td>
-        <td data-label="Last Visit"><span>${c.lastVisit ? new Date(c.lastVisit).toLocaleDateString() : '—'}</span></td>
-        <td data-label="Total Spent"><span>₹${(c.totalSpend || 0).toLocaleString('en-IN')}</span></td>
-      </tr>`).join('');
+    // 1. Render Table Rows (Desktop)
+    if (tbody) {
+      tbody.innerHTML = filtered.map(c => `
+        <tr>
+          <td><strong>${esc(c.name)}</strong></td>
+          <td><span>${esc(c.phone)}</span></td>
+          <td><span>${c.dob ? new Date(c.dob).toLocaleDateString('en-IN') : '—'}</span></td>
+          <td><span>${new Date(c.createdAt).toLocaleDateString()}</span></td>
+          <td><span>${c.totalVisits || 0}</span></td>
+          <td><span>${c.lastVisit ? new Date(c.lastVisit).toLocaleDateString() : '—'}</span></td>
+          <td><span>₹${(c.totalSpend || 0).toLocaleString('en-IN')}</span></td>
+        </tr>`).join('');
+    }
+
+    // 2. Render Cards (Mobile)
+    if (galleryContainer) {
+      galleryContainer.innerHTML = filtered.map(c => {
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random&color=fff&size=128`;
+        const dobStr = c.dob ? new Date(c.dob).toLocaleDateString('en-IN') : '—';
+        const firstVisitStr = new Date(c.createdAt).toLocaleDateString();
+        const lastVisitStr = c.lastVisit ? new Date(c.lastVisit).toLocaleDateString() : '—';
+        
+        return `
+          <div class="client-member-card">
+            <div class="client-card-header">
+              <img class="client-avatar" 
+                   src="${avatarUrl}" 
+                   alt="${esc(c.name)}"
+                   onerror="this.src='https://ui-avatars.com/api/?name=C&background=555&color=fff'">
+              <div class="client-header-info">
+                <div class="client-card-name">${esc(c.name)}</div>
+                <div class="client-card-phone">📞 ${esc(c.phone)}</div>
+              </div>
+            </div>
+            <div class="client-card-body">
+              <div class="client-info-row">
+                <span class="client-info-label">DOB</span>
+                <span class="client-info-value">${dobStr}</span>
+              </div>
+              <div class="client-info-row">
+                <span class="client-info-label">First Visit</span>
+                <span class="client-info-value">${firstVisitStr}</span>
+              </div>
+              <div class="client-info-row">
+                <span class="client-info-label">Last Visit</span>
+                <span class="client-info-value">${lastVisitStr}</span>
+              </div>
+              <div class="client-stats-grid">
+                <div class="client-stat-box">
+                  <span class="client-stat-value">${c.totalVisits || 0}</span>
+                  <span class="client-stat-label">Visits</span>
+                </div>
+                <div class="client-stat-box">
+                  <span class="client-stat-value">₹${(c.totalSpend || 0).toLocaleString('en-IN')}</span>
+                  <span class="client-stat-label">Spent</span>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
   }
 }
 

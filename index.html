@@ -20,10 +20,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc" crossorigin="anonymous"></script>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
-  <link rel="stylesheet" href="style.css?v=1.0.1">
-  <link rel="stylesheet" href="dashboard.css?v=1.0.1">
-  <link rel="stylesheet" href="reports.css?v=1.0.1">
-  <link rel="stylesheet" href="clients.css?v=1.0.1">
+  <link rel="stylesheet" href="style.css?v=1.0.2">
+  <link rel="stylesheet" href="dashboard.css?v=1.0.2">
+  <link rel="stylesheet" href="reports.css?v=1.0.2">
+  <link rel="stylesheet" href="clients.css?v=1.0.2">
 </head>
 
 <body>
@@ -353,6 +353,11 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Clients Gallery (Mobile View) -->
+        <div id="clientsGalleryContainer" class="clients-gallery" style="display: none;">
+          <div class="loading-spinner">Loading Clients...</div>
         </div>
 
         <div class="pagination mt-20" style="display:flex; justify-content:center; gap:20px; align-items:center;">
@@ -934,7 +939,7 @@
   </div><!-- end .container -->
 
   <script src="api.js"></script>
-  <script src="script.js?v=1.0.1"></script>
+  <script src="script.js?v=1.0.2"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

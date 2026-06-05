@@ -137,3 +137,146 @@
         min-width: 100%;
     }
 }
+
+/* ─── CLIENT CARDS (MOBILE VIEW) ─── */
+.clients-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 15px 0;
+}
+
+.client-member-card {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.client-member-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.client-card-header {
+    position: relative;
+    background: linear-gradient(135deg, #2d3436 0%, #1e272e 100%);
+    padding: 22px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.client-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+}
+
+.client-header-info {
+    flex: 1;
+}
+
+.client-card-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.client-card-phone {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.75);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.client-card-body {
+    padding: 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.client-info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 6px;
+}
+
+.client-info-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.client-info-label {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.client-info-value {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.client-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.client-stat-box {
+    background: var(--bg-color);
+    padding: 8px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.client-stat-value {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.client-stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ─── RESPONSIVE VISIBILITY CONTAINER ─── */
+#clientsTableContainer {
+    display: block;
+}
+
+#clientsGalleryContainer {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    #clientsTableContainer {
+        display: none !important;
+    }
+    #clientsGalleryContainer {
+        display: grid !important;
+    }
+}
+
