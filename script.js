@@ -221,8 +221,8 @@ async function loadDashboard() {
         tbody.innerHTML = appointmentsToday.map(a => `
           <tr onclick="openModal('${esc(a.clientName)}','${esc(a.serviceName)}','${esc(a.time)}','','${esc(a.staffName)}','${esc(a._id)}','${esc(a.status)}')">
             <td data-label="Time"><strong>${esc(a.time)}</strong></td>
-            <td data-label="Client">${esc(a.clientName)}</td>
-            <td data-label="Service">${esc(a.serviceName)}</td>
+            <td data-label="Client"><span>${esc(a.clientName)}</span></td>
+            <td data-label="Service"><span>${esc(a.serviceName)}</span></td>
             <td data-label="Status"><span class="status ${a.status.toLowerCase()}">${esc(a.status)}</span></td>
           </tr>`).join('');
       }
@@ -566,12 +566,12 @@ function filterClients() {
     tbody.innerHTML = filtered.map(c => `
       <tr>
         <td data-label="Name"><strong>${esc(c.name)}</strong></td>
-        <td data-label="Contact">${esc(c.phone)}</td>
-        <td data-label="DOB">${c.dob ? new Date(c.dob).toLocaleDateString('en-IN') : '—'}</td>
-        <td data-label="First Visit">${new Date(c.createdAt).toLocaleDateString()}</td>
-        <td data-label="Total Visits">${c.totalVisits || 0}</td>
-        <td data-label="Last Visit">${c.lastVisit ? new Date(c.lastVisit).toLocaleDateString() : '—'}</td>
-        <td data-label="Total Spent">₹${(c.totalSpend || 0).toLocaleString('en-IN')}</td>
+        <td data-label="Contact"><span>${esc(c.phone)}</span></td>
+        <td data-label="DOB"><span>${c.dob ? new Date(c.dob).toLocaleDateString('en-IN') : '—'}</span></td>
+        <td data-label="First Visit"><span>${new Date(c.createdAt).toLocaleDateString()}</span></td>
+        <td data-label="Total Visits"><span>${c.totalVisits || 0}</span></td>
+        <td data-label="Last Visit"><span>${c.lastVisit ? new Date(c.lastVisit).toLocaleDateString() : '—'}</span></td>
+        <td data-label="Total Spent"><span>₹${(c.totalSpend || 0).toLocaleString('en-IN')}</span></td>
       </tr>`).join('');
   }
 }
