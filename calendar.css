@@ -49,6 +49,29 @@
   cursor: pointer;
 }
 
+.date-picker-wrapper .calendar-icon {
+  font-size: 1.05rem;
+  margin-right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.date-picker-wrapper:hover .calendar-icon,
+.date-picker-wrapper:focus .calendar-icon {
+  background: rgba(108,92,231,0.08);
+  transform: translateY(-1px);
+}
+
+.date-picker-wrapper:focus {
+  outline: none;
+  box-shadow: 0 4px 14px rgba(108,92,231,0.08);
+}
+
 #calendarDateHeader {
   font-size: 1.15rem;
   font-weight: 700;

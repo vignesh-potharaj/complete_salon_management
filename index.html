@@ -222,8 +222,12 @@
               <button class="btn-icon" onclick="navigateCalendar(1)" aria-label="Next Day">
                 <span class="icon-arrow">▶</span>
               </button>
-              <div class="date-picker-wrapper">
-                <h2 id="calendarDateHeader" onclick="document.getElementById('calendarDatePicker').showPicker()">Loading...</h2>
+              <div class="date-picker-wrapper" role="button" tabindex="0"
+                   onclick="document.getElementById('calendarDatePicker').showPicker()"
+                   onkeydown="if(event.key==='Enter' || event.key===' ') { event.preventDefault(); document.getElementById('calendarDatePicker').showPicker(); }"
+                   aria-label="Open date picker">
+                <span class="calendar-icon" aria-hidden="true">📅</span>
+                <h2 id="calendarDateHeader">Loading...</h2>
                 <input type="date" id="calendarDatePicker" onchange="onCalendarDatePicked(this.value)" class="calendar-hidden-picker">
               </div>
             </div>
