@@ -1526,17 +1526,6 @@ label {
 
 .stock-badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-.stock-badge {
-  position: absolute;
   top: 18px;
   right: 18px; /* place on the right side of the card where there is empty space */
   padding: 8px 14px;
@@ -1971,54 +1960,56 @@ label {
     min-width: 600px;
   }
 
-  /* Inventory Gallery */
-  .inventory-gallery,
-  #inventoryGallery {
-    grid-template-columns: 1fr !important;
-    gap: 12px;
-  }
+  /* Inventory Gallery - mobile optimized overrides */
+  @media (max-width: 768px) {
+    .inventory-gallery,
+    #inventoryGallery {
+      grid-template-columns: 1fr !important;
+      gap: 12px;
+    }
 
-  .product-card {
-    flex-direction: row !important;
-    align-items: center;
-    padding: 12px;
-  }
+    .product-card {
+      flex-direction: row !important;
+      align-items: center;
+      padding: 12px;
+    }
 
-  .product-img-wrapper {
-    width: 90px !important;
-    min-width: 90px !important;
-    height: 90px !important;
-    border-radius: 8px;
-    overflow: hidden;
-  }
+    .product-img-wrapper {
+      width: 90px !important;
+      min-width: 90px !important;
+      height: 90px !important;
+      border-radius: 8px;
+      overflow: hidden;
+    }
 
-  .product-img-wrapper img {
-    height: 100%;
-  }
+    .product-img-wrapper img {
+      height: 100%;
+    }
 
-  .product-info {
-    padding: 0 0 0 16px !important;
-  }
+    .product-info {
+      padding: 0 0 0 16px !important;
+    }
 
-  .product-name {
-    font-size: 1.1rem;
-    margin-bottom: 4px;
-  }
+    .product-name {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
 
-  .product-desc {
-    display: none;
-  }
+    .product-desc {
+      display: none;
+    }
 
-  .product-stats-grid {
-    margin: 8px 0;
-    padding: 8px 0;
-    display: flex;
-    gap: 15px;
-    border: none;
-  }
+    .product-stats-grid {
+      margin: 8px 0;
+      padding: 8px 0;
+      display: flex;
+      gap: 15px;
+      border: none;
+    }
 
-  .p-stat strong {
-    font-size: 0.9rem;
+    .p-stat strong {
+      font-size: 0.9rem;
+    }
   }
 
   /* Checkout builders */

@@ -17,6 +17,8 @@ const inventoryValidation = [
       }
       return true;
     })
+  ,
+  body('supplierPhone').optional().trim().matches(/^[\d\+\s\-]{6,20}$/).withMessage('Invalid supplier phone')
 ];
 
 // GET /api/inventory
@@ -62,6 +64,7 @@ router.post('/', [auth, inventoryValidation], async (req, res, next) => {
   }
 
   try {
+    console.log('[Inventory POST] user:', req.user.userId, 'supplierPhone:', req.body.supplierPhone);
     const newItem = new InventoryItem({
       ...req.body,
       userId: req.user.userId
@@ -81,6 +84,7 @@ router.put('/:id', [auth, inventoryValidation], async (req, res, next) => {
   }
 
   try {
+    console.log('[Inventory PUT] id:', req.params.id, 'user:', req.user.userId, 'supplierPhone:', req.body.supplierPhone);
     let item = await InventoryItem.findById(req.params.id);
     if (!item) return res.status(404).json({ message: 'Inventory Item not found' });
     if (item.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });

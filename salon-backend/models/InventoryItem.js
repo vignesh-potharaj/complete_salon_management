@@ -5,6 +5,7 @@ const inventoryItemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   category: { type: String },
   brand: { type: String },
+  supplierPhone: { type: String },
   unit: { type: String, required: true },
   description: { type: String },
   imageUrl: { type: String },
