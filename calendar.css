@@ -438,6 +438,17 @@
   margin-bottom: 24px;
 }
 
+.availability-indicator {
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.btn-black[disabled], .btn-full[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .booking-summary-card .summary-title {
   font-size: 0.78rem;
   font-weight: 700;

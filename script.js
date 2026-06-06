@@ -299,6 +299,9 @@ let _loadedAppointments = [];
 let _loadedStaff = [];
 let _selectedModalServices = [];
 
+// Settings-driven operating hours (defaults)
+calendarState.operatingHours = { open: '08:00', close: '23:00' };
+
 async function loadCalendar() {
   try {
     const dateHeader = document.getElementById('calendarDateHeader');
@@ -635,6 +638,89 @@ function attachSwipeHandlers() {
     }
   }, { passive: true });
 }
+
+// Update availability indicator inside Add Appointment modal live
+function updateAvailabilityIndicator() {
+  const availEl = document.getElementById('availabilityIndicator');
+  const saveBtn = document.getElementById('saveApptBtn');
+  if (!availEl || !saveBtn) return;
+
+  const dateVal = document.getElementById('apptDatePicker').value;
+  const startTime = document.getElementById('apptStartTime').value;
+  const staffId = document.getElementById('apptStaff').value;
+  const totalDuration = _selectedModalServices.reduce((s, i) => s + (i.duration || 0), 0);
+
+  // Clear existing
+  availEl.innerHTML = '';
+
+  if (!dateVal || !startTime || !staffId || totalDuration === 0) {
+    const msg = document.createElement('div');
+    msg.style.color = '#7f8c8d';
+    msg.style.fontSize = '0.9rem';
+    msg.innerText = 'Select staff, start time and services to check availability';
+    availEl.appendChild(msg);
+    saveBtn.disabled = false; // allow creation but UX encourages selection first
+    return;
+  }
+
+  // Ensure calendarState.operatingHours are present
+  const open = calendarState.operatingHours?.open || '08:00';
+  const close = calendarState.operatingHours?.close || '23:00';
+
+  // Validate against operating hours
+  const startMin = minutesFromMidnight(timeTo24h(startTime));
+  const duration = totalDuration;
+  const endMin = startMin + duration;
+  const openMin = minutesFromMidnight(open);
+  const closeMin = minutesFromMidnight(close);
+
+  if (startMin < openMin || endMin > closeMin) {
+    const err = document.createElement('div');
+    err.style.color = '#c0392b';
+    err.style.fontWeight = '700';
+    err.innerText = `Outside operating hours (${open} - ${close}). Please choose a different time.`;
+    availEl.appendChild(err);
+    saveBtn.disabled = true;
+    return;
+  }
+
+  // Check staff availability using our helper
+  const available = isTimeSlotAvailable(dateVal, timeTo24h(startTime), duration, staffId);
+  if (!available) {
+    const warn = document.createElement('div');
+    warn.style.color = '#d35400';
+    warn.style.fontWeight = '700';
+    warn.innerText = 'Selected slot conflicts with another booking. Please choose a different time or staff.';
+    availEl.appendChild(warn);
+    saveBtn.disabled = true;
+    return;
+  }
+
+  const ok = document.createElement('div');
+  ok.style.color = '#27ae60';
+  ok.style.fontWeight = '700';
+  ok.innerText = 'Time slot available ✅';
+  availEl.appendChild(ok);
+  saveBtn.disabled = false;
+}
+
+// Wire events in the Add Appointment modal to update availability live
+function initAddApptAvailabilityWatchers() {
+  const dateEl = document.getElementById('apptDatePicker');
+  const timeEl = document.getElementById('apptStartTime');
+  const staffEl = document.getElementById('apptStaff');
+  const servicesSearch = document.getElementById('apptServiceSearch');
+
+  if (dateEl) dateEl.addEventListener('change', updateAvailabilityIndicator);
+  if (timeEl) timeEl.addEventListener('change', updateAvailabilityIndicator);
+  if (staffEl) staffEl.addEventListener('change', () => { onApptStaffChanged(staffEl.value); updateAvailabilityIndicator(); });
+  if (servicesSearch) servicesSearch.addEventListener('input', () => { filterModalServices(servicesSearch.value); updateAvailabilityIndicator(); });
+}
+
+// Initialize watchers lazily when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  initAddApptAvailabilityWatchers();
+});
 
 function parseTimeToHour(t) {
   if (!t) return { hour: 8, mins: 0 };

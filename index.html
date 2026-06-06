@@ -360,6 +360,9 @@
           </div>
 
           <div class="modal-actions">
+            <div id="availabilityIndicator" style="margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+              <!-- availability message updated live by script.js -->
+            </div>
             <button id="saveApptBtn" onclick="saveAppointment()" class="btn-black btn-full btn-large">Confirm Booking</button>
           </div>
         </div>
@@ -1055,6 +1058,17 @@
 
         <label for="setCurrency">Currency Symbol</label>
         <input type="text" id="setCurrency" class="modal-input" placeholder="e.g. ₹ or $">
+
+          <div style="display:flex; gap:10px; align-items:end; margin-top:12px;">
+            <div style="flex:1;">
+              <label for="setOpenHour">Open Time</label>
+              <input type="time" id="setOpenHour" class="modal-input" value="08:00" />
+            </div>
+            <div style="flex:1;">
+              <label for="setCloseHour">Close Time</label>
+              <input type="time" id="setCloseHour" class="modal-input" value="23:00" />
+            </div>
+          </div>
 
         <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
