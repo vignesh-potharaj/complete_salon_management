@@ -1701,12 +1701,29 @@ async function loadInventory() {
     const gallery = document.getElementById('inventoryGallery');
     if (!gallery) return;
 
-    if (items.length === 0) {
+    // Update the inventory summary stats shown above the gallery
+    try {
+      const totalProductsEl = document.getElementById('invTotalProducts');
+      const lowStockEl = document.getElementById('invLowStock');
+      const totalValueEl = document.getElementById('invTotalValue');
+
+      const totalProducts = Array.isArray(items) ? items.length : 0;
+      const lowCount = Array.isArray(items) ? items.filter(i => (i.stock != null && i.minStock != null) ? i.stock <= i.minStock : false).length : 0;
+      const totalVal = Array.isArray(items) ? items.reduce((s, i) => s + ((Number(i.stock) || 0) * (Number(i.costPrice || i.purchasePrice) || 0)), 0) : 0;
+
+      if (totalProductsEl) totalProductsEl.innerText = totalProducts;
+      if (lowStockEl) lowStockEl.innerText = lowCount;
+      if (totalValueEl) totalValueEl.innerText = '₹' + totalVal.toLocaleString('en-IN');
+    } catch (e) {
+      console.warn('Failed to update inventory stats', e);
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
       gallery.innerHTML = '<div class="table-empty" style="grid-column: 1/-1;">No products in inventory yet.</div>';
       return;
     }
 
-    const placeholder = 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=400&auto=format&fit=crop';
+  const placeholder = 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=400&auto=format&fit=crop';
 
     gallery.innerHTML = items.map(item => {
       const isLow = item.stock <= item.minStock;
@@ -1744,7 +1761,10 @@ async function loadInventory() {
                 <button onclick="changeStockById('${item._id}', -1)" class="btn-sm">-</button>
                 <button onclick="changeStockById('${item._id}', 1)" class="btn-sm">+</button>
               </div>
-              <button class="btn-sm btn-danger" onclick="deleteInventoryItem('${item._id}')">Delete</button>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button class="btn-sm" onclick="openEditInventoryModal('${item._id}')">Edit</button>
+                <button class="btn-sm btn-danger" onclick="deleteInventoryItem('${item._id}')">Delete</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1754,7 +1774,23 @@ async function loadInventory() {
 }
 
 function openInvModal() { document.getElementById('inventoryModal').style.display = 'block'; }
-function closeInvModal() { document.getElementById('inventoryModal').style.display = 'none'; }
+function openInvModal() {
+  // Reset modal for creating new product
+  const editing = document.getElementById('editingInvId');
+  if (editing) editing.value = '';
+  ['invName', 'invCategory', 'invStock', 'invMin', 'invSupplier', 'invDesc', 'invImg', 'invPurchase', 'invSelling'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('inventoryModal').style.display = 'block';
+}
+
+function closeInvModal() {
+  // Clear editing state when closing
+  const editing = document.getElementById('editingInvId');
+  if (editing) editing.value = '';
+  document.getElementById('inventoryModal').style.display = 'none';
+}
 
 async function addInventory() {
   const name = document.getElementById('invName').value.trim();
@@ -1776,13 +1812,20 @@ async function addInventory() {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
   try {
-    await api('/inventory', { method: 'POST', body: { name, category, stock, minStock, brand, unit: 'pcs', costPrice: purchasePrice, sellPrice: sellingPrice } });
+    const editingId = document.getElementById('editingInvId').value;
+    if (editingId) {
+      // Update existing
+      await api(`/inventory/${editingId}`, { method: 'PUT', body: { name, category, stock, minStock, brand, unit: 'pcs', costPrice: purchasePrice, sellPrice: sellingPrice, description: document.getElementById('invDesc').value, imageUrl: document.getElementById('invImg').value } });
+      showToast('Product updated');
+    } else {
+      await api('/inventory', { method: 'POST', body: { name, category, stock, minStock, brand, unit: 'pcs', costPrice: purchasePrice, sellPrice: sellingPrice, description: document.getElementById('invDesc').value, imageUrl: document.getElementById('invImg').value } });
+      showToast('Product saved');
+    }
     ['invName', 'invCategory', 'invStock', 'invMin', 'invSupplier', 'invDesc', 'invImg', 'invPurchase', 'invSelling'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
     closeInvModal();
-    showToast('Product saved');
     refreshRelated(['inventory', 'dashboard', 'checkout']);
   } catch (err) { showToast(err.message, 'error'); }
   finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Product'; } }
@@ -1803,6 +1846,27 @@ async function deleteInventoryItem(id) {
       refreshRelated(['inventory']);
     } catch (err) { showToast(err.message, 'error'); }
   });
+}
+
+async function openEditInventoryModal(id) {
+  try {
+    const item = await api(`/inventory/${id}`);
+    if (!item) { showToast('Product not found', 'error'); return; }
+
+    // Populate modal fields
+    document.getElementById('editingInvId').value = item._id || id;
+    document.getElementById('invName').value = item.name || '';
+    document.getElementById('invCategory').value = item.category || '';
+    document.getElementById('invStock').value = item.stock != null ? item.stock : '';
+    document.getElementById('invMin').value = item.minStock != null ? item.minStock : '';
+    document.getElementById('invSupplier').value = item.brand || '';
+    document.getElementById('invDesc').value = item.description || '';
+    document.getElementById('invImg').value = item.imageUrl || '';
+    document.getElementById('invPurchase').value = item.costPrice != null ? item.costPrice : '';
+    document.getElementById('invSelling').value = item.sellPrice != null ? item.sellPrice : '';
+
+    document.getElementById('inventoryModal').style.display = 'block';
+  } catch (err) { showToast('Failed to load product: ' + err.message, 'error'); }
 }
 
 
