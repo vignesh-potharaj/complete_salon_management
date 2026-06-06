@@ -713,17 +713,60 @@ function initAddApptAvailabilityWatchers() {
   const timeEl = document.getElementById('apptStartTime');
   const staffEl = document.getElementById('apptStaff');
   const servicesSearch = document.getElementById('apptServiceSearch');
+  const phoneEl = document.getElementById('apptClientPhone');
 
   if (dateEl) dateEl.addEventListener('change', updateAvailabilityIndicator);
   if (timeEl) timeEl.addEventListener('change', updateAvailabilityIndicator);
   if (staffEl) staffEl.addEventListener('change', () => { onApptStaffChanged(staffEl.value); updateAvailabilityIndicator(); });
   if (servicesSearch) servicesSearch.addEventListener('input', () => { filterModalServices(servicesSearch.value); updateAvailabilityIndicator(); });
+  if (phoneEl) phoneEl.addEventListener('input', debounce(handleApptPhoneInput, 300));
 }
 
 // Initialize watchers lazily when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   initAddApptAvailabilityWatchers();
 });
+
+// Simple debounce helper
+function debounce(fn, wait) {
+  let t = null;
+  return function (...args) {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
+
+async function handleApptPhoneInput(e) {
+  const phone = (e.target.value || '').replace(/\D/g, '').slice(0, 10);
+  const msg = document.getElementById('apptClientLookupMsg');
+  const nameEl = document.getElementById('apptClient');
+  if (msg) msg.style.color = '#666';
+
+  if (phone.length < 10) {
+    if (msg) msg.innerText = 'Enter client\'s 10-digit phone to auto-fill name';
+    return;
+  }
+
+  try {
+    if (msg) msg.innerText = 'Looking up...';
+    const clients = await api('/clients');
+    const found = clients.find(c => c.phone && c.phone.replace(/\D/g, '').endsWith(phone));
+    if (found) {
+      if (nameEl) nameEl.value = found.name;
+      if (msg) {
+        msg.style.color = '#27ae60';
+        msg.innerText = `✓ Found: ${found.name}`;
+      }
+    } else {
+      if (msg) {
+        msg.style.color = '#d35400';
+        msg.innerText = 'No client found — will create a new client on save';
+      }
+    }
+  } catch (err) {
+    if (msg) { msg.style.color = '#c0392b'; msg.innerText = 'Lookup failed'; }
+  }
+}
 
 function parseTimeToHour(t) {
   if (!t) return { hour: 8, mins: 0 };
