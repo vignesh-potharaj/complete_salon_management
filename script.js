@@ -1763,6 +1763,7 @@ async function loadInventory() {
               </div>
               <div style="display:flex; gap:8px; align-items:center;">
                 <button class="btn-sm" onclick="openEditInventoryModal('${item._id}')">Edit</button>
+                <button class="btn-sm" onclick="location.href='tel:${esc(item.supplierPhone || '')}'" ${!item.supplierPhone ? 'disabled' : ''}>Call Supplier</button>
                 <button class="btn-sm btn-danger" onclick="deleteInventoryItem('${item._id}')">Delete</button>
               </div>
             </div>
@@ -1816,15 +1817,16 @@ async function addInventory() {
 
   try {
     const editingId = document.getElementById('editingInvId').value;
+    const supplierPhone = document.getElementById('invSupplierPhone') ? document.getElementById('invSupplierPhone').value.trim() : '';
     if (editingId) {
       // Update existing
-      await api(`/inventory/${editingId}`, { method: 'PUT', body: { name, category, stock, minStock, brand, unit: 'pcs', costPrice: purchasePrice, sellPrice: sellingPrice, description: document.getElementById('invDesc').value, imageUrl: document.getElementById('invImg').value } });
+      await api(`/inventory/${editingId}`, { method: 'PUT', body: { name, category, stock, minStock, brand, unit: 'pcs', costPrice: purchasePrice, sellPrice: sellingPrice, description: document.getElementById('invDesc').value, imageUrl: document.getElementById('invImg').value, supplierPhone } });
       showToast('Product updated');
     } else {
-      await api('/inventory', { method: 'POST', body: { name, category, stock, minStock, brand, unit: 'pcs', costPrice: purchasePrice, sellPrice: sellingPrice, description: document.getElementById('invDesc').value, imageUrl: document.getElementById('invImg').value } });
+      await api('/inventory', { method: 'POST', body: { name, category, stock, minStock, brand, unit: 'pcs', costPrice: purchasePrice, sellPrice: sellingPrice, description: document.getElementById('invDesc').value, imageUrl: document.getElementById('invImg').value, supplierPhone } });
       showToast('Product saved');
     }
-    ['invName', 'invCategory', 'invStock', 'invMin', 'invSupplier', 'invDesc', 'invImg', 'invPurchase', 'invSelling'].forEach(id => {
+    ['invName', 'invCategory', 'invStock', 'invMin', 'invSupplier', 'invSupplierPhone', 'invDesc', 'invImg', 'invPurchase', 'invSelling'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -1864,6 +1866,8 @@ async function openEditInventoryModal(id) {
     document.getElementById('invStock').value = item.stock != null ? item.stock : '';
     document.getElementById('invMin').value = item.minStock != null ? item.minStock : '';
     document.getElementById('invSupplier').value = item.brand || '';
+  const phoneEl = document.getElementById('invSupplierPhone');
+  if (phoneEl) phoneEl.value = item.supplierPhone || '';
     document.getElementById('invDesc').value = item.description || '';
     document.getElementById('invImg').value = item.imageUrl || '';
     // If imageUrl is present, show preview
