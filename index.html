@@ -20,10 +20,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc" crossorigin="anonymous"></script>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
-  <link rel="stylesheet" href="style.css?v=1.0.4">
-  <link rel="stylesheet" href="dashboard.css?v=1.0.4">
-  <link rel="stylesheet" href="reports.css?v=1.0.4">
-  <link rel="stylesheet" href="clients.css?v=1.0.4">
+  <link rel="stylesheet" href="style.css?v=1.0.5">
+  <link rel="stylesheet" href="dashboard.css?v=1.0.5">
+  <link rel="stylesheet" href="reports.css?v=1.0.5">
+  <link rel="stylesheet" href="clients.css?v=1.0.5">
+  <link rel="stylesheet" href="calendar.css?v=1.0.5">
 </head>
 
 <body>
@@ -211,39 +212,70 @@
       <!-- ═══ CALENDAR ═══ -->
       <div id="calendar" class="section section-hidden">
         <div class="calendar-wrapper">
-          <div class="calendar-header">
-            <h2 id="calendarDateHeader">Loading...</h2>
-            <button class="btn-primary" onclick="openAddApptModal()">Add Appointment +</button>
-          </div>
-
-          <div class="calendar-grid-container">
-            <div class="time-header-corner"></div>
-            <div class="staff-row sticky-staff" id="calendarStaffRow">
-              <div class="staff-card">
-                <img src="https://randomuser.me/api/portraits/lego/1.jpg" alt="Staff member">
-                <span>Loading...</span>
+          <!-- Premium Scheduling Toolbar -->
+          <div class="calendar-toolbar no-print">
+            <div class="toolbar-left">
+              <button class="btn-icon" onclick="navigateCalendar(-1)" aria-label="Previous Day">
+                <span class="icon-arrow">◀</span>
+              </button>
+              <button class="btn-secondary btn-today" onclick="navigateCalendar(0)">Today</button>
+              <button class="btn-icon" onclick="navigateCalendar(1)" aria-label="Next Day">
+                <span class="icon-arrow">▶</span>
+              </button>
+              <div class="date-picker-wrapper">
+                <h2 id="calendarDateHeader" onclick="document.getElementById('calendarDatePicker').showPicker()">Loading...</h2>
+                <input type="date" id="calendarDatePicker" onchange="onCalendarDatePicked(this.value)" class="calendar-hidden-picker">
               </div>
             </div>
-            <div class="time-slots" id="timeSlotsColumn">
-              <div>8:00 AM</div>
-              <div>9:00 AM</div>
-              <div>10:00 AM</div>
-              <div>11:00 AM</div>
-              <div>12:00 PM</div>
-              <div>1:00 PM</div>
-              <div>2:00 PM</div>
-              <div>3:00 PM</div>
-              <div>4:00 PM</div>
-              <div>5:00 PM</div>
-              <div>6:00 PM</div>
-              <div>7:00 PM</div>
-              <div>8:00 PM</div>
-              <div>9:00 PM</div>
-              <div>10:00 PM</div>
-              <div>11:00 PM</div>
+            <div class="toolbar-right">
+              <select id="calendarStaffFilter" onchange="filterCalendarByStaff(this.value)" class="toolbar-select">
+                <option value="all">All Staff</option>
+              </select>
+              <button class="btn-primary btn-add-appt" onclick="openAddApptModal()">
+                <span>Add Appointment +</span>
+              </button>
             </div>
-            <div class="grid-content" id="calendarGrid">
-              <div id="currentTimeIndicator" class="current-time-line"></div>
+          </div>
+
+          <!-- Desktop/Tablet Viewport -->
+          <div class="calendar-desktop-view">
+            <div class="calendar-grid-viewport" id="calendarViewport">
+              <!-- Sticky Left Time Column -->
+              <div class="time-slots-column">
+                <div class="time-column-header-spacer"></div>
+                <!-- 8 AM to 11 PM (15 hours + 11:00 PM slot) -->
+                <div>8:00 AM</div>
+                <div>9:00 AM</div>
+                <div>10:00 AM</div>
+                <div>11:00 AM</div>
+                <div>12:00 PM</div>
+                <div>1:00 PM</div>
+                <div>2:00 PM</div>
+                <div>3:00 PM</div>
+                <div>4:00 PM</div>
+                <div>5:00 PM</div>
+                <div>6:00 PM</div>
+                <div>7:00 PM</div>
+                <div>8:00 PM</div>
+                <div>9:00 PM</div>
+                <div>10:00 PM</div>
+                <div>11:00 PM</div>
+              </div>
+
+              <!-- Scrollable Staff Columns -->
+              <div class="calendar-staff-columns" id="calendarStaffColumns">
+                <!-- Staff columns rendered dynamically in JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Timeline View -->
+          <div class="calendar-mobile-view">
+            <div class="mobile-timeline-header">
+              <h3>Daily Schedule</h3>
+            </div>
+            <div class="mobile-timeline-container" id="mobileTimelineContainer">
+              <!-- Mobile appointments rendered dynamically -->
             </div>
           </div>
         </div>
@@ -251,32 +283,133 @@
 
       <!-- Add Appointment Modal -->
       <div id="addApptModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addApptTitle">
-        <div class="modal-content">
+        <div class="modal-content appointment-modal-content">
           <span class="close" onclick="closeAddApptModal()" aria-label="Close">&times;</span>
-          <h3 id="addApptTitle">Add Appointment</h3>
-          <label for="apptClient">Client Name</label>
-          <input type="text" id="apptClient" placeholder="Enter client name" class="modal-input">
-          <label for="apptService">Service</label>
-          <select id="apptService" class="modal-input" required>
-            <option value="">Select Service</option>
-          </select>
-          <label>Select Time</label>
-          <div id="apptTimeSlots" class="time-pills-container"></div>
-          <input type="hidden" id="apptTime" required>
-          <button id="saveApptBtn" onclick="saveAppointment()" class="btn-black btn-full">Save Appointment</button>
+          <h3 id="addApptTitle" class="modal-title">Book New Appointment</h3>
+          
+          <div class="modal-grid-two">
+            <div class="form-group">
+              <label for="apptClient">Client Name *</label>
+              <input type="text" id="apptClient" placeholder="Search or enter name" class="modal-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="apptClientPhone">Client Phone *</label>
+              <input type="tel" id="apptClientPhone" placeholder="10-digit phone" class="modal-input" required maxlength="10">
+            </div>
+          </div>
+
+          <div class="modal-grid-two">
+            <div class="form-group">
+              <label for="apptDatePicker">Date *</label>
+              <input type="date" id="apptDatePicker" class="modal-input" required>
+            </div>
+            <div class="form-group">
+              <label for="apptStartTime">Start Time *</label>
+              <select id="apptStartTime" class="modal-input" required>
+                <!-- Generated dynamically or in static options -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="apptStaff">Select Staff *</label>
+            <select id="apptStaff" class="modal-input" onchange="onApptStaffChanged(this.value)" required>
+              <option value="">Select a staff member first</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Select Services *</label>
+            <div class="service-search-wrapper">
+              <input type="text" id="apptServiceSearch" placeholder="🔍 Search services..." class="modal-input service-search-input" oninput="filterModalServices(this.value)">
+            </div>
+            
+            <!-- Chips for selected services -->
+            <div class="selected-services-chips" id="selectedServicesChips"></div>
+
+            <!-- List of services with checkboxes -->
+            <div class="service-checklist-container" id="modalServiceChecklist">
+              <div class="no-services-placeholder">Please select a staff member to see their services</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="apptNotes">Notes / Special Instructions</label>
+            <textarea id="apptNotes" class="modal-input modal-textarea" rows="3" placeholder="Add custom notes..."></textarea>
+          </div>
+
+          <!-- Live Summary Card -->
+          <div class="booking-summary-card">
+            <div class="summary-title">Booking Summary</div>
+            <div class="summary-row-grid">
+              <div class="summary-item">
+                <span class="summary-label">Total Duration</span>
+                <span class="summary-value" id="summaryDuration">0 mins</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Total Price</span>
+                <span class="summary-value" id="summaryPrice">₹0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Estimated End</span>
+                <span class="summary-value" id="summaryEndTime">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button id="saveApptBtn" onclick="saveAppointment()" class="btn-black btn-full btn-large">Confirm Booking</button>
+          </div>
         </div>
       </div>
 
       <!-- Appointment Detail Modal -->
       <div id="appointmentModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="apptDetailTitle">
-        <div class="modal-content">
+        <div class="modal-content detail-modal-content">
           <span class="close" onclick="closeModal()" aria-label="Close">&times;</span>
-          <h3 id="apptDetailTitle">Appointment Details</h3>
-          <p><strong>Client:</strong> <span id="modalClient"></span></p>
-          <p><strong>Service:</strong> <span id="modalService"></span></p>
-          <p><strong>Time:</strong> <span id="modalTime"></span></p>
-          <p><strong>Amount:</strong> <span id="modalAmount"></span></p>
-          <p><strong>Staff:</strong> <span id="modalStaff"></span></p>
+          <h3 id="apptDetailTitle" class="modal-title">Appointment Details</h3>
+          
+          <div class="detail-card-body">
+            <div class="detail-row">
+              <span class="detail-label">Client</span>
+              <span class="detail-val" id="modalClient" style="font-weight: 700; font-size: 1.1rem; color: var(--primary);"></span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Phone</span>
+              <span class="detail-val" id="modalPhone"></span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Staff</span>
+              <span class="detail-val" id="modalStaff" style="font-weight: 600;"></span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Time & Date</span>
+              <span class="detail-val" id="modalTime" style="font-weight: 600; color: var(--accent);"></span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Services</span>
+              <div class="detail-val" id="modalServicesListContainer" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;"></div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Total Amount</span>
+              <span class="detail-val" id="modalAmount" style="font-weight: 700; font-size: 1.1rem; color: #27ae60;"></span>
+            </div>
+            <div class="detail-row" id="modalNotesRow" style="display:none;">
+              <span class="detail-label">Notes</span>
+              <span class="detail-val" id="modalNotes" style="font-style: italic; color: #555; background: #f9f9f9; padding: 10px; border-radius: 8px; display: block; margin-top: 4px;"></span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Status</span>
+              <span class="detail-val" id="modalStatusBadge" style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; color: white;"></span>
+            </div>
+          </div>
+
+          <div class="detail-actions" style="margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn-secondary" id="btnDetailStart" style="flex: 1;" onclick="changeStatusFromDetail('Ongoing')">Start Session</button>
+            <button class="btn-primary" id="btnDetailComplete" style="flex: 1;" onclick="changeStatusFromDetail('Completed')">Complete</button>
+            <button class="btn-danger" id="btnDetailCancel" style="flex: 1;" onclick="changeStatusFromDetail('Cancelled')">Cancel</button>
+            <button class="btn-secondary" id="btnDetailDelete" style="width: 100%; margin-top: 6px; color: #ff4d4f; border-color: #ff4d4f; background: white;" onclick="deleteAppointmentFromDetail()">Delete Appointment</button>
+          </div>
         </div>
       </div>
 

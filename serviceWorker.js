@@ -1,10 +1,14 @@
-const CACHE_NAME = "salonpro-v10";
+const CACHE_NAME = "salonpro-v11";
 
 // Files to cache
 const urlsToCache = [
   "./",
   "./index.html",
   "./style.css",
+  "./dashboard.css",
+  "./reports.css",
+  "./clients.css",
+  "./calendar.css",
   "./script.js",
   "./icon-192.png",
   "./icon-512.png"

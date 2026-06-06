@@ -1,0 +1,627 @@
+/* ═══ CALENDAR LAYOUT & DESIGN SYSTEM ═══ */
+
+:root {
+  --calendar-hour-height: 80px;
+  --calendar-time-width: 80px;
+  --calendar-header-height: 70px;
+  --calendar-border-color: rgba(0, 0, 0, 0.08);
+}
+
+.calendar-wrapper {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- TOOLBAR --- */
+.calendar-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--calendar-border-color);
+  background: #fafafa;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.date-picker-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+#calendarDateHeader {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+#calendarDateHeader:hover {
+  color: var(--accent);
+}
+
+.calendar-hidden-picker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.toolbar-select {
+  padding: 8px 14px;
+  border: 1.5px solid var(--calendar-border-color);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: white;
+  color: var(--primary);
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolbar-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+}
+
+/* --- VIEWPORTS & BREAKPOINTS --- */
+.calendar-desktop-view {
+  display: block;
+  overflow: hidden;
+  background: white;
+}
+
+.calendar-mobile-view {
+  display: none;
+}
+
+/* --- GRID VIEWPORT --- */
+.calendar-grid-viewport {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(85vh - 120px);
+  position: relative;
+}
+
+/* Sticky Time Column */
+.time-slots-column {
+  width: var(--calendar-time-width);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: white;
+  border-right: 1px solid var(--calendar-border-color);
+}
+
+.time-column-header-spacer {
+  height: var(--calendar-header-height);
+  background: #fafafa;
+  border-bottom: 1px solid var(--calendar-border-color);
+}
+
+.time-slots-column > div:not(.time-column-header-spacer) {
+  height: var(--calendar-hour-height);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #7f8c8d;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+}
+
+/* Scrollable Staff Columns */
+.calendar-staff-columns {
+  display: flex;
+  flex-grow: 1;
+  min-width: max-content;
+}
+
+.staff-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  flex: 1;
+  border-right: 1px solid var(--calendar-border-color);
+  box-sizing: border-box;
+}
+
+.staff-column-header {
+  height: var(--calendar-header-height);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid var(--calendar-border-color);
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  box-sizing: border-box;
+}
+
+.staff-column-header img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.staff-column-header span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.staff-column-grid {
+  position: relative;
+  height: calc(16 * var(--calendar-hour-height)); /* 8:00 AM to 12:00 AM (16 hours) */
+  background-size: 100% var(--calendar-hour-height);
+  background-image: 
+    linear-gradient(to bottom, var(--calendar-border-color) 1px, transparent 1px),
+    linear-gradient(to bottom, transparent 39px, rgba(0, 0, 0, 0.03) 1px, transparent 1px); /* 30-min line */
+}
+
+/* --- CURRENT TIME INDICATOR --- */
+.calendar-current-time-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ff7675;
+  z-index: 9;
+  pointer-events: none;
+}
+
+.calendar-current-time-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff7675;
+}
+
+/* --- APPOINTMENTS STYLE --- */
+.calendar-appt-card {
+  position: absolute;
+  border-radius: 12px;
+  color: white;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.2s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  z-index: 5;
+}
+
+.calendar-appt-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+
+.calendar-appt-card strong {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-appt-card span.service-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.95;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-appt-card span.time-label {
+  display: block;
+  font-size: 0.68rem;
+  margin-top: auto;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+/* Status colors and gradients */
+.appt-status-upcoming {
+  background: linear-gradient(135deg, #0984e3, #74b9ff);
+  color: white;
+}
+.appt-status-ongoing {
+  background: linear-gradient(135deg, #fdcb6e, #ffeaa7);
+  color: #2d3436;
+}
+.appt-status-completed {
+  background: linear-gradient(135deg, #00b894, #55efc4);
+  color: white;
+}
+.appt-status-cancelled {
+  background: linear-gradient(135deg, #d63031, #ff7675);
+  color: white;
+}
+
+/* --- APPOINTMENT ADD MODAL WIDGETS --- */
+.appointment-modal-content {
+  max-width: 580px;
+  border-radius: 20px;
+  padding: 30px;
+}
+
+.modal-grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+/* Service Search Input */
+.service-search-wrapper {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.service-search-input {
+  padding-left: 36px;
+  background: #f5f5f5;
+  border-color: transparent;
+}
+
+.service-search-input:focus {
+  background: white;
+  border-color: var(--accent);
+}
+
+/* Selected Service Chips */
+.selected-services-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.service-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(108, 92, 231, 0.1);
+  color: var(--accent);
+  border-radius: 30px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid rgba(108, 92, 231, 0.15);
+}
+
+.service-chip .chip-remove {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.service-chip .chip-remove:hover {
+  opacity: 1;
+}
+
+/* Checklist of services */
+.service-checklist-container {
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1.5px solid var(--calendar-border-color);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.no-services-placeholder {
+  text-align: center;
+  color: #95a5a6;
+  font-size: 0.8rem;
+  padding: 15px 0;
+  font-style: italic;
+}
+
+.service-check-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.02);
+  cursor: pointer;
+  user-select: none;
+}
+
+.service-check-item:last-child {
+  border-bottom: none;
+}
+
+.service-check-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.service-check-left input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.service-check-right {
+  font-size: 0.78rem;
+  color: #7f8c8d;
+  font-weight: 600;
+}
+
+/* Live Booking Summary */
+.booking-summary-card {
+  background: #f9f9fb;
+  border-radius: 14px;
+  padding: 16px 20px;
+  border: 1px dashed rgba(108, 92, 231, 0.25);
+  margin-bottom: 24px;
+}
+
+.booking-summary-card .summary-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.summary-row-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-label {
+  font-size: 0.68rem;
+  color: #7f8c8d;
+  font-weight: 600;
+}
+
+.summary-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 2px;
+}
+
+/* --- APPOINTMENT DETAILS MODAL STYLE --- */
+.detail-modal-content {
+  max-width: 460px;
+  border-radius: 20px;
+  padding: 28px;
+}
+
+.detail-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 15px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+  padding-bottom: 8px;
+}
+
+.detail-row:last-of-type {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #7f8c8d;
+  margin-bottom: 3px;
+  letter-spacing: 0.5px;
+}
+
+.detail-val {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.detail-actions button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+/* --- MOBILE STACKED TIMELINE VIEW --- */
+@media (max-width: 768px) {
+  .calendar-desktop-view {
+    display: none;
+  }
+  
+  .calendar-mobile-view {
+    display: block;
+    padding: 16px;
+    background: #fafafa;
+  }
+  
+  .mobile-timeline-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 16px 0;
+  }
+  
+  .mobile-timeline-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .mobile-appt-card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    border-left: 4px solid var(--accent);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  
+  .mobile-appt-card:active {
+    transform: scale(0.98);
+  }
+  
+  .mobile-appt-time-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .mobile-appt-time {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  
+  .mobile-appt-status {
+    font-size: 0.68rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  
+  .mobile-appt-client {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  
+  .mobile-appt-staff {
+    font-size: 0.78rem;
+    color: #7f8c8d;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  
+  .mobile-appt-services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  /* Status-specific left borders for mobile cards */
+  .mobile-appt-card.appt-status-upcoming { border-left-color: #0984e3; }
+  .mobile-appt-card.appt-status-ongoing { border-left-color: #fdcb6e; }
+  .mobile-appt-card.appt-status-completed { border-left-color: #00b894; }
+  .mobile-appt-card.appt-status-cancelled { border-left-color: #d63031; }
+  
+  .mobile-status-upcoming { background: rgba(9, 132, 227, 0.1); color: #0984e3; }
+  .mobile-status-ongoing { background: rgba(253, 203, 110, 0.1); color: #b37400; }
+  .mobile-status-completed { background: rgba(0, 184, 148, 0.1); color: #00b894; }
+  .mobile-status-cancelled { background: rgba(214, 48, 49, 0.1); color: #d63031; }
+
+  /* Empty state for mobile */
+  .mobile-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #95a5a6;
+    font-size: 0.9rem;
+    font-style: italic;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  }
+}

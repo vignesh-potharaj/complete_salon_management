@@ -255,162 +255,289 @@ document.addEventListener('submit', async function (e) {
       let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) ||
         await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
 
-      await api('/appointments', {
-        method: 'POST',
-        body: {
-          clientId: client._id, clientName: client.name,
-          serviceId, serviceName, staffId, staffName,
-          date, time, duration: parseInt(duration) || 45, status: 'Upcoming'
-        }
-      });
-
-      e.target.reset();
-      showToast('Appointment added');
-      loadDashboard();
-    } catch (err) { showToast(err.message, 'error'); }
-    finally { if (btn) { btn.disabled = false; btn.textContent = '+ Add'; } }
-  }
-});
-
-/* ══════════════════════════════════════════════════════════
-   2. CALENDAR / APPOINTMENTS
-   ══════════════════════════════════════════════════════════ */
-
-const SLOT_COLORS = ['#ff4d4d', '#6c5ce7', '#0984e3', '#e17055', '#00b894', '#fdcb6e', '#fd79a8'];
+let currentCalendarDate = new Date().toISOString().split('T')[0];
+let currentStaffFilter = 'all';
+let _loadedAppointments = [];
+let _loadedStaff = [];
+let _selectedModalServices = [];
 
 async function loadCalendar() {
   try {
-    const header = document.getElementById('calendarDateHeader');
-    if (header) header.innerText = new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const dateHeader = document.getElementById('calendarDateHeader');
+    const picker = document.getElementById('calendarDatePicker');
+    
+    const d = new Date(currentCalendarDate);
+    if (dateHeader) {
+      dateHeader.innerText = d.toLocaleDateString('en-GB', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      });
+    }
+    if (picker) {
+      picker.value = currentCalendarDate;
+    }
 
-    const today = new Date().toISOString().split('T')[0];
     const [appointments, staff] = await Promise.all([
-      api(`/appointments?date=${today}`),
+      api(`/appointments?date=${currentCalendarDate}`),
       api('/staff')
     ]);
 
-    const staffRow = document.getElementById('calendarStaffRow');
-    if (staffRow) {
-      if (staff.length === 0) {
-        staffRow.innerHTML = `<div class="staff-card"><img src="https://ui-avatars.com/api/?name=S"><span>No staff</span></div>`;
+    _loadedAppointments = appointments;
+    _loadedStaff = staff;
+
+    const staffFilterDropdown = document.getElementById('calendarStaffFilter');
+    if (staffFilterDropdown) {
+      const selectedVal = currentStaffFilter;
+      staffFilterDropdown.innerHTML = '<option value="all">All Staff</option>' +
+        staff.map(s => `<option value="${s._id}">${esc(s.name)}</option>`).join('');
+      staffFilterDropdown.value = selectedVal;
+    }
+
+    const filteredStaff = currentStaffFilter === 'all' 
+      ? staff.filter(s => s.active !== false)
+      : staff.filter(s => s._id === currentStaffFilter);
+
+    const staffColumnsContainer = document.getElementById('calendarStaffColumns');
+    if (staffColumnsContainer) {
+      staffColumnsContainer.innerHTML = '';
+      
+      if (filteredStaff.length === 0) {
+        staffColumnsContainer.innerHTML = `
+          <div style="flex: 1; padding: 40px; text-align: center; color: #95a5a6; font-style: italic;">
+            No active staff members found.
+          </div>`;
       } else {
-        staffRow.innerHTML = staff.slice(0, 5).map(s => `
-          <div class="staff-card">
-            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff&size=80">
-            <span>${esc(s.name)}</span>
-          </div>`).join('');
+        filteredStaff.forEach(member => {
+          const staffAppts = appointments.filter(a => a.staffId === member._id);
+          
+          const column = document.createElement('div');
+          column.className = 'staff-column';
+          
+          const header = document.createElement('div');
+          header.className = 'staff-column-header';
+          header.innerHTML = `
+            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=6c5ce7&color=fff&size=80" alt="Staff Member">
+            <span>${esc(member.name)}</span>
+          `;
+          column.appendChild(header);
+
+          const grid = document.createElement('div');
+          grid.className = 'staff-column-grid';
+
+          const laidOutAppts = layoutAppointmentsForColumn(staffAppts);
+
+          laidOutAppts.forEach(item => {
+            const appt = item.appt;
+            const startMin = item.start - (8 * 60);
+            const duration = appt.duration || 45;
+            
+            const topPos = startMin * (80 / 60);
+            const heightPos = duration * (80 / 60);
+
+            const colWidth = 100 / item.totalCols;
+            const leftPos = item.colIdx * colWidth;
+            const widthPos = item.span * colWidth;
+
+            const card = document.createElement('div');
+            card.className = `calendar-appt-card appt-status-${appt.status.toLowerCase()}`;
+            card.style.top = `${topPos}px`;
+            card.style.height = `${heightPos}px`;
+            card.style.left = `${leftPos}%`;
+            card.style.width = `calc(${widthPos}% - 4px)`;
+            
+            const displayTime = format12hTime(appt.time);
+            
+            card.innerHTML = `
+              <strong>${esc(appt.clientName)}</strong>
+              <span class="service-label">${esc(appt.serviceName)}</span>
+              <span class="time-label">${esc(displayTime)} (${duration}m)</span>
+            `;
+
+            card.onclick = () => openApptDetailModal(appt._id);
+            grid.appendChild(card);
+          });
+
+          column.appendChild(grid);
+          staffColumnsContainer.appendChild(column);
+        });
+        
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (currentCalendarDate === todayStr) {
+          updateTimeIndicator();
+        }
       }
     }
 
-    const grid = document.getElementById('calendarGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
+    const mobileTimelineContainer = document.getElementById('mobileTimelineContainer');
+    if (mobileTimelineContainer) {
+      mobileTimelineContainer.innerHTML = '';
+      
+      const activeAppts = currentStaffFilter === 'all'
+        ? appointments
+        : appointments.filter(a => a.staffId === currentStaffFilter);
 
-    if (appointments.length === 0) {
-      grid.innerHTML = `<div style="grid-column:1/-1;grid-row:1;padding:24px;text-align:center;color:#999;font-size:14px;">No appointments today.</div>`;
-    } else if (window.innerWidth <= 768) {
-      // Mobile List View
-      grid.style.display = 'flex';
-      grid.style.flexDirection = 'column';
-      grid.style.gap = '12px';
-      appointments.forEach(appt => {
-        const card = document.createElement('div');
-        card.className = 'appointment-card-mobile';
-        card.style.cssText = `background:white;border:1px solid #eee;border-radius:12px;
-          padding:16px;display:flex;justify-content:space-between;align-items:center;
-          box-shadow:0 2px 8px rgba(0,0,0,0.05);`;
-        card.innerHTML = `
-          <div>
-            <strong style="font-size:16px;color:#2c3e50;">${esc(appt.clientName)}</strong>
-            <div style="color:#7f8c8d;font-size:13px;margin-top:4px;">${esc(appt.serviceName)} • ${esc(appt.staffName)}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:14px;font-weight:700;color:#34495e;margin-bottom:6px;">${esc(appt.time)}</div>
-            <span style="padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;
-              background:${statusColor(appt.status)};color:white;">${esc(appt.status.toUpperCase())}</span>
+      activeAppts.sort((a, b) => {
+        const timeA = parseTimeToHour(a.time);
+        const timeB = parseTimeToHour(b.time);
+        return (timeA.hour * 60 + timeA.mins) - (timeB.hour * 60 + timeB.mins);
+      });
+
+      if (activeAppts.length === 0) {
+        mobileTimelineContainer.innerHTML = `
+          <div class="mobile-empty-state">
+            No appointments scheduled.
           </div>`;
-        card.onclick = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
-        grid.appendChild(card);
-      });
-    } else {
-      // Desktop Grid View
-      grid.style.display = 'grid';
-      const START_HOUR = 8; // Calendar starts at 8 AM
+      } else {
+        activeAppts.forEach(appt => {
+          const card = document.createElement('div');
+          card.className = `mobile-appt-card appt-status-${appt.status.toLowerCase()}`;
+          
+          let serviceChips = '';
+          let servicesList = [];
+          if (appt.notes && appt.notes.trim().startsWith('{')) {
+            try {
+              const meta = JSON.parse(appt.notes);
+              servicesList = meta.services || [];
+            } catch(e){}
+          }
+          
+          if (servicesList.length > 0) {
+            serviceChips = servicesList.map(s => `
+              <span class="service-chip" style="background: rgba(255,255,255,0.25); color: inherit; border: none; font-size: 0.7rem; font-weight: bold; padding: 2px 6px;">
+                ${esc(s.name)}
+              </span>`).join('');
+          } else {
+            serviceChips = `
+              <span class="service-chip" style="background: rgba(255,255,255,0.25); color: inherit; border: none; font-size: 0.7rem; font-weight: bold; padding: 2px 6px;">
+                ${esc(appt.serviceName)}
+              </span>`;
+          }
 
-      appointments.forEach((appt, idx) => {
-        const { hour, mins } = parseTimeToHour(appt.time);
-
-        // Grid Math for 30-min slots:
-        // Each hour has 2 rows (80px total, 40px each).
-        // 8:00 AM is Row 1.
-        const rowIndex = ((hour - START_HOUR) * 2) + (mins >= 30 ? 1 : 0) + 1;
-
-        const div = document.createElement('div');
-        const statusClass = `appt-${appt.status.toLowerCase()}`;
-        div.className = `appointment ${statusClass}`;
-        div.dataset.id = appt._id;
-
-        div.style.cssText = `grid-column:${(idx % 5) + 1}; grid-row:${rowIndex} / span 1;`;
-
-        div.innerHTML = `
-          <strong>${esc(appt.clientName)}</strong>
-          <span>${esc(appt.serviceName)}</span>
-          <div style="font-size: 0.7rem; margin-top: 4px; opacity: 0.8;">${esc(appt.time)}</div>
-        `;
-
-        div.onclick = () => openModal(appt.clientName, appt.serviceName, appt.time, 'See Bill', appt.staffName, appt._id, appt.status);
-        grid.appendChild(div);
-      });
-
-      updateTimeIndicator();
+          card.innerHTML = `
+            <div class="mobile-appt-time-row">
+              <span class="mobile-appt-time">${esc(format12hTime(appt.time))} (${appt.duration} mins)</span>
+              <span class="mobile-appt-status mobile-status-${appt.status.toLowerCase()}">${esc(appt.status)}</span>
+            </div>
+            <div class="mobile-appt-client">${esc(appt.clientName)}</div>
+            <div class="mobile-appt-staff">Staff: ${esc(appt.staffName)}</div>
+            <div class="mobile-appt-services">
+              ${serviceChips}
+            </div>
+          `;
+          card.onclick = () => openApptDetailModal(appt._id);
+          mobileTimelineContainer.appendChild(card);
+        });
+      }
     }
 
-  } catch (err) { showToast(err.message || 'Calendar error', 'error'); }
-}
-
-async function updateAppointmentStatus(id, newStatus) {
-  try {
-    await api(`/appointments/${id}/status`, { method: 'PATCH', body: { status: newStatus } });
-    showToast('Status updated');
-    closeModal();
-    refreshRelated(['calendar', 'dashboard']);
-  } catch (err) { showToast(err.message, 'error'); }
-}
-
-function parseTimeToHour(t) {
-  if (!t) return { hour: 8, mins: 0 };
-
-  let h = 8, m = 0;
-
-  // Handle 24h format (e.g., "14:30" or "09:00")
-  if (t.includes(':') && !t.includes('AM') && !t.includes('PM')) {
-    const p = t.split(':');
-    h = parseInt(p[0]);
-    m = parseInt(p[1]) || 0;
-  } else {
-    // Handle 12h format (e.g., "2:30 PM")
-    const parts = t.trim().split(' ');
-    if (parts.length >= 2) {
-      const [time, period] = parts;
-      const p = time.split(':');
-      h = parseInt(p[0]);
-      m = parseInt(p[1]) || 0;
-      if (period.toUpperCase() === 'PM' && h !== 12) h += 12;
-      if (period.toUpperCase() === 'AM' && h === 12) h = 0;
-    } else {
-      h = parseInt(t) || 8;
-    }
+  } catch (err) {
+    showToast(err.message || 'Calendar error', 'error');
   }
-
-  return { hour: h, mins: m };
 }
 
-/**
- * ─── Current Time Indicator ───
- */
+function navigateCalendar(direction) {
+  const d = new Date(currentCalendarDate);
+  if (direction === 0) {
+    currentCalendarDate = new Date().toISOString().split('T')[0];
+  } else {
+    d.setDate(d.getDate() + direction);
+    currentCalendarDate = d.toISOString().split('T')[0];
+  }
+  loadCalendar();
+}
+
+function onCalendarDatePicked(dateVal) {
+  if (dateVal) {
+    currentCalendarDate = dateVal;
+    loadCalendar();
+  }
+}
+
+function filterCalendarByStaff(staffId) {
+  currentStaffFilter = staffId;
+  loadCalendar();
+}
+
+function format12hTime(timeStr) {
+  if (!timeStr) return '';
+  const { hour, mins } = parseTimeToHour(timeStr);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const displayH = hour % 12 || 12;
+  const displayM = mins.toString().padStart(2, '0');
+  return `${displayH}:${displayM} ${period}`;
+}
+
+function timeTo24h(time12h) {
+  const { hour, mins } = parseTimeToHour(time12h);
+  return `${hour.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+}
+
+function layoutAppointmentsForColumn(appts) {
+  const parsed = appts.map(appt => {
+    const { hour, mins } = parseTimeToHour(appt.time);
+    const start = hour * 60 + mins;
+    const end = start + (appt.duration || 45);
+    return { appt, start, end, colIdx: 0, totalCols: 1, span: 1 };
+  });
+
+  parsed.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+
+  const clusters = [];
+  parsed.forEach(appt => {
+    let placed = false;
+    for (let cluster of clusters) {
+      const overlaps = cluster.some(c => appt.start < c.end && appt.end > c.start);
+      if (overlaps) {
+        cluster.push(appt);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      clusters.push([appt]);
+    }
+  });
+
+  clusters.forEach(cluster => {
+    const columns = [];
+    cluster.forEach(appt => {
+      let colIdx = 0;
+      while (true) {
+        const col = columns[colIdx];
+        if (!col) {
+          columns[colIdx] = [appt];
+          appt.colIdx = colIdx;
+          break;
+        }
+        const hasOverlap = col.some(c => appt.start < c.end && appt.end > c.start);
+        if (!hasOverlap) {
+          col.push(appt);
+          appt.colIdx = colIdx;
+          break;
+        }
+        colIdx++;
+      }
+    });
+
+    const totalCols = columns.length;
+    cluster.forEach(appt => {
+      appt.totalCols = totalCols;
+      let span = 1;
+      for (let c = appt.colIdx + 1; c < totalCols; c++) {
+        const hasOverlapInCol = columns[c].some(other => appt.start < other.end && appt.end > other.start);
+        if (hasOverlapInCol) {
+          break;
+        }
+        span++;
+      }
+      appt.span = span;
+    });
+  });
+
+  return parsed;
+}
+
 function updateTimeIndicator() {
-  const indicator = document.getElementById('currentTimeIndicator');
-  if (!indicator) return;
+  document.querySelectorAll('.calendar-current-time-line').forEach(el => el.remove());
 
   const now = new Date();
   const currentHour = now.getHours();
@@ -418,32 +545,49 @@ function updateTimeIndicator() {
   const START_HOUR = 8;
   const END_HOUR = 23;
 
-  if (currentHour < START_HOUR || currentHour >= END_HOUR) {
-    indicator.style.display = 'none';
-    return;
-  }
+  if (currentHour < START_HOUR || currentHour >= END_HOUR) return;
 
-  indicator.style.display = 'block';
-  // 80px per hour mapping
-  const topPos = ((currentHour - START_HOUR) * 80) + ((currentMin / 60) * 80);
-  indicator.style.top = topPos + 'px';
+  const startMin = (currentHour - START_HOUR) * 60 + currentMin;
+  const topPos = startMin * (80 / 60);
+
+  document.querySelectorAll('.staff-column-grid').forEach(grid => {
+    const indicator = document.createElement('div');
+    indicator.className = 'calendar-current-time-line';
+    indicator.style.top = `${topPos}px`;
+    grid.appendChild(indicator);
+  });
 }
 
-// Update time indicator every minute
-setInterval(updateTimeIndicator, 60000);
+function parseTimeToHour(t) {
+  if (!t) return { hour: 8, mins: 0 };
+  let h = 8, m = 0;
+  if (t.includes(':') && !t.includes('AM') && !t.includes('PM')) {
+    const p = t.split(':');
+    h = parseInt(p[0]) || 8;
+    m = parseInt(p[1]) || 0;
+  } else {
+    const parts = t.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      const [time, period] = parts;
+      const p = time.split(':');
+      h = parseInt(p[0]) || 8;
+      m = parseInt(p[1]) || 0;
+      if (period.toUpperCase() === 'PM' && h !== 12) h += 12;
+      if (period.toUpperCase() === 'AM' && h === 12) h = 0;
+    } else {
+      h = parseInt(t) || 8;
+    }
+  }
+  return { hour: h, mins: m };
+}
 
-/**
- * ─── Render Time Pills ───
- * Generates time selection pills for forms
- */
 function renderTimePills(containerId, hiddenInputId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   const times = [];
-  // 8 AM to 11 PM (23:00)
   for (let h = 8; h <= 23; h++) {
-    const period = h < 12 ? 'AM' : (h === 12 ? 'PM' : (h >= 24 ? 'AM' : 'PM'));
+    const period = h < 12 ? 'AM' : (h === 12 ? 'PM' : 'PM');
     const displayH = h % 12 || 12;
     times.push(`${displayH}:00 ${period}`);
     if (h < 23) times.push(`${displayH}:30 ${period}`);
@@ -461,30 +605,359 @@ function renderTimePills(containerId, hiddenInputId) {
   });
 }
 
-function openAddApptModal() {
-  document.getElementById('addApptModal').style.display = 'block';
-  renderTimePills('apptTimeSlots', 'apptTime');
+async function openApptDetailModal(apptId) {
+  try {
+    const appt = _loadedAppointments.find(a => a._id === apptId);
+    if (!appt) return;
+
+    const modal = document.getElementById('appointmentModal');
+    modal.dataset.apptId = appt._id;
+    modal.dataset.apptClient = appt.clientName;
+    modal.dataset.apptService = appt.serviceName;
+    modal.dataset.apptStaff = appt.staffName;
+
+    setEl('modalClient', appt.clientName);
+    setEl('modalStaff', appt.staffName);
+    
+    const displayTimeStr = format12hTime(appt.time);
+    setEl('modalTime', `${appt.date} @ ${displayTimeStr} (${appt.duration} mins)`);
+
+    const badge = document.getElementById('modalStatusBadge');
+    if (badge) {
+      badge.innerText = appt.status.toUpperCase();
+      badge.style.background = statusColor(appt.status);
+    }
+
+    let phone = 'N/A';
+    let notesText = appt.notes || '';
+    let services = [];
+
+    if (appt.notes && appt.notes.trim().startsWith('{')) {
+      try {
+        const meta = JSON.parse(appt.notes);
+        notesText = meta.notesText || '';
+        phone = meta.clientPhone || 'N/A';
+        services = meta.services || [];
+      } catch (e) {
+        console.error('Error parsing JSON notes:', e);
+      }
+    }
+
+    if (phone === 'N/A' && appt.clientId) {
+      try {
+        const client = await api(`/clients/${appt.clientId}`);
+        if (client && client.phone) {
+          phone = client.phone;
+        }
+      } catch (e) {}
+    }
+    setEl('modalPhone', phone);
+
+    const notesRow = document.getElementById('modalNotesRow');
+    if (notesRow) {
+      if (notesText.trim()) {
+        setEl('modalNotes', notesText);
+        notesRow.style.display = 'flex';
+      } else {
+        notesRow.style.display = 'none';
+      }
+    }
+
+    const servicesContainer = document.getElementById('modalServicesListContainer');
+    if (servicesContainer) {
+      servicesContainer.innerHTML = '';
+      
+      let totalAmt = 0;
+      if (services.length > 0) {
+        services.forEach(s => {
+          totalAmt += s.price || 0;
+          const chip = document.createElement('span');
+          chip.className = 'service-chip';
+          chip.innerText = `${s.name} (₹${s.price})`;
+          servicesContainer.appendChild(chip);
+        });
+      } else {
+        const chip = document.createElement('span');
+        chip.className = 'service-chip';
+        chip.innerText = appt.serviceName;
+        servicesContainer.appendChild(chip);
+      }
+      
+      setEl('modalAmount', totalAmt > 0 ? `₹${totalAmt}` : 'Based on Service');
+    }
+
+    const btnStart = document.getElementById('btnDetailStart');
+    const btnComplete = document.getElementById('btnDetailComplete');
+    const btnCancel = document.getElementById('btnDetailCancel');
+
+    if (btnStart) btnStart.style.display = appt.status === 'Upcoming' ? 'block' : 'none';
+    if (btnComplete) btnComplete.style.display = (appt.status === 'Upcoming' || appt.status === 'Ongoing') ? 'block' : 'none';
+    if (btnCancel) btnCancel.style.display = (appt.status === 'Upcoming' || appt.status === 'Ongoing') ? 'block' : 'none';
+
+    modal.style.display = 'block';
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
 }
-function closeAddApptModal() { document.getElementById('addApptModal').style.display = 'none'; }
+
+async function changeStatusFromDetail(newStatus) {
+  const modal = document.getElementById('appointmentModal');
+  const id = modal.dataset.apptId;
+  if (!id) return;
+  
+  try {
+    await api(`/appointments/${id}/status`, { method: 'PATCH', body: { status: newStatus } });
+    showToast(`Appointment status updated to ${newStatus}`);
+    closeModal();
+    refreshRelated(['calendar', 'dashboard']);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function deleteAppointmentFromDetail() {
+  const modal = document.getElementById('appointmentModal');
+  const id = modal.dataset.apptId;
+  if (!id) return;
+
+  if (!confirm('Are you sure you want to delete this appointment?')) return;
+
+  try {
+    await api(`/appointments/${id}`, { method: 'DELETE' });
+    showToast('Appointment deleted successfully');
+    closeModal();
+    refreshRelated(['calendar', 'dashboard']);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function openAddApptModal() {
+  const modal = document.getElementById('addApptModal');
+  if (!modal) return;
+
+  document.getElementById('apptDatePicker').value = currentCalendarDate;
+
+  document.getElementById('apptClient').value = '';
+  document.getElementById('apptClientPhone').value = '';
+  document.getElementById('apptNotes').value = '';
+  document.getElementById('apptServiceSearch').value = '';
+  
+  _selectedModalServices = [];
+  renderSelectedServicesChips();
+  updateBookingSummary();
+
+  const timeSelect = document.getElementById('apptStartTime');
+  if (timeSelect) {
+    const times = [];
+    for (let h = 8; h <= 23; h++) {
+      const p = h < 12 ? 'AM' : (h === 12 ? 'PM' : 'PM');
+      const displayH = h % 12 || 12;
+      times.push(`${displayH}:00 ${p}`);
+      if (h < 23) {
+        times.push(`${displayH}:30 ${p}`);
+      }
+    }
+    timeSelect.innerHTML = times.map(t => `<option value="${t}">${t}</option>`).join('');
+  }
+
+  try {
+    const staffList = await api('/staff');
+    _loadedStaff = staffList;
+    const staffSelect = document.getElementById('apptStaff');
+    if (staffSelect) {
+      staffSelect.innerHTML = '<option value="">Select a Staff Member</option>' +
+        staffList.filter(s => s.active !== false).map(s => `<option value="${s._id}">${esc(s.name)}</option>`).join('');
+    }
+  } catch (err) {
+    console.error('Error loading staff:', err);
+  }
+
+  const checklist = document.getElementById('modalServiceChecklist');
+  if (checklist) {
+    checklist.innerHTML = '<div class="no-services-placeholder">Please select a staff member to see their services</div>';
+  }
+
+  modal.style.display = 'block';
+}
+
+function closeAddApptModal() { 
+  document.getElementById('addApptModal').style.display = 'none'; 
+}
+
+function onApptStaffChanged(staffId) {
+  const checklist = document.getElementById('modalServiceChecklist');
+  if (!checklist) return;
+
+  _selectedModalServices = [];
+  renderSelectedServicesChips();
+  updateBookingSummary();
+
+  if (!staffId) {
+    checklist.innerHTML = '<div class="no-services-placeholder">Please select a staff member to see their services</div>';
+    return;
+  }
+
+  const staff = _loadedStaff.find(s => s._id === staffId);
+  if (!staff || !staff.services || staff.services.length === 0) {
+    checklist.innerHTML = '<div class="no-services-placeholder">This staff member offers no services</div>';
+    return;
+  }
+
+  renderServiceChecklist(staff.services);
+}
+
+function renderServiceChecklist(services) {
+  const checklist = document.getElementById('modalServiceChecklist');
+  if (!checklist) return;
+
+  const searchQuery = document.getElementById('apptServiceSearch').value.toLowerCase().trim();
+
+  const filtered = services.filter(s => s.name.toLowerCase().includes(searchQuery));
+
+  if (filtered.length === 0) {
+    checklist.innerHTML = '<div class="no-services-placeholder">No matching services found</div>';
+    return;
+  }
+
+  checklist.innerHTML = filtered.map(s => {
+    const isChecked = _selectedModalServices.some(item => item.id === s._id);
+    return `
+      <div class="service-check-item" onclick="toggleModalServiceCheckbox('${esc(s._id)}', '${esc(s.name)}', ${s.price || 0}, ${s.durationMins || 45})">
+        <div class="service-check-left">
+          <input type="checkbox" id="chk_${s._id}" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleModalServiceCheckbox('${esc(s._id)}', '${esc(s.name)}', ${s.price || 0}, ${s.durationMins || 45})">
+          <span>${esc(s.name)}</span>
+        </div>
+        <div class="service-check-right">₹${s.price} (${s.durationMins || 45}m)</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleModalServiceCheckbox(id, name, price, duration) {
+  const checkbox = document.getElementById(`chk_${id}`);
+  const idx = _selectedModalServices.findIndex(item => item.id === id);
+
+  if (idx > -1) {
+    _selectedModalServices.splice(idx, 1);
+    if (checkbox) checkbox.checked = false;
+  } else {
+    _selectedModalServices.push({ id, name, price, duration });
+    if (checkbox) checkbox.checked = true;
+  }
+
+  renderSelectedServicesChips();
+  updateBookingSummary();
+}
+
+function filterModalServices(val) {
+  const staffId = document.getElementById('apptStaff').value;
+  if (!staffId) return;
+
+  const staff = _loadedStaff.find(s => s._id === staffId);
+  if (staff && staff.services) {
+    renderServiceChecklist(staff.services);
+  }
+}
+
+function renderSelectedServicesChips() {
+  const container = document.getElementById('selectedServicesChips');
+  if (!container) return;
+
+  container.innerHTML = _selectedModalServices.map(s => `
+    <span class="service-chip">
+      ${esc(s.name)}
+      <span class="chip-remove" onclick="toggleModalServiceCheckbox('${esc(s.id)}', '${esc(s.name)}', ${s.price}, ${s.duration})">&times;</span>
+    </span>
+  `).join('');
+
+  const staffId = document.getElementById('apptStaff').value;
+  if (staffId) {
+    const staff = _loadedStaff.find(s => s._id === staffId);
+    if (staff && staff.services) {
+      staff.services.forEach(s => {
+        const chk = document.getElementById(`chk_${s._id}`);
+        if (chk) {
+          chk.checked = _selectedModalServices.some(item => item.id === s._id);
+        }
+      });
+    }
+  }
+}
+
+function updateBookingSummary() {
+  const totalDuration = _selectedModalServices.reduce((sum, s) => sum + s.duration, 0);
+  const totalPrice = _selectedModalServices.reduce((sum, s) => sum + s.price, 0);
+  
+  setEl('summaryDuration', `${totalDuration} mins`);
+  setEl('summaryPrice', `₹${totalPrice}`);
+
+  const startTimeSelect = document.getElementById('apptStartTime');
+  const endTimeSpan = document.getElementById('summaryEndTime');
+  
+  if (startTimeSelect && startTimeSelect.value && totalDuration > 0) {
+    const startStr = startTimeSelect.value;
+    const { hour, mins } = parseTimeToHour(startStr);
+    
+    const startTotalMins = hour * 60 + mins;
+    const endTotalMins = startTotalMins + totalDuration;
+    
+    const endHour = Math.floor(endTotalMins / 60);
+    const endMin = endTotalMins % 60;
+    
+    const period = endHour >= 24 ? 'AM' : (endHour >= 12 ? 'PM' : 'AM');
+    const displayH = (endHour % 12 || 12);
+    const displayM = endMin.toString().padStart(2, '0');
+    
+    endTimeSpan.innerText = `${displayH}:${displayM} ${period}`;
+  } else {
+    endTimeSpan.innerText = '-';
+  }
+}
 
 async function saveAppointment() {
   const clientName = document.getElementById('apptClient').value.trim();
-  const serviceVal = document.getElementById('apptService').value;
-  const time = document.getElementById('apptTime').value;
+  const clientPhone = document.getElementById('apptClientPhone').value.trim();
+  const dateVal = document.getElementById('apptDatePicker').value;
+  const startTime = document.getElementById('apptStartTime').value;
+  const staffId = document.getElementById('apptStaff').value;
+  const notesText = document.getElementById('apptNotes').value.trim();
   const btn = document.getElementById('saveApptBtn');
 
-  if (!clientName || !serviceVal || !time) { showToast('Please fill all fields', 'error'); return; }
+  if (!clientName) { showToast('Please enter client name', 'error'); return; }
+  if (!clientPhone || clientPhone.length < 10) { showToast('Please enter a valid 10-digit phone number', 'error'); return; }
+  if (!dateVal) { showToast('Please select a date', 'error'); return; }
+  if (!startTime) { showToast('Please select a start time', 'error'); return; }
+  if (!staffId) { showToast('Please select a staff member', 'error'); return; }
+  if (_selectedModalServices.length === 0) { showToast('Please select at least one service', 'error'); return; }
 
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
     const clients = await api('/clients');
     const staffList = await api('/staff');
 
-    let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) ||
-      await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
+    let client = clients.find(c => c.phone === clientPhone || c.name.toLowerCase() === clientName.toLowerCase());
+    if (!client) {
+      client = await api('/clients', { 
+        method: 'POST', 
+        body: { name: clientName, phone: clientPhone } 
+      });
+    }
 
-    // New logic for synced dropdown value
-    const [staffId, serviceId, sName, price, sStaff, duration] = serviceVal.split('|');
+    const member = staffList.find(s => s._id === staffId);
+    if (!member) throw new Error('Staff member not found');
+
+    const primaryServiceId = _selectedModalServices[0].id;
+    const combinedServiceName = _selectedModalServices.map(s => s.name).join(' + ');
+    const totalDuration = _selectedModalServices.reduce((sum, s) => sum + s.duration, 0);
+
+    const notesPayload = JSON.stringify({
+      clientPhone,
+      notesText,
+      services: _selectedModalServices
+    });
+
+    const time24h = timeTo24h(startTime);
 
     await api('/appointments', {
       method: 'POST',
