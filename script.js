@@ -83,9 +83,32 @@ function statusColor(s) {
 }
 
 function openModal(client, service, time, amount, staff, id, status) {
-  setEl('modalClient', client); setEl('modalService', service);
-  setEl('modalTime', time); setEl('modalAmount', amount);
+  setEl('modalClient', client);
+  setEl('modalTime', time);
   setEl('modalStaff', staff);
+  setEl('modalAmount', amount || 'See Bill');
+  setEl('modalPhone', 'N/A');
+
+  // Populate services list container with a single chip
+  const servicesContainer = document.getElementById('modalServicesListContainer');
+  if (servicesContainer) {
+    servicesContainer.innerHTML = '';
+    const chip = document.createElement('span');
+    chip.className = 'service-chip';
+    chip.innerText = service;
+    servicesContainer.appendChild(chip);
+  }
+
+  // Status badge
+  const badge = document.getElementById('modalStatusBadge');
+  if (badge) {
+    badge.innerText = (status || 'Upcoming').toUpperCase();
+    badge.style.background = statusColor(status || 'Upcoming');
+  }
+
+  // Hide notes row for legacy calls
+  const notesRow = document.getElementById('modalNotesRow');
+  if (notesRow) notesRow.style.display = 'none';
 
   // Attach appointment ID for converting to bill
   const appointmentModal = document.getElementById('appointmentModal');
@@ -94,30 +117,13 @@ function openModal(client, service, time, amount, staff, id, status) {
   appointmentModal.dataset.apptService = service;
   appointmentModal.dataset.apptStaff = staff;
 
-  // Add status controls dynamically (to avoid HTML changes)
-  let statusBox = document.getElementById('modalStatusBox');
-  if (!statusBox) {
-    statusBox = document.createElement('div');
-    statusBox.id = 'modalStatusBox';
-    statusBox.style.marginTop = '15px';
-    statusBox.style.paddingTop = '15px';
-    statusBox.style.borderTop = '1px solid #eee';
-    appointmentModal.querySelector('.modal-content').appendChild(statusBox);
-  }
-
-  statusBox.innerHTML = `
-    <p style="font-size:12px;color:#666;margin-bottom:8px;">Update Status:</p>
-    <div style="display:flex;gap:5px;flex-wrap:wrap;">
-      ${['Upcoming', 'Ongoing', 'Completed', 'Cancelled'].map(s => `
-        <button onclick="updateAppointmentStatus('${esc(id)}', '${esc(s)}')" 
-          style="padding:5px 10px;font-size:11px;border:none;border-radius:4px;cursor:pointer;
-          background:${s === status ? statusColor(s) : '#eee'};
-          color:${s === status ? 'white' : '#333'};">
-          ${esc(s)}
-        </button>
-      `).join('')}
-    </div>
-  `;
+  // Show/hide action buttons based on status
+  const btnStart = document.getElementById('btnDetailStart');
+  const btnComplete = document.getElementById('btnDetailComplete');
+  const btnCancel = document.getElementById('btnDetailCancel');
+  if (btnStart) btnStart.style.display = status === 'Upcoming' ? 'block' : 'none';
+  if (btnComplete) btnComplete.style.display = (status === 'Upcoming' || status === 'Ongoing') ? 'block' : 'none';
+  if (btnCancel) btnCancel.style.display = (status === 'Upcoming' || status === 'Ongoing') ? 'block' : 'none';
 
   appointmentModal.style.display = 'block';
 }
@@ -255,8 +261,40 @@ document.addEventListener('submit', async function (e) {
       let client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase()) ||
         await api('/clients', { method: 'POST', body: { name: clientName, phone: '0000000000' } });
 
-let currentCalendarDate = new Date().toISOString().split('T')[0];
-let currentStaffFilter = 'all';
+      await api('/appointments', {
+        method: 'POST',
+        body: {
+          clientId: client._id, clientName: client.name,
+          serviceId, serviceName, staffId, staffName,
+          date, time, duration: parseInt(duration) || 45, status: 'Upcoming'
+        }
+      });
+
+      e.target.reset();
+      showToast('Appointment added');
+      loadDashboard();
+    } catch (err) { showToast(err.message, 'error'); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = '+ Add'; } }
+  }
+});
+
+/* ══════════════════════════════════════════════════════════
+   2. CALENDAR / APPOINTMENTS
+   ══════════════════════════════════════════════════════════ */
+
+// Single source of truth for calendar UI state
+const calendarState = {
+  currentDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+  selectedStaff: 'all',
+  appointments: [],
+  services: [],
+  filters: {},
+  mobileView: false
+};
+
+// Backwards-compatible variables (kept for existing code paths)
+let currentCalendarDate = calendarState.currentDate;
+let currentStaffFilter = calendarState.selectedStaff;
 let _loadedAppointments = [];
 let _loadedStaff = [];
 let _selectedModalServices = [];
@@ -283,6 +321,12 @@ async function loadCalendar() {
 
     _loadedAppointments = appointments;
     _loadedStaff = staff;
+
+    // Update centralized calendar state (single source of truth)
+    calendarState.currentDate = currentCalendarDate;
+    calendarState.selectedStaff = currentStaffFilter;
+    calendarState.appointments = appointments;
+    calendarState.services = staff.reduce((acc, s) => acc.concat(s.services || []), []);
 
     const staffFilterDropdown = document.getElementById('calendarStaffFilter');
     if (staffFilterDropdown) {
@@ -429,19 +473,24 @@ async function loadCalendar() {
       }
     }
 
+  // Attach mobile swipe handlers for quick day navigation (left: next, right: prev)
++    attachSwipeHandlers();
+
   } catch (err) {
     showToast(err.message || 'Calendar error', 'error');
   }
 }
 
 function navigateCalendar(direction) {
-  const d = new Date(currentCalendarDate);
+  const d = new Date(calendarState.currentDate);
   if (direction === 0) {
-    currentCalendarDate = new Date().toISOString().split('T')[0];
+    calendarState.currentDate = new Date().toISOString().split('T')[0];
   } else {
     d.setDate(d.getDate() + direction);
-    currentCalendarDate = d.toISOString().split('T')[0];
+    calendarState.currentDate = d.toISOString().split('T')[0];
   }
+  // Keep legacy var in sync
+  currentCalendarDate = calendarState.currentDate;
   loadCalendar();
 }
 
@@ -558,6 +607,35 @@ function updateTimeIndicator() {
   });
 }
 
+function attachSwipeHandlers() {
+  const container = document.querySelector('.calendar-mobile-view');
+  if (!container) return;
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartTime = 0;
+
+  container.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    touchStartTime = Date.now();
+  }, { passive: true });
+
+  container.addEventListener('touchend', (e) => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+    const dt = Date.now() - touchStartTime;
+
+    // Horizontal swipe detection
+    if (Math.abs(dx) > 60 && Math.abs(dy) < 80 && dt < 600) {
+      if (dx < 0) navigateCalendar(1); // swipe left -> next day
+      else navigateCalendar(-1); // swipe right -> previous day
+    }
+  }, { passive: true });
+}
+
 function parseTimeToHour(t) {
   if (!t) return { hour: 8, mins: 0 };
   let h = 8, m = 0;
@@ -579,6 +657,57 @@ function parseTimeToHour(t) {
     }
   }
   return { hour: h, mins: m };
+}
+
+/**
+ * Convert a time string ("HH:mm" or "h:mm AM/PM") to minutes from midnight
+ * Returns integer minutes (0-1439)
+ */
+function minutesFromMidnight(timeStr) {
+  if (!timeStr) return 0;
+  // If already in HH:mm 24h
+  if (/^\d{1,2}:\d{2}$/.test(timeStr)) {
+    const [hh, mm] = timeStr.split(':').map(n => parseInt(n, 10));
+    return (hh * 60) + mm;
+  }
+  const { hour, mins } = parseTimeToHour(timeStr);
+  return (hour * 60) + mins;
+}
+
+/**
+ * Validate whether a time slot is available for a staff member on a given date.
+ * Checks overlapping appointments, staff conflicts and basic operating hours.
+ * excludeId: optional appointment id to ignore (useful for updates)
+ */
+function isTimeSlotAvailable(date, startTime24h, durationMins, staffId, excludeId = null) {
+  try {
+    if (!date || !startTime24h || !staffId) return false;
+    // Operating hours: 08:00 (480) to 23:00 (1380)
+    const OPEN = 8 * 60;
+    const CLOSE = 23 * 60;
+    const start = minutesFromMidnight(startTime24h);
+    const end = start + (durationMins || 0);
+    if (start < OPEN || end > CLOSE) return false;
+
+    // Check against loaded appointments (cache) and calendarState.appointments
+    const allAppts = Array.isArray(calendarState.appointments) && calendarState.appointments.length ? calendarState.appointments : _loadedAppointments;
+    for (let a of allAppts) {
+      if (!a || a.staffId !== staffId) continue;
+      if (excludeId && a._id === excludeId) continue;
+      if (a.date !== date) continue;
+      // Ignore cancelled appointments
+      if ((a.status || '').toLowerCase() === 'cancelled') continue;
+      const aStart = minutesFromMidnight(a.time);
+      const aEnd = aStart + (a.duration || 0);
+      // Overlap check
+      if (start < aEnd && end > aStart) return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.error('isTimeSlotAvailable error', e);
+    return false;
+  }
 }
 
 function renderTimePills(containerId, hiddenInputId) {
@@ -962,23 +1091,25 @@ async function saveAppointment() {
     await api('/appointments', {
       method: 'POST',
       body: {
-        clientId: client._id, clientName: client.name,
-        serviceId, serviceName: sName,
-        staffId, staffName: sStaff,
-        date: document.getElementById('calendarDateHeader').dataset.isoDate || new Date().toISOString().split('T')[0],
-        time, duration: parseInt(duration) || 45, status: 'Upcoming'
+        clientId: client._id,
+        clientName: client.name,
+        serviceId: primaryServiceId,
+        serviceName: combinedServiceName,
+        staffId: member._id,
+        staffName: member.name,
+        date: dateVal,
+        time: time24h,
+        duration: totalDuration,
+        status: 'Upcoming',
+        notes: notesPayload
       }
     });
 
     closeAddApptModal();
-    document.getElementById('apptClient').value = '';
-    document.getElementById('apptTime').value = '';
-    // Clear active pill
-    document.querySelector('#apptTimeSlots .active')?.classList.remove('active');
-    showToast('Appointment Saved');
+    showToast('Appointment Saved Successfully');
     refreshRelated(['calendar', 'dashboard']);
   } catch (err) { showToast(err.message, 'error'); }
-  finally { btn.disabled = false; btn.textContent = 'Save Appointment'; }
+  finally { btn.disabled = false; btn.textContent = 'Confirm Booking'; }
 }
 
 /* ══════════════════════════════════════════════════════════

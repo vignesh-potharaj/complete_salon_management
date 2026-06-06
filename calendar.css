@@ -624,4 +624,27 @@
     border-radius: 14px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.02);
   }
+
+  /* Floating Action Button */
+  .calendar-fab {
+    position: fixed;
+    right: 18px;
+    bottom: 22px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    font-size: 28px;
+    line-height: 56px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+  }
+
+  .calendar-fab:active { transform: scale(0.97); }
 }
