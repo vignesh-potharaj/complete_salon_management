@@ -220,6 +220,50 @@ h3 {
   margin-bottom: var(--gap-lg);
 }
 
+/* Inventory summary row (small stat cards) */
+.inventory-stats {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.inv-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 14px 18px;
+  border-radius: 10px;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.inv-card h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--primary);
+}
+
+.inv-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@media screen and (max-width: 520px) {
+  .inventory-stats {
+    gap: 10px;
+  }
+  .inv-card {
+    min-width: 140px;
+    gap: 8px;
+  }
+}
+
 .chart-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

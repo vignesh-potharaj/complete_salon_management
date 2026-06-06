@@ -1850,6 +1850,7 @@ async function deleteInventoryItem(id) {
 
 async function openEditInventoryModal(id) {
   try {
+    // Fetch the single inventory item by id (backend route added)
     const item = await api(`/inventory/${id}`);
     if (!item) { showToast('Product not found', 'error'); return; }
 

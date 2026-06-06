@@ -42,6 +42,18 @@ router.get('/low-stock', auth, async (req, res, next) => {
   }
 });
 
+// GET /api/inventory/:id
+router.get('/:id', auth, async (req, res, next) => {
+  try {
+    const item = await InventoryItem.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: 'Inventory Item not found' });
+    if (item.userId !== req.user.userId) return res.status(401).json({ message: 'Not authorized' });
+    res.json(item);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // POST /api/inventory
 router.post('/', [auth, inventoryValidation], async (req, res, next) => {
   const errors = validationResult(req);
