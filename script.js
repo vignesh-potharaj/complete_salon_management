@@ -236,6 +236,9 @@ async function loadDashboard() {
 
     initMagneticEffect();
 
+  // Render quick Today's Appointments card
+  renderTodaysAppointments(appointmentsToday);
+
   } catch (err) {
     showToast(err.message || 'Dashboard error', 'error');
   }
@@ -2710,6 +2713,49 @@ function renderDashboardCharts(appts, sales) {
       data: { labels, datasets: [{ data: labels.map(l => svcs[l]), backgroundColor: ['#8e44ad', '#3498db', '#2ecc71', '#f1c40f', '#e67e22'], borderWidth: 0 }] },
       options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: { boxWidth: 8, font: { size: 9 } } } } }
     });
+  }
+}
+
+function renderTodaysAppointments(appts) {
+  const container = document.getElementById('dashTodaysAppts');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!appts || appts.length === 0) {
+    container.innerHTML = `<div style="color:#95a5a6; font-style:italic;">No appointments today</div>`;
+    return;
+  }
+
+  const slice = appts.slice(0, 4); // show up to 4
+  slice.forEach(a => {
+    const item = document.createElement('div');
+    item.style.display = 'flex';
+    item.style.justifyContent = 'space-between';
+    item.style.alignItems = 'center';
+    item.style.padding = '8px 10px';
+    item.style.borderRadius = '8px';
+    item.style.background = 'rgba(0,0,0,0.02)';
+    item.style.cursor = 'pointer';
+    item.onclick = () => openApptDetailModal(a._id);
+
+    const left = document.createElement('div');
+    left.innerHTML = `<div style="font-weight:700;">${esc(a.clientName)}</div><div style="font-size:12px;color:#666;">${esc(a.serviceName)}</div>`;
+
+    const right = document.createElement('div');
+    right.style.textAlign = 'right';
+    right.innerHTML = `<div style="font-weight:700;color:var(--accent);">${esc(format12hTime(a.time))}</div><div style="font-size:12px;color:#888;">${esc(a.staffName || '—')}</div>`;
+
+    item.appendChild(left);
+    item.appendChild(right);
+    container.appendChild(item);
+  });
+
+  if (appts.length > 4) {
+    const more = document.createElement('div');
+    more.style.textAlign = 'center';
+    more.style.marginTop = '6px';
+    more.innerHTML = `<small style="color:#777;">+${appts.length - 4} more — <a href="#" onclick="showSection('calendar')">View all</a></small>`;
+    container.appendChild(more);
   }
 }
 

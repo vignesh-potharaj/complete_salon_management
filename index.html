@@ -117,22 +117,17 @@
             </div>
           </div>
 
-          <!-- Quick Add Appt -->
-          <div class="bento-item span-1 glass">
-            <div class="bento-header">
-              <h2>Quick Add</h2>
+          <!-- Today's Appointments (Quick View) -->
+          <div class="bento-item span-1 glass" style="display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div class="bento-header"><h2>Today's Appointments</h2></div>
+              <div id="dashTodaysAppts" style="padding:12px; display:flex; flex-direction:column; gap:8px; min-height:140px;">
+                <div style="color:#95a5a6; font-style:italic;">Loading today's bookings...</div>
+              </div>
             </div>
-            <form id="appointmentForm" style="display:flex; flex-direction:column; gap:8px;">
-              <input type="text" id="quickClientName" placeholder="Client Name" required class="modal-input"
-                style="padding: 8px; font-size: 0.85rem;">
-              <select id="quickServiceSelect" class="modal-input" style="padding: 8px; font-size: 0.85rem;" required>
-                <option value="">Select Service</option>
-              </select>
-              <div class="time-pills-label">Select Time</div>
-              <div id="quickTimeSlots" class="time-pills-container"></div>
-              <input type="hidden" id="quickTime" required>
-              <button type="submit" class="btn-black" style="padding: 8px; font-size: 0.85rem;">+ Add</button>
-            </form>
+            <div style="padding:12px;">
+              <button class="btn-primary" style="width:100%; padding:14px; font-size:1rem;" onclick="showSection('calendar')">Open Appointments →</button>
+            </div>
           </div>
 
           <!-- Main Pulse -->
