@@ -681,8 +681,13 @@
           <label for="invDesc">Description</label>
           <textarea id="invDesc" placeholder="Product details/benefits..." class="modal-input"
             style="height:80px; resize:none; padding:10px;"></textarea>
-          <label for="invImg">Image URL</label>
-          <input type="text" id="invImg" placeholder="https://example.com/image.jpg" class="modal-input">
+          <label for="invImgFile">Product Image</label>
+          <input type="file" id="invImgFile" accept="image/*" capture="environment" class="modal-input" onchange="handleInvImgFileChange(event)">
+          <input type="hidden" id="invImg">
+          <div id="invImgPreviewWrapper" style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+            <img id="invImgPreview" src="" alt="Preview" style="max-width:120px; max-height:80px; display:none; border-radius:8px; border:1px solid var(--border);">
+            <button type="button" id="invImgRemoveBtn" onclick="removeInvImage()" class="btn-sm" style="display:none;">Remove</button>
+          </div>
           <div class="modal-grid">
             <div>
               <label for="invPurchase">Purchase Price</label>

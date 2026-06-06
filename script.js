@@ -1782,6 +1782,9 @@ function openInvModal() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  // Clear file input & preview
+  const fileEl = document.getElementById('invImgFile'); if (fileEl) fileEl.value = '';
+  removeInvImage();
   document.getElementById('inventoryModal').style.display = 'block';
 }
 
@@ -1863,11 +1866,49 @@ async function openEditInventoryModal(id) {
     document.getElementById('invSupplier').value = item.brand || '';
     document.getElementById('invDesc').value = item.description || '';
     document.getElementById('invImg').value = item.imageUrl || '';
+    // If imageUrl is present, show preview
+    if (item.imageUrl) {
+      const img = document.getElementById('invImgPreview');
+      const wrapperBtn = document.getElementById('invImgRemoveBtn');
+      img.src = item.imageUrl;
+      img.style.display = 'block';
+      if (wrapperBtn) wrapperBtn.style.display = 'inline-block';
+    } else {
+      removeInvImage();
+    }
     document.getElementById('invPurchase').value = item.costPrice != null ? item.costPrice : '';
     document.getElementById('invSelling').value = item.sellPrice != null ? item.sellPrice : '';
 
     document.getElementById('inventoryModal').style.display = 'block';
   } catch (err) { showToast('Failed to load product: ' + err.message, 'error'); }
+}
+
+function handleInvImgFileChange(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return removeInvImage();
+  // Preview using FileReader and store data URL in hidden input (imageUrl)
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const dataUrl = evt.target.result;
+    const img = document.getElementById('invImgPreview');
+    const hidden = document.getElementById('invImg');
+    const removeBtn = document.getElementById('invImgRemoveBtn');
+    if (img) { img.src = dataUrl; img.style.display = 'block'; }
+    if (hidden) hidden.value = dataUrl;
+    if (removeBtn) removeBtn.style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeInvImage() {
+  const img = document.getElementById('invImgPreview');
+  const hidden = document.getElementById('invImg');
+  const fileEl = document.getElementById('invImgFile');
+  const removeBtn = document.getElementById('invImgRemoveBtn');
+  if (img) { img.src = ''; img.style.display = 'none'; }
+  if (hidden) hidden.value = '';
+  if (fileEl) fileEl.value = '';
+  if (removeBtn) removeBtn.style.display = 'none';
 }
 
 
