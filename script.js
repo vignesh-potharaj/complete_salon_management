@@ -1886,16 +1886,42 @@ async function openEditInventoryModal(id) {
 function handleInvImgFileChange(e) {
   const file = e.target.files && e.target.files[0];
   if (!file) return removeInvImage();
-  // Preview using FileReader and store data URL in hidden input (imageUrl)
+  // Resize image on client using canvas, then set preview and hidden input to compressed data URL
+  const maxDim = 1000; // max width/height in px
+  const quality = 0.8; // jpeg quality 0.0 - 1.0
+
+  const imgEl = document.getElementById('invImgPreview');
+  const hidden = document.getElementById('invImg');
+  const removeBtn = document.getElementById('invImgRemoveBtn');
+
   const reader = new FileReader();
   reader.onload = function(evt) {
-    const dataUrl = evt.target.result;
-    const img = document.getElementById('invImgPreview');
-    const hidden = document.getElementById('invImg');
-    const removeBtn = document.getElementById('invImgRemoveBtn');
-    if (img) { img.src = dataUrl; img.style.display = 'block'; }
-    if (hidden) hidden.value = dataUrl;
-    if (removeBtn) removeBtn.style.display = 'inline-block';
+    const tmpImg = new Image();
+    tmpImg.onload = function() {
+      // compute new size
+      let { width, height } = tmpImg;
+      const ratio = width / height;
+      if (width > maxDim || height > maxDim) {
+        if (ratio > 1) { width = maxDim; height = Math.round(maxDim / ratio); }
+        else { height = maxDim; width = Math.round(maxDim * ratio); }
+      }
+
+      // draw to canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(tmpImg, 0, 0, width, height);
+
+      // export compressed data URL
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+      if (imgEl) { imgEl.src = dataUrl; imgEl.style.display = 'block'; }
+      if (hidden) hidden.value = dataUrl;
+      if (removeBtn) removeBtn.style.display = 'inline-block';
+    };
+    tmpImg.onerror = function() { showToast('Failed to read image', 'error'); };
+    tmpImg.src = evt.target.result;
   };
   reader.readAsDataURL(file);
 }
