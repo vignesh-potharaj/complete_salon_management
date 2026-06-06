@@ -10,6 +10,9 @@ const settingsSchema = new mongoose.Schema({
   loyaltyEnabled: { type: Boolean, default: false },
   pointsPerRupee: { type: Number, default: 0 },
   defaultCommission: { type: Number, default: 0 },
+  // Operating hours (24h format HH:mm)
+  openHour: { type: String, default: '08:00' },
+  closeHour: { type: String, default: '23:00' },
   createdAt: { type: Date, default: Date.now }
 });
 

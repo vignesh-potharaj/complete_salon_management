@@ -331,17 +331,8 @@ async function loadCalendar() {
     calendarState.appointments = appointments;
     calendarState.services = staff.reduce((acc, s) => acc.concat(s.services || []), []);
 
-    const staffFilterDropdown = document.getElementById('calendarStaffFilter');
-    if (staffFilterDropdown) {
-      const selectedVal = currentStaffFilter;
-      staffFilterDropdown.innerHTML = '<option value="all">All Staff</option>' +
-        staff.map(s => `<option value="${s._id}">${esc(s.name)}</option>`).join('');
-      staffFilterDropdown.value = selectedVal;
-    }
-
-    const filteredStaff = currentStaffFilter === 'all' 
-      ? staff.filter(s => s.active !== false)
-      : staff.filter(s => s._id === currentStaffFilter);
+    // No staff filter — always show active staff columns
+    const filteredStaff = staff.filter(s => s.active !== false);
 
     const staffColumnsContainer = document.getElementById('calendarStaffColumns');
     if (staffColumnsContainer) {
@@ -503,12 +494,6 @@ function onCalendarDatePicked(dateVal) {
     loadCalendar();
   }
 }
-
-function filterCalendarByStaff(staffId) {
-  currentStaffFilter = staffId;
-  loadCalendar();
-}
-
 function format12hTime(timeStr) {
   if (!timeStr) return '';
   const { hour, mins } = parseTimeToHour(timeStr);
@@ -690,8 +675,26 @@ function updateAvailabilityIndicator() {
     const warn = document.createElement('div');
     warn.style.color = '#d35400';
     warn.style.fontWeight = '700';
-    warn.innerText = 'Selected slot conflicts with another booking. Please choose a different time or staff.';
+    warn.innerText = 'Selected slot conflicts with another booking.';
     availEl.appendChild(warn);
+
+    // Suggest nearest available slot for the same staff (scan forward by 15-min increments)
+    const suggestion = findNearestAvailableSlot(dateVal, timeTo24h(startTime), duration, staffId, openMin, closeMin);
+    if (suggestion) {
+      const sugEl = document.createElement('div');
+      sugEl.style.marginTop = '8px';
+      sugEl.style.color = '#2d3436';
+      sugEl.style.fontWeight = '600';
+      sugEl.innerHTML = `Next available: <strong>${formatSuggestedTime(suggestion)}</strong> — <button class="btn-secondary" style="margin-left:8px;" onclick="document.getElementById('apptStartTime').value='${suggestion.display}'; updateAvailabilityIndicator();">Use this</button>`;
+      availEl.appendChild(sugEl);
+    } else {
+      const noMore = document.createElement('div');
+      noMore.style.marginTop = '8px';
+      noMore.style.color = '#7f8c8d';
+      noMore.innerText = 'No available slots later today for this staff.';
+      availEl.appendChild(noMore);
+    }
+
     saveBtn.disabled = true;
     return;
   }
@@ -758,6 +761,45 @@ function minutesFromMidnight(timeStr) {
   }
   const { hour, mins } = parseTimeToHour(timeStr);
   return (hour * 60) + mins;
+}
+
+// Find nearest available start time (in minutes) on the same date for the staff
+function findNearestAvailableSlot(date, startTime24h, duration, staffId, openMin, closeMin) {
+  try {
+    const step = 15; // minutes
+    let cursor = minutesFromMidnight(startTime24h) + step;
+    const appts = calendarState.appointments && calendarState.appointments.length ? calendarState.appointments : _loadedAppointments;
+
+    while (cursor + duration <= closeMin) {
+      // ensure within open bounds
+      if (cursor < openMin) { cursor = openMin; }
+
+      // check overlap
+      const conflict = appts.some(a => a.staffId === staffId && a.date === date && (cursor < (minutesFromMidnight(a.time) + (a.duration || 0)) && (cursor + duration) > minutesFromMidnight(a.time)) && (a.status || '').toLowerCase() !== 'cancelled');
+      if (!conflict) {
+        // return an object with display string
+        const hh = Math.floor(cursor / 60);
+        const mm = cursor % 60;
+        const display = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+        return { minutes: cursor, display };
+      }
+      cursor += step;
+    }
+    return null;
+  } catch (e) {
+    console.error('findNearestAvailableSlot error', e);
+    return null;
+  }
+}
+
+function formatSuggestedTime(sug) {
+  // Convert 24h HH:mm to friendly 12h text
+  if (!sug || !sug.display) return '';
+  const [hh, mm] = sug.display.split(':').map(n => parseInt(n, 10));
+  const period = hh >= 12 ? 'PM' : 'AM';
+  const displayH = hh % 12 || 12;
+  const displayM = String(mm).padStart(2, '0');
+  return `${displayH}:${displayM} ${period}`;
 }
 
 /**
@@ -2462,11 +2504,21 @@ async function loadSettings() {
 
     taxPctGlobal = s.taxPct || 0;
 
+  // Load operating hours if provided by backend
+  if (s.openHour) calendarState.operatingHours.open = s.openHour;
+  if (s.closeHour) calendarState.operatingHours.close = s.closeHour;
+
     // Update bill branding
     setEl('billSalonName', s.salonName || 'SalonPro');
     setEl('billSalonAddress', s.address || '');
     setEl('billSalonPhone', s.phone ? 'Ph: ' + s.phone : '');
     setEl('footerSalonName', s.salonName || 'SalonPro');
+
+  // Reflect operating hours inputs in settings UI
+  const openEl = document.getElementById('setOpenHour');
+  const closeEl = document.getElementById('setCloseHour');
+  if (openEl) openEl.value = calendarState.operatingHours.open;
+  if (closeEl) closeEl.value = calendarState.operatingHours.close;
 
   } catch (err) { showToast(err.message || 'Settings error', 'error'); }
 }
@@ -2484,12 +2536,15 @@ async function saveSettings() {
       taxPct: document.getElementById('setTax').value,
       defaultCommission: document.getElementById('setDefaultCommission').value,
       loyaltyEnabled: document.getElementById('setLoyalty').checked,
-      pointsPerRupee: document.getElementById('setPoints').value
+      pointsPerRupee: document.getElementById('setPoints').value,
+      openHour: document.getElementById('setOpenHour') ? document.getElementById('setOpenHour').value : calendarState.operatingHours.open,
+      closeHour: document.getElementById('setCloseHour') ? document.getElementById('setCloseHour').value : calendarState.operatingHours.close
     };
 
     await api('/settings', { method: 'PUT', body: payload });
     showToast('Settings saved successfully');
-    loadSettings(); // update globals
+  // Refresh local copy
+  loadSettings(); // update globals (will set calendarState.operatingHours)
   } catch (err) { showToast(err.message, 'error'); }
   finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Settings'; } }
 }

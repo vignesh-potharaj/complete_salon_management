@@ -44,7 +44,7 @@
       <div class="brand"><span>✂</span> SalonPro</div>
       <ul class="sidebar-menu">
         <li onclick="showSection('home')">Home</li>
-        <li onclick="showSection('calendar')">Calendar</li>
+        <li onclick="showSection('calendar')">Appointments</li>
         <li onclick="showSection('clients')">Clients</li>
         <li onclick="showSection('staff')">Staff</li>
         <li onclick="showSection('inventory')">Inventory</li>
@@ -228,9 +228,7 @@
               </div>
             </div>
             <div class="toolbar-right">
-              <select id="calendarStaffFilter" onchange="filterCalendarByStaff(this.value)" class="toolbar-select">
-                <option value="all">All Staff</option>
-              </select>
+              <!-- Staff filter removed per request -->
               <button class="btn-primary btn-add-appt" onclick="openAddApptModal()">
                 <span>Add Appointment +</span>
               </button>
