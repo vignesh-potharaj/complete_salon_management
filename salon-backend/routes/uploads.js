@@ -78,7 +78,10 @@ router.post('/pdf', auth, async (req, res, next) => {
 
       // If Cloudinary did not report format 'pdf', log a warning but still return the URL since we validated the PDF header locally
       if (uploadResult && String(uploadResult.format || '').toLowerCase() !== 'pdf') {
-        console.warn('[uploads] Cloudinary upload format mismatch:', uploadResult.format, 'for', uploadResult.public_id);
+        // Cloudinary may not set format for raw uploads; log at debug level to avoid alarming production logs
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('[uploads] Cloudinary upload format mismatch:', uploadResult.format, 'for', uploadResult.public_id);
+        }
       }
 
       // Also construct a server-side serve URL that will stream the PDF with correct headers
