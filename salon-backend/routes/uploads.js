@@ -22,7 +22,7 @@ router.post('/pdf', auth, async (req, res, next) => {
     const { filename, data } = req.body;
     if (!data) return res.status(400).json({ message: 'No file data provided' });
     // If Cloudinary is configured, upload the PDF as a raw resource
-    if (cloudinary.config().cloud_name) {
+    if (cloudinary && cloudinary.config && cloudinary.config().cloud_name) {
       // data may include data:<mime>;base64, prefix
       const base64 = data.replace(/^data:.*;base64,/, '');
       const buffer = Buffer.from(base64, 'base64');
@@ -40,24 +40,8 @@ router.post('/pdf', auth, async (req, res, next) => {
       return res.json({ url: uploadResult.secure_url, provider: 'cloudinary', raw: uploadResult });
     }
 
-    // Fallback: save to local uploads folder (existing behavior)
-    const uploadsDir = path.join(__dirname, '..', 'uploads');
-    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-
-    // Clean and create unique filename
-    const safeName = (filename || `receipt_${Date.now()}.pdf`).replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-    const outName = `${Date.now()}_${safeName}`;
-    const filePath = path.join(uploadsDir, outName);
-
-    // data may include data:<mime>;base64, prefix
-    const base64 = data.replace(/^data:.*;base64,/, '');
-    const buffer = Buffer.from(base64, 'base64');
-
-    fs.writeFileSync(filePath, buffer);
-
-    // Construct public URL based on request
-    const publicUrl = `${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(outName)}`;
-    res.json({ url: publicUrl, provider: 'local' });
+    // If Cloudinary is not configured, we return a 503 so the caller knows uploads are not available
+    return res.status(503).json({ message: 'Upload service unavailable: Cloudinary not configured' });
   } catch (err) {
     next(err);
   }
