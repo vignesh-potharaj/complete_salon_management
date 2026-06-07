@@ -126,7 +126,24 @@ router.get('/serve', async (req, res, next) => {
     if (!url) return res.status(404).send('No URL for resource');
 
     // Stream the file from Cloudinary and pipe to client with forced headers
-    const streamResp = await axios.get(url, { responseType: 'stream' });
+    let streamResp;
+    try {
+      streamResp = await axios.get(url, { responseType: 'stream' });
+    } catch (err) {
+      if (err.response) {
+        const cldError = err.response.headers['x-cld-error'];
+        if (cldError) {
+          console.error('[uploads][serve] Cloudinary delivery error:', cldError);
+          return res.status(err.response.status).json({
+            message: `Cloudinary delivery failed: ${cldError}`,
+            code: 'CLOUDINARY_DELIVERY_ERROR',
+            details: 'This error occurs when "PDF and ZIP files delivery" is restricted in your Cloudinary Security settings.'
+          });
+        }
+      }
+      throw err;
+    }
+
     // Force headers for inline display
     res.setHeader('Content-Type', 'application/pdf');
     const fname = filename || (info.filename ? info.filename + '.pdf' : 'receipt.pdf');
