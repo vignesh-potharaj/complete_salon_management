@@ -52,10 +52,11 @@ async function cleanupUploadsOnce(uploadsDir, ttlDays = 7) {
 }
 
 /**
- * Delete Cloudinary 'raw' resources in a folder older than ttlDays.
+ * Delete Cloudinary resources in a folder older than ttlDays.
+ * Supports resourceType 'raw' or 'image'.
  * Returns number of deleted resources.
  */
-async function cleanupCloudinaryOnce(folder = 'salonpro_receipts', ttlDays = 90) {
+async function cleanupCloudinaryOnce(folder = 'salonpro_receipts', ttlDays = 90, resourceType = 'raw') {
   if (!cloudinary) return 0;
   const now = Date.now();
   const ttlMs = ttlDays * 24 * 60 * 60 * 1000;
@@ -65,7 +66,7 @@ async function cleanupCloudinaryOnce(folder = 'salonpro_receipts', ttlDays = 90)
   try {
     do {
       const opts = {
-        resource_type: 'raw',
+        resource_type: resourceType,
         type: 'upload',
         prefix: folder,
         max_results: 500
@@ -77,9 +78,9 @@ async function cleanupCloudinaryOnce(folder = 'salonpro_receipts', ttlDays = 90)
         try {
           const created = new Date(r.created_at).getTime();
           if (now - created > ttlMs) {
-            await cloudinary.uploader.destroy(r.public_id, { resource_type: 'raw', invalidate: false });
+            await cloudinary.uploader.destroy(r.public_id, { resource_type: resourceType, invalidate: false });
             deleted++;
-            console.log(`[cleanupUploads][cloudinary] removed ${r.public_id} (created ${r.created_at})`);
+            console.log(`[cleanupUploads][cloudinary] removed ${r.public_id} (${resourceType}, created ${r.created_at})`);
           }
         } catch (err) {
           console.warn('[cleanupUploads][cloudinary] failed to delete', r.public_id, err.message || err);
@@ -89,7 +90,7 @@ async function cleanupCloudinaryOnce(folder = 'salonpro_receipts', ttlDays = 90)
       nextCursor = res.next_cursor;
     } while (nextCursor);
   } catch (err) {
-    console.error('[cleanupUploads][cloudinary] error listing resources', err.message || err);
+    console.error(`[cleanupUploads][cloudinary] error listing ${resourceType} resources`, err.message || err);
   }
 
   return deleted;
@@ -111,9 +112,14 @@ function startPeriodicCleanup(opts = {}) {
 
       // If Cloudinary is configured, run cloud cleanup as well
       if (cloudinary) {
-        const cloudDeleted = await cleanupCloudinaryOnce('salonpro_receipts', ttlDays);
-        if (cloudDeleted > 0) console.log(`[cleanupUploads] initial cloud cleanup removed ${cloudDeleted} items`);
-        else console.log('[cleanupUploads] initial cloud cleanup found no items to remove');
+        const rawDeleted = await cleanupCloudinaryOnce('salonpro_receipts', ttlDays, 'raw');
+        const imageDeleted = await cleanupCloudinaryOnce('salonpro_receipts', ttlDays, 'image');
+        const totalCloudDeleted = rawDeleted + imageDeleted;
+        if (totalCloudDeleted > 0) {
+          console.log(`[cleanupUploads] initial cloud cleanup removed ${totalCloudDeleted} items (raw: ${rawDeleted}, image: ${imageDeleted})`);
+        } else {
+          console.log('[cleanupUploads] initial cloud cleanup found no items to remove');
+        }
       }
     } catch (err) {
       console.error('[cleanupUploads] initial cleanup error', err);
@@ -129,8 +135,12 @@ function startPeriodicCleanup(opts = {}) {
         if (localDeleted > 0) console.log(`[cleanupUploads] periodic local cleanup removed ${localDeleted} files`);
 
         if (cloudinary) {
-          const cloudDeleted = await cleanupCloudinaryOnce('salonpro_receipts', ttlDays);
-          if (cloudDeleted > 0) console.log(`[cleanupUploads] periodic cloud cleanup removed ${cloudDeleted} items`);
+          const rawDeleted = await cleanupCloudinaryOnce('salonpro_receipts', ttlDays, 'raw');
+          const imageDeleted = await cleanupCloudinaryOnce('salonpro_receipts', ttlDays, 'image');
+          const totalCloudDeleted = rawDeleted + imageDeleted;
+          if (totalCloudDeleted > 0) {
+            console.log(`[cleanupUploads] periodic cloud cleanup removed ${totalCloudDeleted} items (raw: ${rawDeleted}, image: ${imageDeleted})`);
+          }
         }
       } catch (err) {
         console.error('[cleanupUploads] periodic cleanup error', err);

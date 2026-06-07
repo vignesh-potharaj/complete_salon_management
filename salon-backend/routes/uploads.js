@@ -49,10 +49,10 @@ router.post('/pdf', auth, async (req, res, next) => {
       const nameNoExt = safeName.replace(/\.pdf$/i, '');
       const publicId = `salonpro_receipts/${Date.now()}_${nameNoExt}`;
 
-      // Upload buffer via upload_stream, forcing resource_type raw and public_id so Cloudinary preserves file type
+      // Upload buffer via upload_stream, forcing resource_type image and public_id so Cloudinary preserves file type
       // Use filename and avoid unique filename so the stored public_id contains a readable filename which helps URL generation
       const uploadOptions = {
-        resource_type: 'raw',
+        resource_type: 'image',
         public_id: publicId,
         use_filename: true,
         unique_filename: false,
@@ -70,7 +70,7 @@ router.post('/pdf', auth, async (req, res, next) => {
       // Construct a display-friendly URL that includes .pdf so browsers render inline
       let displayUrl = uploadResult.secure_url;
       try {
-        const urlWithExt = cloudinary.utils.cloudinary_url(uploadResult.public_id, { resource_type: 'raw', secure: true, format: 'pdf' });
+        const urlWithExt = cloudinary.utils.cloudinary_url(uploadResult.public_id, { resource_type: 'image', secure: true, format: 'pdf' });
         if (urlWithExt) displayUrl = urlWithExt;
       } catch (e) {
         // ignore and fall back to secure_url
@@ -110,12 +110,16 @@ router.get('/serve', async (req, res, next) => {
     const { public_id, filename } = req.query;
     if (!public_id) return res.status(400).send('public_id required');
 
-    // Get resource info from Cloudinary
+    // Get resource info from Cloudinary (try image first, fall back to raw for legacy support)
     let info;
     try {
-      info = await cloudinary.api.resource(public_id, { resource_type: 'raw' });
+      info = await cloudinary.api.resource(public_id, { resource_type: 'image' });
     } catch (e) {
-      return res.status(404).send('Resource not found');
+      try {
+        info = await cloudinary.api.resource(public_id, { resource_type: 'raw' });
+      } catch (e2) {
+        return res.status(404).send('Resource not found');
+      }
     }
 
     const url = info.secure_url;
