@@ -39,8 +39,17 @@ router.post('/pdf', auth, async (req, res, next) => {
       const publicId = `salonpro_receipts/${Date.now()}_${nameNoExt}`;
 
       // Upload buffer via upload_stream, forcing resource_type raw and public_id so Cloudinary preserves file type
+      // Use filename and avoid unique filename so the stored public_id contains a readable filename which helps URL generation
+      const uploadOptions = {
+        resource_type: 'raw',
+        public_id: publicId,
+        use_filename: true,
+        unique_filename: false,
+        overwrite: false
+      };
+
       const uploadResult = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream({ resource_type: 'raw', public_id: publicId }, (error, result) => {
+        const stream = cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
           if (error) return reject(error);
           resolve(result);
         });
@@ -54,8 +63,17 @@ router.post('/pdf', auth, async (req, res, next) => {
         return res.status(500).json({ message: 'Upload succeeded but Cloudinary did not recognize the file as PDF' });
       }
 
-      // Return secure URL from Cloudinary. Note: Cloudinary public URLs are long-lived by default.
-      return res.json({ url: uploadResult.secure_url, provider: 'cloudinary', raw: uploadResult });
+      // Construct a display-friendly URL that includes .pdf so browsers render inline
+      let displayUrl = uploadResult.secure_url;
+      try {
+        // Use Cloudinary helper to build a URL that includes the pdf format (helps some browsers infer filename)
+        const urlWithExt = cloudinary.utils.cloudinary_url(uploadResult.public_id, { resource_type: 'raw', secure: true, format: 'pdf' });
+        if (urlWithExt) displayUrl = urlWithExt;
+      } catch (e) {
+        // ignore and fall back to secure_url
+      }
+
+      return res.json({ url: displayUrl, provider: 'cloudinary', raw: uploadResult });
     }
 
     // If Cloudinary is not configured, we return a 503 so the caller knows uploads are not available
