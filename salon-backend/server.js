@@ -100,3 +100,12 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 }
 
 module.exports = app;
+
+// Start uploads cleanup service (non-blocking)
+try {
+  const { startPeriodicCleanup } = require('./utils/cleanupUploads');
+  const cleaner = startPeriodicCleanup();
+  console.log('[cleanupUploads] service started');
+} catch (err) {
+  console.warn('[cleanupUploads] failed to start cleanup service', err.message || err);
+}

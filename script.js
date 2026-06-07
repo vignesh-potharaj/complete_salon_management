@@ -1948,6 +1948,7 @@ function removeInvImage() {
 
 let billItems = [];
 let currentClient = null; // Store current looked-up client object
+let currentBillId = null; // Tracks saved bill id when finalized
 
 async function populateProductDropdown() {
   try {
