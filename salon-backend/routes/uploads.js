@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const fs = require('fs');
 const path = require('path');
 const cloudinary = require('cloudinary').v2;
+const axios = require('axios');
 
 // Configure Cloudinary if env vars present
 if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
@@ -80,11 +81,53 @@ router.post('/pdf', auth, async (req, res, next) => {
         console.warn('[uploads] Cloudinary upload format mismatch:', uploadResult.format, 'for', uploadResult.public_id);
       }
 
-      return res.json({ url: displayUrl, provider: 'cloudinary', raw: uploadResult });
+      // Also construct a server-side serve URL that will stream the PDF with correct headers
+      const serveUrl = `${req.protocol}://${req.get('host')}/api/uploads/serve?public_id=${encodeURIComponent(uploadResult.public_id)}&filename=${encodeURIComponent(nameNoExt + '.pdf')}`;
+      return res.json({ url: displayUrl, serveUrl, provider: 'cloudinary', raw: uploadResult });
     }
 
     // If Cloudinary is not configured, we return a 503 so the caller knows uploads are not available
     return res.status(503).json({ message: 'Upload service unavailable: Cloudinary not configured' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /api/uploads/serve?public_id=...&filename=...
+ * Streams the Cloudinary raw resource and sets Content-Type and Content-Disposition so browsers render inline.
+ * Publicly accessible (no auth) so links can be shared.
+ */
+router.get('/serve', async (req, res, next) => {
+  try {
+    if (!(cloudinary && cloudinary.config && cloudinary.config().cloud_name)) {
+      return res.status(503).send('Upload service unavailable');
+    }
+
+    const { public_id, filename } = req.query;
+    if (!public_id) return res.status(400).send('public_id required');
+
+    // Get resource info from Cloudinary
+    let info;
+    try {
+      info = await cloudinary.api.resource(public_id, { resource_type: 'raw' });
+    } catch (e) {
+      return res.status(404).send('Resource not found');
+    }
+
+    const url = info.secure_url;
+    if (!url) return res.status(404).send('No URL for resource');
+
+    // Stream the file from Cloudinary and pipe to client with forced headers
+    const streamResp = await axios.get(url, { responseType: 'stream' });
+    // Force headers for inline display
+    res.setHeader('Content-Type', 'application/pdf');
+    const fname = filename || (info.filename ? info.filename + '.pdf' : 'receipt.pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${fname}"`);
+    // Optional caching headers
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+
+    streamResp.data.pipe(res);
   } catch (err) {
     next(err);
   }
