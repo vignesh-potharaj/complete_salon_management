@@ -23,18 +23,36 @@ router.post('/pdf', auth, async (req, res, next) => {
     if (!data) return res.status(400).json({ message: 'No file data provided' });
     // If Cloudinary is configured, upload the PDF as a raw resource
     if (cloudinary && cloudinary.config && cloudinary.config().cloud_name) {
+      // Ensure incoming data is a PDF data URL
+      const mimeMatch = String(data || '').match(/^data:([^;]+);base64,/);
+      if (!mimeMatch || mimeMatch[1].toLowerCase() !== 'application/pdf') {
+        return res.status(400).json({ message: 'Uploaded data is not a PDF (expected data:application/pdf;base64,...)' });
+      }
+
       // data may include data:<mime>;base64, prefix
       const base64 = data.replace(/^data:.*;base64,/, '');
       const buffer = Buffer.from(base64, 'base64');
 
-      // Upload buffer via upload_stream
+      // Build a safe public id from filename (without extension)
+      const safeName = (filename || `receipt_${Date.now()}`).replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+      const nameNoExt = safeName.replace(/\.pdf$/i, '');
+      const publicId = `salonpro_receipts/${Date.now()}_${nameNoExt}`;
+
+      // Upload buffer via upload_stream, forcing resource_type raw and public_id so Cloudinary preserves file type
       const uploadResult = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream({ resource_type: 'raw', folder: 'salonpro_receipts' }, (error, result) => {
+        const stream = cloudinary.uploader.upload_stream({ resource_type: 'raw', public_id: publicId }, (error, result) => {
           if (error) return reject(error);
           resolve(result);
         });
         stream.end(buffer);
       });
+
+      // Ensure Cloudinary recognized the upload as a PDF
+      if (uploadResult && String(uploadResult.format || '').toLowerCase() !== 'pdf') {
+        // Attempt to remove the uploaded resource to avoid orphaned files
+        try { if (uploadResult.public_id) await cloudinary.uploader.destroy(uploadResult.public_id, { resource_type: 'raw' }); } catch (e) { /* ignore */ }
+        return res.status(500).json({ message: 'Upload succeeded but Cloudinary did not recognize the file as PDF' });
+      }
 
       // Return secure URL from Cloudinary. Note: Cloudinary public URLs are long-lived by default.
       return res.json({ url: uploadResult.secure_url, provider: 'cloudinary', raw: uploadResult });
