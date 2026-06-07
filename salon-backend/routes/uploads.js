@@ -47,4 +47,25 @@ router.post('/pdf', auth, async (req, res, next) => {
   }
 });
 
+// GET /api/uploads/status
+// Returns current upload provider state and cleanup configuration (protected)
+router.get('/status', auth, async (req, res) => {
+  try {
+    const cloudConfigured = !!(cloudinary && cloudinary.config && cloudinary.config().cloud_name);
+    const cloudName = cloudConfigured ? cloudinary.config().cloud_name : null;
+    const ttlEnv = process.env.UPLOAD_TTL_DAYS ? parseInt(process.env.UPLOAD_TTL_DAYS, 10) : (cloudConfigured ? 90 : 7);
+    const intervalEnv = process.env.UPLOAD_CLEAN_INTERVAL_HOURS ? parseInt(process.env.UPLOAD_CLEAN_INTERVAL_HOURS, 10) : 24;
+
+    res.json({
+      provider: cloudConfigured ? 'cloudinary' : 'none',
+      cloudName: cloudName ? ("***" + cloudName.slice(-4)) : null,
+      uploadTtlDays: ttlEnv,
+      cleanupIntervalHours: intervalEnv,
+      note: cloudConfigured ? 'Cloudinary is configured; uploads will be stored in Cloudinary.' : 'Cloudinary not configured; upload endpoint unavailable (returns 503).'
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to retrieve upload status', error: err.message });
+  }
+});
+
 module.exports = router;
