@@ -80,6 +80,9 @@ app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/bills', require('./routes/bills'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+// Serve uploaded files
+app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));
+app.use('/api/uploads', require('./routes/uploads'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok', t: Date.now() }));
 
 app.get('/', (req, res) => res.json({ message: 'SalonPro API is running 🚀' }));

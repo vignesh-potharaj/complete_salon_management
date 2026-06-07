@@ -2190,28 +2190,44 @@ async function shareBillAsPDF() {
       }
     };
 
-    // Step 1: Generate and download the PDF
-    await html2pdf().set(opt).from(element).save();
+    // Generate PDF and get jsPDF instance, then convert to blob
+    const worker = html2pdf().set(opt).from(element).toPdf();
+    const pdfObj = await worker.get('pdf');
+    const blob = pdfObj.output('blob');
 
-    // Step 2: Open WhatsApp with client's number pre-filled
+    // Convert blob to base64 data URL
+    const dataUrl = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+
+    // Upload PDF to server so we can share a link via WhatsApp
+    let uploadedUrl = null;
+    try {
+      const uploadResp = await api('/uploads/pdf', { method: 'POST', body: { filename, data: dataUrl } });
+      uploadedUrl = uploadResp.url;
+    } catch (uErr) {
+      console.error('Upload failed', uErr);
+      showToast('Failed to upload PDF for sharing; sending message without attachment', 'error');
+    }
+
+    // Step 2: Open WhatsApp with client's number pre-filled and include link if available
     if (clientPhone) {
-      // Clean phone number: remove spaces, dashes, brackets. Add country code if missing.
       let cleanPhone = clientPhone.replace(/[\s\-\(\)]/g, '');
-      // If it's a 10-digit Indian number, add country code 91
       if (/^\d{10}$/.test(cleanPhone)) cleanPhone = '91' + cleanPhone;
 
-      const message = encodeURIComponent(
-        `Hi ${clientName}! 👋\n\nThank you for visiting *${salonName}*! 🙏\nPlease find your receipt attached.\n\nSee you again soon! ✨`
-      );
+      let messageText = `Hi ${clientName}! 👋\n\nThank you for visiting ${salonName}! 🙏\nPlease find your receipt`; 
+      if (uploadedUrl) messageText += ` here: ${uploadedUrl}`;
+      messageText += `\n\nSee you again soon! ✨`;
 
-      // Small delay so the PDF download triggers first
-      setTimeout(() => {
-        window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
-      }, 800);
-
-      showToast('PDF downloaded! WhatsApp opening...');
+      const message = encodeURIComponent(messageText);
+      // Open WhatsApp Web / App with message containing link to PDF
+      window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+      showToast('WhatsApp opening with receipt link...');
     } else {
-      showToast('PDF downloaded! (No phone number on file for WhatsApp)');
+      showToast('Receipt ready. No phone number on file for WhatsApp');
     }
   } catch (err) {
     showToast('Failed to generate PDF: ' + err.message, 'error');
