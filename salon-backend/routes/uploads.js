@@ -33,6 +33,16 @@ router.post('/pdf', auth, async (req, res, next) => {
       const base64 = data.replace(/^data:.*;base64,/, '');
       const buffer = Buffer.from(base64, 'base64');
 
+      // Quick sanity-check: ensure buffer starts with PDF magic header "%PDF-"
+      try {
+        const header = buffer.slice(0, 5).toString('utf8');
+        if (header !== '%PDF-') {
+          return res.status(400).json({ message: 'Uploaded file does not appear to be a valid PDF (missing %PDF- header)' });
+        }
+      } catch (e) {
+        return res.status(400).json({ message: 'Uploaded file validation failed' });
+      }
+
       // Build a safe public id from filename (without extension)
       const safeName = (filename || `receipt_${Date.now()}`).replace(/[^a-zA-Z0-9_\-\.]/g, '_');
       const nameNoExt = safeName.replace(/\.pdf$/i, '');
@@ -56,21 +66,18 @@ router.post('/pdf', auth, async (req, res, next) => {
         stream.end(buffer);
       });
 
-      // Ensure Cloudinary recognized the upload as a PDF
-      if (uploadResult && String(uploadResult.format || '').toLowerCase() !== 'pdf') {
-        // Attempt to remove the uploaded resource to avoid orphaned files
-        try { if (uploadResult.public_id) await cloudinary.uploader.destroy(uploadResult.public_id, { resource_type: 'raw' }); } catch (e) { /* ignore */ }
-        return res.status(500).json({ message: 'Upload succeeded but Cloudinary did not recognize the file as PDF' });
-      }
-
       // Construct a display-friendly URL that includes .pdf so browsers render inline
       let displayUrl = uploadResult.secure_url;
       try {
-        // Use Cloudinary helper to build a URL that includes the pdf format (helps some browsers infer filename)
         const urlWithExt = cloudinary.utils.cloudinary_url(uploadResult.public_id, { resource_type: 'raw', secure: true, format: 'pdf' });
         if (urlWithExt) displayUrl = urlWithExt;
       } catch (e) {
         // ignore and fall back to secure_url
+      }
+
+      // If Cloudinary did not report format 'pdf', log a warning but still return the URL since we validated the PDF header locally
+      if (uploadResult && String(uploadResult.format || '').toLowerCase() !== 'pdf') {
+        console.warn('[uploads] Cloudinary upload format mismatch:', uploadResult.format, 'for', uploadResult.public_id);
       }
 
       return res.json({ url: displayUrl, provider: 'cloudinary', raw: uploadResult });
