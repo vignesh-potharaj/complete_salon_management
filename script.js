@@ -2208,8 +2208,8 @@ async function shareBillAsPDF() {
     let uploadedUrl = null;
     try {
       const uploadResp = await api('/uploads/pdf', { method: 'POST', body: { filename, data: dataUrl } });
-      // Prefer server-side proxy URL that sets inline headers (serveUrl), fall back to Cloudinary URL
-      uploadedUrl = uploadResp.serveUrl || uploadResp.url;
+      // Prefer direct Cloudinary URL, fall back to server-side proxy URL
+      uploadedUrl = uploadResp.url || uploadResp.serveUrl;
     } catch (uErr) {
       console.error('Upload failed', uErr);
       showToast('Failed to upload PDF for sharing; sending message without attachment', 'error');
